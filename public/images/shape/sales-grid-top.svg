@@ -1,0 +1,75 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<svg width="100%" height="100%" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Sales Grid Top</title>
+  <desc id="desc">Dotted grid with trend lines and growth pulse for sales theme</desc>
+
+  <defs>
+    <!-- Auto-adapt to light/dark -->
+    <style>
+      :root { --dot:#0B1220; --line:#0B1220; --glow:#10B981; --accent:#34D399; }
+      @media (prefers-color-scheme: dark) {
+        :root { --dot:#FFFFFF; --line:#FFFFFF; --glow:#34D399; --accent:#6EE7B7; }
+      }
+    </style>
+
+    <!-- Dot pattern -->
+    <pattern id="dots" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
+      <circle cx="1.4" cy="1.4" r="1.3" fill="var(--dot)" opacity="0.10"></circle>
+    </pattern>
+
+    <!-- Soft corner fade -->
+    <radialGradient id="softfade" cx="100%" cy="0%" r="120%">
+      <stop offset="60%" stop-color="white"></stop>
+      <stop offset="100%" stop-color="white" stop-opacity="0"></stop>
+    </radialGradient>
+    <mask id="cornerfade">
+      <rect width="800" height="600" fill="url(#softfade)"></rect>
+    </mask>
+
+    <!-- Glow filter -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="20" result="b"></feGaussianBlur>
+      <feMerge>
+        <feMergeNode in="b"></feMergeNode>
+        <feMergeNode in="SourceGraphic"></feMergeNode>
+      </feMerge>
+    </filter>
+
+    <!-- Trend gradient -->
+    <linearGradient id="trend" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--glow)" stop-opacity="0.0"></stop>
+      <stop offset="0.35" stop-color="var(--glow)" stop-opacity="0.5"></stop>
+      <stop offset="1" stop-color="var(--glow)" stop-opacity="0.0"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Dots (top-right quadrant) -->
+  <rect x="220" y="0" width="580" height="410" fill="url(#dots)" mask="url(#cornerfade)"></rect>
+
+  <!-- Growth pulse rings -->
+  <g opacity="0.35">
+    <circle cx="680" cy="90" r="28" stroke="var(--accent)" stroke-width="1.2" fill="none"></circle>
+    <circle cx="680" cy="90" r="48" stroke="var(--accent)" stroke-width="1" fill="none" opacity="0.7"></circle>
+    <circle cx="680" cy="90" r="68" stroke="var(--accent)" stroke-width="0.9" fill="none" opacity="0.45"></circle>
+  </g>
+
+  <!-- Subtle guide diagonals -->
+  <g opacity="0.16">
+    <path d="M340 -40 L880 500" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M300 -40 L840 500" stroke="var(--line)" stroke-width="0.9"></path>
+    <path d="M420 -40 L960 500" stroke="var(--line)" stroke-width="0.9"></path>
+  </g>
+
+  <!-- Trend lines (suggest upward sales) -->
+  <g filter="url(#glow)" opacity="0.8">
+    <path d="M460 80 C520 70, 600 120, 640 160 C680 200, 720 200, 800 240" stroke="url(#trend)" stroke-width="3" fill="none"></path>
+    <path d="M420 130 C500 120, 560 160, 610 190 C660 220, 720 230, 800 270" stroke="url(#trend)" stroke-width="2" fill="none" opacity="0.8"></path>
+  </g>
+
+  <!-- Tiny “data points” -->
+  <g fill="var(--accent)" opacity="0.8">
+    <circle cx="640" cy="160" r="2.4"></circle>
+    <circle cx="610" cy="190" r="2.4"></circle>
+    <circle cx="720" cy="230" r="2.4"></circle>
+  </g>
+</svg>

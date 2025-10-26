@@ -1,0 +1,57 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<svg width="100%" height="100%" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Admin Grid Bottom</title>
+  <desc id="desc">Diagonal line grid with wave bands and corner rings</desc>
+
+  <defs>
+    <style>
+      :root { --line:#0B1220; --accent:#2563EB; --ring:#1D4ED8; }
+      @media (prefers-color-scheme: dark) {
+        :root { --line:#FFFFFF; --accent:#3B82F6; --ring:#60A5FA; }
+      }
+    </style>
+
+    <!-- Soft top fade so it blends upward -->
+    <linearGradient id="upfade" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="white"></stop>
+      <stop offset="100%" stop-color="white" stop-opacity="0"></stop>
+    </linearGradient>
+    <mask id="soft-top">
+      <rect width="800" height="600" fill="url(#upfade)"></rect>
+    </mask>
+
+    <!-- Wave gradient -->
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="var(--accent)" stop-opacity="0.0"></stop>
+      <stop offset="0.45" stop-color="var(--accent)" stop-opacity="0.35"></stop>
+      <stop offset="1" stop-color="var(--accent)" stop-opacity="0.0"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Diagonal grid (bottom-left quadrant) -->
+  <g opacity="0.16" mask="url(#soft-top)">
+    <!-- draw a bunch of parallel lines -->
+    <g>
+      <path d="M-60 520 L380 980" stroke="var(--line)" stroke-width="1"></path>
+      <path d="M-20 480 L420 940" stroke="var(--line)" stroke-width="1"></path>
+      <path d="M20 440 L460 900" stroke="var(--line)" stroke-width="1"></path>
+      <path d="M60 400 L500 860" stroke="var(--line)" stroke-width="1"></path>
+      <path d="M100 360 L540 820" stroke="var(--line)" stroke-width="1"></path>
+      <path d="M140 320 L580 780" stroke="var(--line)" stroke-width="1"></path>
+      <path d="M180 280 L620 740" stroke="var(--line)" stroke-width="1"></path>
+      <path d="M220 240 L660 700" stroke="var(--line)" stroke-width="1"></path>
+    </g>
+  </g>
+
+  <!-- Waves -->
+  <g opacity="0.75">
+    <path d="M-40 520 C140 480, 260 560, 460 520 C640 485, 740 540, 860 520" stroke="url(#wave)" stroke-width="3" fill="none"></path>
+    <path d="M-60 560 C120 520, 250 600, 440 560 C630 525, 760 580, 860 560" stroke="url(#wave)" stroke-width="2" fill="none" opacity="0.7"></path>
+  </g>
+
+  <!-- Corner accent rings (bottom-left) -->
+  <g opacity="0.35">
+    <circle cx="80" cy="520" r="34" stroke="var(--ring)" stroke-width="1.2" fill="none"></circle>
+    <circle cx="80" cy="520" r="54" stroke="var(--ring)" stroke-width="1" fill="none" opacity="0.6"></circle>
+  </g>
+</svg>

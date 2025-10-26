@@ -1,0 +1,63 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<svg width="100%" height="100%" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Distributor Grid Bottom</title>
+  <desc id="desc">Diagonal lines with pallet bars and supply waves</desc>
+
+  <defs>
+    <style>
+      :root { --line:#0B1220; --accent:#F59E0B; --ring:#B45309; --wave:#FDBA74; }
+      @media (prefers-color-scheme: dark) {
+        :root { --line:#FFFFFF; --accent:#FBBF24; --ring:#D97706; --wave:#FDE68A; }
+      }
+    </style>
+
+    <!-- Fade upward -->
+    <linearGradient id="upfade" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="white"></stop>
+      <stop offset="100%" stop-color="white" stop-opacity="0"></stop>
+    </linearGradient>
+    <mask id="soft-top">
+      <rect width="800" height="600" fill="url(#upfade)"></rect>
+    </mask>
+
+    <!-- Wave gradient -->
+    <linearGradient id="wavegrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="var(--wave)" stop-opacity="0.0"></stop>
+      <stop offset="0.45" stop-color="var(--wave)" stop-opacity="0.35"></stop>
+      <stop offset="1" stop-color="var(--wave)" stop-opacity="0.0"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Diagonal parallels (bottom-left quadrant) -->
+  <g opacity="0.14" mask="url(#soft-top)">
+    <path d="M-60 520 L380 980" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M-20 480 L420 940" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M20 440 L460 900" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M60 400 L500 860" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M100 360 L540 820" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M140 320 L580 780" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M180 280 L620 740" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M220 240 L660 700" stroke="var(--line)" stroke-width="1"></path>
+  </g>
+
+  <!-- Supply waves -->
+  <g opacity="0.85">
+    <path d="M-40 520 C140 480, 260 560, 460 520 C640 485, 740 540, 860 520" stroke="url(#wavegrad)" stroke-width="3" fill="none"></path>
+    <path d="M-60 560 C120 520, 250 600, 440 560 C630 525, 760 580, 860 560" stroke="url(#wavegrad)" stroke-width="2" fill="none" opacity="0.75"></path>
+  </g>
+
+  <!-- Pallet bars (rising stack) -->
+  <g opacity="0.92">
+    <rect x="72" y="524" width="8" height="24" fill="var(--accent)" rx="2"></rect>
+    <rect x="90" y="512" width="8" height="36" fill="var(--accent)" rx="2" opacity="0.92"></rect>
+    <rect x="108" y="498" width="8" height="50" fill="var(--accent)" rx="2" opacity="0.88"></rect>
+    <rect x="126" y="484" width="8" height="64" fill="var(--accent)" rx="2" opacity="0.84"></rect>
+    <rect x="144" y="468" width="8" height="80" fill="var(--accent)" rx="2" opacity="0.82"></rect>
+  </g>
+
+  <!-- Corner rings -->
+  <g opacity="0.4">
+    <circle cx="92" cy="544" r="30" stroke="var(--ring)" stroke-width="1.2" fill="none"></circle>
+    <circle cx="92" cy="544" r="50" stroke="var(--ring)" stroke-width="1" fill="none" opacity="0.65"></circle>
+  </g>
+</svg>

@@ -1,0 +1,63 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<svg width="100%" height="100%" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Sales Grid Bottom</title>
+  <desc id="desc">Diagonal grid with bar-spark motif and revenue waves</desc>
+
+  <defs>
+    <style>
+      :root { --line:#0B1220; --accent:#10B981; --ring:#059669; --wave:#34D399; }
+      @media (prefers-color-scheme: dark) {
+        :root { --line:#FFFFFF; --accent:#34D399; --ring:#10B981; --wave:#6EE7B7; }
+      }
+    </style>
+
+    <!-- Fade upward to blend -->
+    <linearGradient id="upfade" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="white"></stop>
+      <stop offset="100%" stop-color="white" stop-opacity="0"></stop>
+    </linearGradient>
+    <mask id="soft-top">
+      <rect width="800" height="600" fill="url(#upfade)"></rect>
+    </mask>
+
+    <!-- Wave gradient -->
+    <linearGradient id="wavegrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="var(--wave)" stop-opacity="0.0"></stop>
+      <stop offset="0.45" stop-color="var(--wave)" stop-opacity="0.35"></stop>
+      <stop offset="1" stop-color="var(--wave)" stop-opacity="0.0"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Diagonal parallel lines (bottom-left quadrant) -->
+  <g opacity="0.15" mask="url(#soft-top)">
+    <path d="M-60 520 L380 980" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M-20 480 L420 940" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M20 440 L460 900" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M60 400 L500 860" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M100 360 L540 820" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M140 320 L580 780" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M180 280 L620 740" stroke="var(--line)" stroke-width="1"></path>
+    <path d="M220 240 L660 700" stroke="var(--line)" stroke-width="1"></path>
+  </g>
+
+  <!-- Revenue waves -->
+  <g opacity="0.8">
+    <path d="M-40 520 C140 480, 260 560, 460 520 C640 485, 740 540, 860 520" stroke="url(#wavegrad)" stroke-width="3" fill="none"></path>
+    <path d="M-60 560 C120 520, 250 600, 440 560 C630 525, 760 580, 860 560" stroke="url(#wavegrad)" stroke-width="2" fill="none" opacity="0.7"></path>
+  </g>
+
+  <!-- Bar spark (mini bars rising) -->
+  <g opacity="0.9">
+    <rect x="70" y="520" width="6" height="22" fill="var(--accent)" rx="2"></rect>
+    <rect x="84" y="510" width="6" height="32" fill="var(--accent)" rx="2" opacity="0.9"></rect>
+    <rect x="98" y="498" width="6" height="44" fill="var(--accent)" rx="2" opacity="0.8"></rect>
+    <rect x="112" y="486" width="6" height="56" fill="var(--accent)" rx="2" opacity="0.75"></rect>
+    <rect x="126" y="472" width="6" height="70" fill="var(--accent)" rx="2" opacity="0.72"></rect>
+  </g>
+
+  <!-- Corner rings -->
+  <g opacity="0.35">
+    <circle cx="86" cy="540" r="32" stroke="var(--ring)" stroke-width="1.2" fill="none"></circle>
+    <circle cx="86" cy="540" r="52" stroke="var(--ring)" stroke-width="1" fill="none" opacity="0.65"></circle>
+  </g>
+</svg>
