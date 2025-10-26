@@ -342,7 +342,7 @@ class ProductController extends Controller
         ]);
     }
 
-    return redirect()->route('admin.products.index')->with('success', 'Variants added successfully.');
+    return redirect()->route('admin.products.index')->with('success', 'Variants added successfully D');
 }
 
 
