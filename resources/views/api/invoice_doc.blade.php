@@ -1,166 +1,185 @@
-{{-- resources/views/tally_invoices/api_doc.blade.php --}}
-@extends('api.layout')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tally API Documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-@section('title','Tally Invoice API Documentation')
-@section('subtitle','Secure endpoint to POST Tally XML invoices — clear examples & quick tests')
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-@section('content')
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<div style="display:flex;gap:18px;flex-wrap:wrap">
-    <div style="flex:1; min-width:360px;">
-        <section class="panel" style="margin-bottom:12px;">
-            <h2 style="font-size:16px;margin-bottom:8px">Overview</h2>
-            <p class="muted small">
-                This endpoint accepts raw Tally XML (ENVELOPE) and stores it in the system linked to an <code>order_number</code>.
-                Each order may have at most one Tally invoice. If an invoice is already present for an order, the API returns an error.
-            </p>
-            <ul style="color:var(--muted);margin:10px 0 0 18px;">
-                <li>Method: <strong>POST</strong></li>
-                <li>Endpoint: <strong><code>{{ url('/api/tally/invoice/{orderNumber}') }}</code></strong></li>
-                <li>Security: <strong>Shared header secret</strong> (X-Tally-Secret)</li>
-            </ul>
-        </section>
+    <style>
+        [x-cloak] { display: none !important; }
+        pre { white-space: pre-wrap; }
+    </style>
+</head>
 
-        <section class="panel" style="margin-bottom:12px;">
-            <h3 style="font-size:15px;margin-bottom:8px">Authentication (Header)</h3>
+<body class="bg-gray-100 text-gray-800">
 
-            <div class="grid" style="grid-template-columns:1fr 1fr; gap:10px;">
-                <div>
-                    <p class="small muted"><strong>Required Header</strong></p>
-                    <pre id="hdrRequired">Content-Type: text/xml</pre>
-                </div>
-                <div>
-                    <p class="small muted"><strong>Shared Secret (X-Tally-Secret)</strong></p>
-                    <pre id="hdrSecret">X-Tally-Secret: prrahi-2025</pre>
-                </div>
-            </div>
+<div class="max-w-6xl mx-auto px-6 py-8" x-data="{ tab: 'get' }">
 
-            <div style="margin-top:10px;">
-                <button class="btn btn-copy" data-copy="#hdrRequired">Copy Content-Type</button>
-                <button class="btn btn-copy" style="margin-left:8px;" data-copy="#hdrSecret">Copy Secret</button>
-            </div>
-
-            <p class="muted small" style="margin-top:10px;">
-                <strong>Note:</strong> The shared secret must match <code>config('services.tally.secret')</code> on the server.
-                Use a secure value in production and rotate periodically.
-            </p>
-        </section>
-
-        <section class="panel" style="margin-bottom:12px;">
-            <h3 style="font-size:15px;margin-bottom:8px">Quick curl Example</h3>
-
-            <pre id="curlExample">
-curl -X POST "{{ url('/api/tally/invoice/ORD123') }}" \
-  -H "Content-Type: text/xml" \
-  -H "X-Tally-Secret: prrahi-2025" \
-  --data-binary @invoice.xml
-            </pre>
-
-            <div style="margin-top:8px;">
-                <button class="btn btn-copy" data-copy="#curlExample">Copy curl</button>
-            </div>
-        </section>
-
-        <section class="panel">
-            <h3 style="font-size:15px;margin-bottom:8px">Postman Quick Steps</h3>
-            <ol style="color:var(--muted); margin:0 0 0 18px;">
-                <li>Create a <strong>POST</strong> request with URL: <code id="postmanUrl">{{ url('/api/tally/invoice/ORD123') }}</code></li>
-                <li>Headers: <code>Content-Type: text/xml</code> and <code>X-Tally-Secret: prrahi-2025</code></li>
-                <li>Body → choose <strong>raw</strong> → paste the Tally XML → Send</li>
-            </ol>
-            <div style="margin-top:8px;">
-                <button class="btn btn-copy" data-copy="#postmanUrl">Copy Postman URL</button>
-            </div>
-        </section>
+    <!-- HEADER -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Tally Integration API</h1>
+        <p class="text-gray-600 mt-1">
+            Inventory & Order Synchronization APIs for Tally
+        </p>
     </div>
 
-    <div style="flex:1; min-width:360px;">
-        <section class="panel" style="margin-bottom:12px;">
-            <h3 style="font-size:15px;margin-bottom:8px;">Sample Request Body (Tally XML)</h3>
+    <!-- TABS -->
+    <div class="flex gap-4 border-b mb-6">
+        <button @click="tab='get'"
+                class="pb-2 font-medium"
+                :class="tab==='get' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500'">
+            Get Pending Invoice Orders
+        </button>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <div class="muted small">Minimal example — replace values as needed</div>
-                <div>
-                    <button class="btn btn-copy" data-copy="#xmlSample">Copy XML</button>
-                    <button class="btn btn-ghost" data-toggle-pretty data-target="#xmlSample" style="margin-left:8px;">Prettify</button>
-                </div>
-            </div>
+        <button @click="tab='post'"
+                class="pb-2 font-medium"
+                :class="tab==='post' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500'">
+            Post Invoice Generated
+        </button>
 
-            <pre id="xmlSample" data-raw>
-&lt;ENVELOPE&gt;
-  &lt;HEADER&gt;
-    &lt;TALLYREQUEST&gt;Import Data&lt;/TALLYREQUEST&gt;
-  &lt;/HEADER&gt;
-  &lt;BODY&gt;
-    &lt;IMPORTDATA&gt;
-      &lt;REQUESTDESC&gt;
-        &lt;REPORTNAME&gt;Vouchers&lt;/REPORTNAME&gt;
-      &lt;/REQUESTDESC&gt;
-      &lt;REQUESTDATA&gt;
-        &lt;TALLYMESSAGE&gt;
-          &lt;VOUCHER VCHTYPE="Sales" ACTION="Create"&gt;
-            &lt;DATE&gt;20250905&lt;/DATE&gt;
-            &lt;PARTYNAME&gt;ABC Distributor&lt;/PARTYNAME&gt;
-            &lt;VOUCHERNUMBER&gt;INV-1001&lt;/VOUCHERNUMBER&gt;
-            &lt;NARRATION&gt;Invoice linked to Order ORD123&lt;/NARRATION&gt;
-            &lt;ALLLEDGERENTRIES.LIST&gt;
-              &lt;LEDGERNAME&gt;Sales Account&lt;/LEDGERNAME&gt;
-              &lt;AMOUNT&gt;-1000.00&lt;/AMOUNT&gt;
-            &lt;/ALLLEDGERENTRIES.LIST&gt;
-            &lt;ALLLEDGERENTRIES.LIST&gt;
-              &lt;LEDGERNAME&gt;ABC Distributor&lt;/LEDGERNAME&gt;
-              &lt;AMOUNT&gt;1000.00&lt;/AMOUNT&gt;
-            &lt;/ALLLEDGERENTRIES.LIST&gt;
-          &lt;/VOUCHER&gt;
-        &lt;/TALLYMESSAGE&gt;
-      &lt;/REQUESTDATA&gt;
-    &lt;/IMPORTDATA&gt;
-  &lt;/BODY&gt;
-&lt;/ENVELOPE&gt;
-            </pre>
-        </section>
-
-        <section class="panel" style="margin-top:12px;">
-            <h3 style="font-size:15px;margin-bottom:8px;">Responses</h3>
-
-            <p class="muted small">Successful response (HTTP 200):</p>
-            <pre>
-&lt;RESPONSE&gt;
-  &lt;STATUS&gt;1&lt;/STATUS&gt;
-  &lt;MESSAGE&gt;Invoice saved with ID 5 for Order ORD123&lt;/MESSAGE&gt;
-&lt;/RESPONSE&gt;
-            </pre>
-
-            <p class="muted small">Common error responses:</p>
-            <ul style="color:var(--muted); margin:8px 0 0 18px;">
-                <li><code>401 Unauthorized</code> — Missing or invalid <code>X-Tally-Secret</code></li>
-                <li><code>404 Not Found</code> — Provided <code>order_number</code> does not exist</li>
-                <li><code>400 / 422</code> — Empty body or malformed XML</li>
-                <li><code>409 / 400</code> — Invoice already exists for order (duplicate)</li>
-            </ul>
-        </section>
+        <button @click="tab='status'"
+                class="pb-2 font-medium"
+                :class="tab==='status' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500'">
+            Get Invoice Status
+        </button>
     </div>
+
+    <!-- ================= GET ORDERS ================= -->
+    <div x-show="tab==='get'" x-cloak>
+        <h2 class="text-xl font-semibold mb-3">1. Fetch Orders Pending Invoice</h2>
+
+        <div class="bg-white rounded-lg p-5 shadow mb-6">
+            <p><strong>Method:</strong> GET</p>
+            <p><strong>Endpoint:</strong></p>
+
+            <code class="block mt-2 bg-gray-900 text-green-400 p-3 rounded">
+                {{ rtrim(config('app.url'), '/') }}/api/tally/orders/pending-invoice
+            </code>
+        </div>
+
+        <h3 class="font-semibold mb-2">Headers</h3>
+        <pre class="bg-gray-900 text-green-400 p-4 rounded mb-6">
+Accept: application/json
+X-API-KEY: YOUR_TALLY_API_KEY
+        </pre>
+
+        <h3 class="font-semibold mb-2">Sample Response</h3>
+        <pre class="bg-gray-900 text-gray-200 p-4 rounded overflow-x-auto">
+{
+  "status": "success",
+  "count": 1,
+  "data": [
+    {
+      "distributor": {
+        "firm_name": "ABC Distributors",
+        "nature_of_firm": "Proprietorship",
+        "gst": "18ABCDE1234F1Z5",
+        "contact_person": "Ramesh",
+        "contact_number": "9876543210"
+      },
+      "order": {
+        "order_number": "ORD-2025-00012",
+        "order_date": "2025-01-10",
+        "billing_address": "Guwahati, Assam",
+        "subtotal": 12000,
+        "discount": 500,
+        "cgst": 287.5,
+        "sgst": 287.5,
+        "round_off": -0.5,
+        "total_amount": 12075
+      },
+      "items": [
+        {
+          "product_name": "Detergent Powder - Lemon (DP-001)",
+          "rate": 120,
+          "base_unit": "Dozen",
+          "quantity": 5,
+          "discount_percent": 5,
+          "total": 600
+        }
+      ]
+    }
+  ]
+}
+        </pre>
+    </div>
+
+    <!-- ================= POST INVOICE ================= -->
+    <div x-show="tab==='post'" x-cloak>
+        <h2 class="text-xl font-semibold mb-3">2. Post Invoice Generated</h2>
+
+        <div class="bg-white rounded-lg p-5 shadow mb-6">
+            <p><strong>Method:</strong> POST</p>
+            <p><strong>Endpoint:</strong></p>
+
+            <code class="block mt-2 bg-gray-900 text-green-400 p-3 rounded">
+                {{ rtrim(config('app.url'), '/') }}/api/tally/orders/invoice-generated
+            </code>
+        </div>
+
+        <h3 class="font-semibold mb-2">Headers</h3>
+        <pre class="bg-gray-900 text-green-400 p-4 rounded mb-4">
+Content-Type: application/json
+Accept: application/json
+X-API-KEY: YOUR_TALLY_API_KEY
+        </pre>
+
+        <h3 class="font-semibold mb-2">Request Body</h3>
+        <pre class="bg-gray-900 text-gray-200 p-4 rounded mb-4">
+{
+  "order_number": "ORD-2025-00012",
+  "invoice_no": "INV-4599",
+  "invoice_date": "2025-01-10"
+}
+        </pre>
+
+        <h3 class="font-semibold mb-2">Response</h3>
+        <pre class="bg-gray-900 text-gray-200 p-4 rounded">
+{
+  "status": "success",
+  "message": "Invoice details saved successfully"
+}
+        </pre>
+    </div>
+
+    <!-- ================= GET STATUS ================= -->
+    <div x-show="tab==='status'" x-cloak>
+        <h2 class="text-xl font-semibold mb-3">3. Get Invoice Status</h2>
+
+        <div class="bg-white rounded-lg p-5 shadow mb-6">
+            <p><strong>Method:</strong> GET</p>
+            <p><strong>Endpoint:</strong></p>
+
+            <code class="block mt-2 bg-gray-900 text-green-400 p-3 rounded">
+                {{ rtrim(config('app.url'), '/') }}/api/tally/orders/invoice-status?order_number=ORD-2025-00012
+            </code>
+        </div>
+
+        <h3 class="font-semibold mb-2">Sample Response</h3>
+        <pre class="bg-gray-900 text-gray-200 p-4 rounded">
+{
+  "status": "success",
+  "order": {
+    "order_number": "ORD-2025-00012",
+    "order_status": "confirmed",
+    "invoice_status": "generated",
+    "bill_generated": true,
+    "invoice": {
+      "invoice_no": "INV-4599",
+      "invoice_date": "2025-01-10"
+    }
+  }
+}
+        </pre>
+    </div>
+
 </div>
 
-<div style="margin-top:14px" class="panel">
-    <h3 style="font-size:15px;margin-bottom:8px">Best Practices & Security</h3>
-    <ul style="color:var(--muted);margin:0 0 0 18px;">
-        <li>Use HTTPS for all requests to protect the shared secret in transit.</li>
-        <li>Do not hardcode the shared secret in distributed TDL files — keep it configurable in Tally's environment or secure store.</li>
-        <li>Rotate the secret periodically and update both Tally and server configuration.</li>
-        <li>Log incoming requests (headers + IP) for audit and troubleshooting, but never log the secret in plain text.</li>
-        <li>Perform request size limits and XML validation to avoid resource exhaustion or XML-based attacks.</li>
-    </ul>
-</div>
-
-<div style="margin-top:12px" class="panel">
-    <h3 style="font-size:15px;margin-bottom:8px">Troubleshooting</h3>
-    <ol style="color:var(--muted); margin:0 0 0 18px;">
-        <li>Confirm endpoint URL and that <code>{orderNumber}</code> exists in your orders table.</li>
-        <li>Confirm header <code>X-Tally-Secret: prrahi-2025</code> is being sent (case-sensitive).</li>
-        <li>Test locally with curl/Postman before integrating with Tally.</li>
-        <li>Check Laravel logs (<code>storage/logs/laravel.log</code>) for server-side errors & stack trace.</li>
-    </ol>
-</div>
-
-@endsection
+</body>
+</html>

@@ -3,537 +3,621 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Order;
-use App\Models\Distributor;
+use App\Models\OrderItem;
 use App\Models\Product;
-use App\Models\Setting;
+use App\Models\Distributor;
 use App\Models\InventoryTransaction;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use App\Services\OrderActivityLogger;
+use App\Services\OrderDeliveryService;
 
 
 class AdminOrderController extends Controller
 {
 
 
-    public function __construct()
+    public function index(Request $request)
     {
-        $this->middleware('permission:view_orders')->only(['index', 'show']);
-        $this->middleware('permission:create_orders')->only(['create', 'store']);
-        $this->middleware('permission:edit_orders')->only(['edit', 'update']);
-        $this->middleware('permission:delete_orders')->only(['destroy']);
+        $title = 'Orders';
+
+        $query = Order::with([
+                'distributor',
+                'activities:id,order_id,event,created_at'
+            ])->latest();
+
+        // 🔍 Search by Order Number
+        if ($request->filled('q')) {
+            $query->where('order_number', 'like', '%' . $request->q . '%');
+        }
+
+        // 🏷 Filter by Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $orders = $query
+            ->paginate(20)
+            ->appends($request->query());// keep filters during pagination
+
+        return view('admin.orders.index', compact('orders', 'title'));
+
+
+        
     }
 
 
 
-public function index(Request $request)
-{
-    $title = 'Order';
-    $search = $request->input('search');
-    $status = $request->input('status'); // <-- new filter
-
-    $orders = Order::with('distributor')
-        ->when($search, function ($query, $search) {
-            $query->where('order_number', 'like', "%{$search}%")
-                ->orWhereHas('distributor', function ($q) use ($search) {
-                    $q->where('firm_name', 'like', "%{$search}%")
-                        ->orWhere('contact_person', 'like', "%{$search}%")
-                        ->orWhere('contact_number', 'like', "%{$search}%");
-                });
-        })
-        ->when($status, function ($query, $status) {
-            $query->where('status', $status);
-        })
-        ->latest()
-        ->paginate(15);
-
-    return view('admin.orders.index', compact('orders', 'search', 'status', 'title'));
-}
-
-
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        $title = 'Order';
-        $distributors = Distributor::select('*')->get();
-        $freeDozenCase = Setting::get('orders', 'free-dozen', false);
-        $products = Product::whereIn('type', ['simple', 'variant'])
-        ->with('parent')
-        ->get();
-
-        return view('admin.orders.create', compact('distributors', 'products','freeDozenCase','title'));
-
-
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-public function store(Request $request)
-{
-
-    $validated = $request->validate([
-        'order_number' => 'nullable|string|max:255',
-        'distributor_id' => 'required|exists:distributors,id',
-        'order_date' => 'required|date',
-        'product_ids' => 'required|array|min:1',
-        'product_ids.*' => 'required|exists:products,id',
-        'prices' => 'required|array|min:1',
-        'prices.*' => 'required|numeric|min:0',
-        'dozen_cases' => 'required|array|min:1',
-        'dozen_cases.*' => 'required|integer|min:0',
-        'quantities' => 'required|array|min:1',
-        'quantities.*' => 'required|integer|min:1',
-        'totals' => 'required|array|min:1',
-        'totals.*' => 'required|numeric|min:0',
-        'discount'=> 'nullable|numeric|min:0', // ← add this
-    ]);
-
-
-
-    $checkStock = Setting::get('products', 'check_stock_before_order', true);
-    $insufficientStock = [];
-
-    if ($checkStock) {
+        $title = 'Orders';
         
-        foreach ($validated['product_ids'] as $index => $productId) {
-
-            $product = Product::find($productId);
-            $productName = ($product->parent->category->name ?? '') . ' - ' . collect($product->attributes)->implode(', ');
-
-            $availableStock = $product->getAvailableStock();
-            $requestedQty = $validated['quantities'][$index];
-
-            if ($requestedQty > $availableStock) {
-                $insufficientStock[] = [
-                    'product_name' => $productName,
-                    'available' => $availableStock,
-                    'requested' => $requestedQty,
-                ];
+        // Load products with category and variants (with their categories)
+        $products = Product::whereIn('type', ['simple', 'variable'])
+            ->with([
+                'category', // Load category for parent products
+                'variants.parent',
+                'variants.category' // Load category for variants too if needed
+            ])
+            ->orderBy('name')
+            ->get();
+        
+        // Transform the data if needed
+        $products->transform(function ($product) {
+            if ($product->type === 'variable' && $product->variants) {
+                // Ensure each variant has access to parent's category if variant doesn't have its own
+                $product->variants->each(function ($variant) use ($product) {
+                    if (!$variant->category && $product->category) {
+                        $variant->category = $product->category;
+                    }
+                });
             }
-        }
-
-        if (count($insufficientStock) > 0) {
-            $messages = collect($insufficientStock)->map(function ($item) {
-                return "{$item['product_name']} has only {$item['available']} in stock. You requested {$item['requested']}.";
-            });
-
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['stock_error' => $messages->implode('<br>')]);
-        }
-
-
-    }
+            return $product;
+        });
+        
+        // return view('admin.orders.create', [
+        //     'distributors' => Distributor::orderBy('firm_name')->get(),
+        //     'products' => $products,
+        //     'title' => $title,
+        // ]);
 
 
 
-    DB::beginTransaction();
-
-    try {
-
-
-        // Calculate subtotal
-        $subtotal = collect($validated['totals'])->sum();
-
-        //Discount
-        $discount = $validated['discount'] ?? 0;
-
-        // Calculate taxes (assume SGST and CGST 9% each)
-        $sgst = round($subtotal * 0.09, 2);
-        $cgst = round($subtotal * 0.09, 2);
-        $totalAmount = $subtotal + $sgst + $cgst;
-        $totalAmount = $totalAmount - $discount;
-
-        // Create the order
-        $order = \App\Models\Order::create([    
-            'order_number'   => $validated['order_number'] ?? null,      
-            'distributor_id' => $validated['distributor_id'],
-            'subtotal' => $subtotal,
-            'sgst' => $sgst,
-            'cgst' => $cgst,
-            'discount' => $discount,
-            'total_amount' => $totalAmount,
-            'status' => 'pending',             
-            'created_by_id'    => auth('admin')->user()->id,   // 👇 Created by admin guard user  
-            'created_by_type'  => \App\Models\User::class,
-            'created_at' => $validated['order_date'],
-            'updated_at' => now(),
+        return view('orders.create', [
+            'layout'      => 'admin.admin-layout', // or distributor.layout / sales.layout
+            'routePrefix' => 'admin',               // or distributor / sales
+            'products'    => $products,
+            'distributors'=> Distributor::orderBy('firm_name')->get(),
+            'title' => $title,
         ]);
 
 
 
-        // Save order items
-        foreach ($validated['product_ids'] as $index => $productId) {
 
+    }
 
-            $tmpFreeDozen =0;
-            $totalDozenCase =0;
-             $tmpTotal  =0;
+ public function store(Request $request)
+{
+    $request->validate([
+        'distributor_id' => ['required', 'exists:distributors,id'],
+        'order_date'     => ['required', 'date'],
+        'items'          => ['required', 'array', 'min:1'],
+        'items.*.product_id' => ['required', 'exists:products,id'],
+        'items.*.quantity'   => ['required', 'integer', 'min:1'],
+        'items.*.rate'       => ['required', 'numeric', 'min:0'],
+        'items.*.amount'     => ['required', 'numeric'],
+    ]);
 
-             //Fetch Free Dozen Per Case from Settings
-            $freeDozenCase = Setting::get('orders', 'free-dozen', false);
+    DB::transaction(function () use ($request) {
 
-            // Fetch product model
-            $product = Product::findOrFail($productId);
+        // 1️⃣ Generate Order Number if not provided
+        $orderNumber = $request->order_number ?: 'ORD-' . now()->format('Ymd') . '-' . Str::upper(Str::random(5));
 
-            //Check Free Dozen for each product IDs
-            if(!$product->has_free_qty){
+        // 2️⃣ Create Order
+        $order = Order::create([
+            'order_number'    => $orderNumber,
+            'order_date'      => $request->order_date,
+            'distributor_id'  => $request->distributor_id,
+            'billing_address' => $request->billing_address,
 
-                $freeDozenCase = 0;
-            }
-            
-            //Free Dozen per quantity
-            $tmpFreeDozen = $freeDozenCase * $validated['quantities'][$index];
+            'subtotal'        => $request->subtotal,
+            'discount'        => $request->discount_amount ?? 0,
+            'cgst'            => $request->cgst,
+            'sgst'            => $request->sgst,
+            'round_off'       => $request->round_off ?? 0,
+            'total_amount'    => $request->total_amount,
 
-            //dozen per case deducting free dozen
-            $totalDozenCase = ( $validated['dozen_cases'][$index] * $validated['quantities'][$index] ) - $tmpFreeDozen;      
+            'status'          => 'pending',
+        ]);
 
-            //Server callculated total
-            $tmpTotal =  round($validated['prices'][$index] * $totalDozenCase, 2);
+        // 3️⃣ Save creator (Admin / Distributor later)
+        $order->created_by()->associate(auth()->user());
+        $order->save();
 
+        // 4️⃣ Create Order Items
+        foreach ($request->items as $item) {
 
-            // Check DB calculated total and posted total
-                if ($tmpTotal != $validated['totals'][$index]) {
-                    // Mismatch → rollback immediately
-                    DB::rollBack();
-                    return back()->withErrors(['totals' => "Total mismatch for product ID: {$productId}"]);
-                }
-
-
-                    $order->items()->create([
-                        'product_id' => $productId,
-                        'rate' => $validated['prices'][$index],
-                        'dozen_case' =>$validated['dozen_cases'][$index],
-                        'free_dozen_case' => $freeDozenCase,
-                        'quantity' => $validated['quantities'][$index],
-                        'total' => $validated['totals'][$index],
-                    ]);
-
-
-                    // Create HOLD stock transaction
-                    InventoryTransaction::create([
-                        'product_id' => $productId,
-                        'type' => 'hold',
-                        'quantity' => $validated['quantities'][$index],
-                        'order_id' => $order->id,
-                        'remarks' => 'New Order',
-                    ]);
-
-
-        
-      
-
+            OrderItem::create([
+                'order_id'   => $order->id,
+                'product_id' => $item['product_id'],
+                'rate'       => $item['rate'],
+                'base_unit'  => $item['base_unit'],
+                'quantity'   => $item['quantity'],
+                'discount_percent'   => $item['discount_percent'],
+                'total'      => $item['amount'],
+            ]);
 
         }
 
-    
 
-        DB::commit();
+        OrderActivityLogger::log(
+            $order,
+            'created',
+            'Order created'
+        );
 
-        return redirect()->route('admin.orders.index')->with('success', 'Order created successfully!');
-    } catch (\Exception $e) {
-        DB::rollBack();
+    });
 
-        return redirect()->back()
-            ->withInput()
-            ->withErrors(['error' => 'Something went wrong. ' . $e->getMessage()]);
-    }
+    return redirect()
+        ->route('admin.orders.index')
+        ->with('success', 'Order created successfully.');
 }
 
-    /**
-     * Display the specified resource.
-     */
+
+
+
+
     public function show(Order $order)
     {
-        $title = 'Order';
-         $order->load(['distributor', 'items.product']); // Load distributor and each product in items
-
+        $title = 'Orders';
+        $order->load('items.product','distributor');
         return view('admin.orders.show', compact('order','title'));
     }
 
-
-    
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function edit(Order $order)
     {
-    
-        $title = 'Order';
 
-            $order = \App\Models\Order::with('items.product.parent.category')->findOrFail($id);
+         if ($order->status !== 'pending') {
+                    return redirect()
+                    ->route('admin.orders.show', $order)
+                    ->with('error', 'Confirmed or cancelled orders cannot be edited.');
+            }
 
-            $distributors = \App\Models\Distributor::all();
+        $title = 'Orders';
+        $order->load([
+            'items.product.parent',
+            'distributor'
+        ]);
 
-             $freeDozenCase = Setting::get('orders', 'free-dozen', false);
 
-            // Only fetch products of type 'simple' and 'variant'
-            $products = \App\Models\Product::whereIn('type', ['simple', 'variant'])
-                ->with('parent.category')
-                ->get();
+        // Load products with category and variants (with their categories)
+        $products = Product::whereIn('type', ['simple', 'variable'])
+            ->with([
+                'category', // Load category for parent products
+                'variants.parent',
+                'variants.category' // Load category for variants too if needed
+            ])
+            ->orderBy('name')
+            ->get();
+        
+        // Transform the data if needed
+        $products->transform(function ($product) {
+            if ($product->type === 'variable' && $product->variants) {
+                // Ensure each variant has access to parent's category if variant doesn't have its own
+                $product->variants->each(function ($variant) use ($product) {
+                    if (!$variant->category && $product->category) {
+                        $variant->category = $product->category;
+                    }
+                });
+            }
+            return $product;
+        });
 
-            return view('admin.orders.edit', compact('order', 'distributors', 'products', 'title','freeDozenCase'));
+
+
+        // Build cart items safely for Alpine
+        $cartItems = $order->items->map(function ($item) {
+
+            $product = $item->product;
+
+            $name = $product->type === 'variant'
+                ? $product->parent->name
+                : $product->name;
+
+            if ($product->attributes) {
+                $name .= ' - ' . ($product->attributes['fragrance'] ?? '');
+                if (!empty($product->attributes['size'])) {
+                    $name .= ' (' . $product->attributes['size'] . ')';
+                }
+            }
+
+            return [
+                'id'        => $product->id,
+                'name'      => $name,
+                'code'      => $product->code,
+                'qty'       => (int) $item->quantity,
+                'rate'      => (float) $item->rate,
+                // 'discount'  => (float) ($product->distributor_discount_percent ?? 0),
+                'discount'  => (float) ($item->discount_percent ?? 0),
+                'base_unit' => $item->base_unit,
+                'amount'    => (float) $item->total,
+            ];
+        });
+
+        // return view('admin.orders.edit', [
+        //     'order'        => $order,
+        //     'products'     => Product::whereIn('type', ['simple', 'variable'])
+        //                             ->with('variants.parent')
+        //                             ->orderBy('name')
+        //                             ->get(),
+        //     'distributors' => Distributor::orderBy('firm_name')->get(),
+        //     'cartItems'    => $cartItems,
+        //     'title'     =>$title,
+        // ]);
+
+
+
+        return view('orders.edit', [
+            'layout'      => 'admin.admin-layout', // or distributor.layout / sales.layout
+            'routePrefix' => 'admin',               // or distributor / sales
+            'products'     => $products,
+            'order'        => $order,
+            'distributors'=> Distributor::orderBy('firm_name')->get(),
+            'cartItems'    => $cartItems,
+            'title' => $title,
+        ]);
+
 
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
- public function update(Request $request, $id)
+
+
+
+
+public function update(Request $request, Order $order)
 {
 
 
-    $validated = $request->validate([
-        'order_number' => 'nullable|string|max:255',
-        'distributor_id' => 'required|exists:distributors,id',
-        'order_date' => 'required|date',
-        'product_ids' => 'required|array|min:1',
-        'product_ids.*' => 'required|exists:products,id',
-        'prices' => 'required|array|min:1',
-        'prices.*' => 'required|numeric|min:0',
-        'dozen_cases' => 'required|array|min:1',
-        'dozen_cases.*' => 'required|integer|min:0',
-        'quantities' => 'required|array|min:1',
-        'quantities.*' => 'required|integer|min:1',
-        'totals' => 'required|array|min:1',
-        'totals.*' => 'required|numeric|min:0',
-        'discount'=> 'nullable|numeric|min:0',
+    if ($order->status !== 'pending') {
+        return redirect()
+            ->route('admin.orders.show', $order)
+            ->with('error', 'Confirmed or cancelled orders cannot be updated.');
+    }
+
+
+
+
+    $request->validate([
+        'distributor_id' => ['required', 'exists:distributors,id'],
+        'order_date'     => ['required', 'date'],
+        'items'          => ['required', 'array', 'min:1'],
+        'items.*.product_id' => ['required', 'exists:products,id'],
+        'items.*.quantity'   => ['required', 'integer', 'min:1'],
+        'items.*.rate'       => ['required', 'numeric', 'min:0'],
+        'items.*.amount'     => ['required', 'numeric'],
     ]);
 
+    DB::transaction(function () use ($request, $order) {
 
-    $checkStock = Setting::get('products', 'check_stock_before_order', true);
-    $insufficientStock = [];
-
-    if ($checkStock) {
-        
-        foreach ($validated['product_ids'] as $index => $productId) {
-            $product = Product::find($productId);
-            $productName = ($product->parent->category->name ?? '') . ' - ' . collect($product->attributes)->implode(', ');
-
-            $availableStock = $product->getAvailableStock();
-            $requestedQty = $validated['quantities'][$index];
-
-            if ($requestedQty > $availableStock) {
-                $insufficientStock[] = [
-                    'product_name' => $productName,
-                    'available' => $availableStock,
-                    'requested' => $requestedQty,
-                ];
-            }
-        }
-
-        if (count($insufficientStock) > 0) {
-            $messages = collect($insufficientStock)->map(function ($item) {
-                return "{$item['product_name']} has only {$item['available']} in stock. You requested {$item['requested']}.";
-            });
-
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['stock_error' => $messages->implode('<br>')]);
-        }
-
-
-    }
-
-
-
-    DB::beginTransaction();
-
-    try {
-        $order = \App\Models\Order::findOrFail($id);
-
-        // Calculate subtotal
-        $subtotal = collect($validated['totals'])->sum();
-
-        // Discount
-        $discount = $validated['discount'] ?? 0;
-
-        // Taxes
-        $sgst = round($subtotal * 0.09, 2);
-        $cgst = round($subtotal * 0.09, 2);
-        $totalAmount = $subtotal + $sgst + $cgst - $discount;
-
-        // Update the order
+        // 1️⃣ Update order header
         $order->update([
-            'order_number'   => $validated['order_number'] ?? null,
-            'distributor_id' => $validated['distributor_id'],
-            'subtotal'       => $subtotal,
-            'sgst'           => $sgst,
-            'cgst'           => $cgst,
-            'discount'       => $discount,
-            'total_amount'   => $totalAmount,
-            'created_at'     => $validated['order_date'], // for backdated updates
-            'updated_at'     => now(),
+            'distributor_id'  => $request->distributor_id,
+            'order_number'    => $request->order_number,
+            'order_date'      => $request->order_date,
+            'billing_address' => $request->billing_address,
+            'subtotal'        => $request->subtotal,
+            'discount'        => $request->discount_amount ?? 0,
+            'cgst'            => $request->cgst,
+            'sgst'            => $request->sgst,
+            'round_off'       => $request->round_off ?? 0,
+            'total_amount'    => $request->total_amount,
         ]);
 
-        // Remove existing items and add updated ones
+        // 2️⃣ Remove old items
         $order->items()->delete();
-        //Remove existing transactions
-        $this->cancelInventory($order);
 
-        foreach ($validated['product_ids'] as $index => $productId) {
-
-
-             $tmpFreeDozen =0;
-             $tmpDozen = 0;
-             $tmpTotal  = 0;
-
-             //Fetch Free Dozen Per Case from Settings
-            $freeDozenCase = Setting::get('orders', 'free-dozen', false);
-
-            // Fetch product model
-            $product = Product::findOrFail($productId);
-
-            //Check Free Dozen for each product IDs
-            if(!$product->has_free_qty){
-
-                $freeDozenCase = 0;
-            }
-
-
-            //Free Dozen per quantity
-            $tmpFreeDozen = $freeDozenCase * $validated['quantities'][$index];
-
-            //dozen per case deducting free dozen
-            $totalDozenCase = ( $validated['dozen_cases'][$index] * $validated['quantities'][$index] ) - $tmpFreeDozen;      
-
-            //Server callculated total
-            $tmpTotal =  round($validated['prices'][$index] * $totalDozenCase, 2);
-
-
-             // Check DB calculated total and posted total
-                if ($tmpTotal != $validated['totals'][$index]) {
-                    // Mismatch → rollback immediately
-                    DB::rollBack();
-                    return back()->withErrors(['totals' => "Total mismatch for product ID: {$productId} tmp {$tmpTotal} form {$validated['totals'][$index]}"]);
-                }
-
-
-
-            $order->items()->create([
-                'product_id'  => $productId,
-                'rate'        => $validated['prices'][$index],
-                'dozen_case'  => $validated['dozen_cases'][$index],
-                'free_dozen_case'  => $freeDozenCase,
-                'quantity'    => $validated['quantities'][$index],
-                'total'       => $validated['totals'][$index],
+        // 3️⃣ Insert updated items
+        foreach ($request->items as $item) {
+            OrderItem::create([
+                'order_id'   => $order->id,
+                'product_id' => $item['product_id'],
+                'rate'       => $item['rate'],
+                'base_unit'  => $item['base_unit'],
+                'quantity'   => $item['quantity'],
+                'discount_percent'   => $item['discount_percent'],
+                'total'      => $item['amount'],
             ]);
-
-
-            // Create HOLD stock transaction
-            InventoryTransaction::create([
-                'product_id' => $productId,
-                'type' => 'hold',
-                'quantity' => $validated['quantities'][$index],
-                'order_id' => $order->id,
-                'remarks' => 'New Order Updated',
-            ]);
-
-
-
         }
+    });
 
-        DB::commit();
+    // return redirect()
+    //     ->back()
+    //     ->with('success', 'Order updated successfully.');
 
-        return redirect()->route('admin.orders.index')->with('success', 'Order updated successfully!');
-    } catch (\Exception $e) {
-        DB::rollBack();
+    return redirect()
+    ->route('admin.orders.show', $order)
+    ->with('success', 'Order updated successfully.');
 
-        return redirect()->back()
-            ->withInput()
-            ->withErrors(['error' => 'Something went wrong. ' . $e->getMessage()]);
-    }
+
 }
 
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        try {
-            $order = Order::findOrFail($id);
+public function confirm(Request $request, Order $order)
+{
 
-            // Delete related order items first
-            $order->items()->delete();
-
-            // Delete the order itself
-            $order->delete();
-
-            //Remove hold transactions
-            $this->cancel($order);
-            
-
-            return redirect()->route('admin.orders.index')->with('success', 'Order deleted successfully!');
-        } catch (\Exception $e) {
-            return redirect()->route('admin.orders.index')
-                ->with('error', 'Failed to delete order. ' . $e->getMessage());
-        }
+    if ($order->status !== 'pending') {
+        return back()->with('error', 'Only pending orders can be confirmed.');
     }
 
+    $request->validate([
+        'admin_comments' => ['nullable', 'string', 'max:2000'],
+    ]);
 
-    //Cancel Pending Order
-    public function cancel(Order $order)
-    {
 
-        DB::transaction(function () use ($order) {
-            foreach ($order->items as $item) {
-                // Remove hold
-                InventoryTransaction::where('order_id', $order->id)
-                    ->where('product_id', $item->product_id)
-                    ->where('type', 'hold')->delete();              
+    DB::transaction(function () use ($order, $request) {
+
+
+        $order->load(['items.product.inventoryTransactions']);
+
+        $errors = [];
+
+        foreach ($order->items as $item) {
+            $product = $item->product;
+
+            $availableStock = $product->getAvailableStock();
+
+            if ($availableStock < $item->quantity) {
+                $errors[$item->id] = "Insufficient stock. Available: {$availableStock}";
             }
+        }
 
-            $order->update(['status' => 'cancelled']);
-        });
-        
-    return redirect()->back()->with('success', 'Order cancelled.');
+        // ❌ If any stock issue → stop
+        if (!empty($errors)) {
+            return back()->with('stock_errors', $errors);
+        }
+
+        // Deduct stock
+        foreach ($order->items as $item) {
+            InventoryTransaction::create([
+                'product_id' => $item->product_id,
+                'order_id'   => $order->id,
+                'type'       => 'out',
+                'quantity'   => $item->quantity,
+                'remarks'    => 'Order Confirmed - ' . $order->order_number,
+                'date'       => now(),
+            ]);
+        }
+
+        $order->update([
+            'status'          => 'confirmed',
+            'admin_comments'  => $request->admin_comments,
+        ]);
+
+
+        OrderActivityLogger::log(
+            $order,
+            'confirmed',
+            $request->admin_comments // mandatory comment
+        );
+
+    });
+
+    return back()->with('success', 'Order confirmed successfully.');
+}
+
+
+public function cancel(Request $request, Order $order)
+{
+    if ($order->status === 'cancelled') {
+        return back()->with('error', 'Order is already cancelled.');
     }
 
+    $request->validate([
+        'admin_comments' => ['nullable', 'string', 'max:2000'],
+    ]);
 
-    //Confirm Pending Order
-    public function confirm(Order $order)
-        {
-            DB::transaction(function () use ($order) {
-                foreach ($order->items as $item) {
-                    // Remove hold
-                    InventoryTransaction::where('order_id', $order->id)
-                        ->where('product_id', $item->product_id)
-                        ->where('type', 'hold')->delete();
+    DB::transaction(function () use ($order, $request) {
 
-                    // Create OUT transaction
-                    InventoryTransaction::create([
-                        'product_id' => $item->product_id,
-                        'type' => 'out',
-                        'quantity' => $item->quantity,
-                        'order_id' => $order->id,
-                        'remarks' => 'Order Confirmed'
-                    ]);
-                }
+        if ($order->status === 'confirmed') {
+            $order->load('items');
 
-                $order->update(['status' => 'confirmed']);
-            });
-
-            return redirect()->back()->with('success', 'Order Confirmed.');
+            foreach ($order->items as $item) {
+                InventoryTransaction::create([
+                    'product_id' => $item->product_id,
+                    'order_id'   => $order->id,
+                    'type'       => 'in',
+                    'quantity'   => $item->quantity,
+                    'remarks'    => 'Order Cancelled - ' . $order->order_number,
+                    'date'       => now(),
+                ]);
+            }
         }
 
+        $order->update([
+            'status'         => 'cancelled',
+            'admin_comments' => $request->admin_comments,
+        ]);
 
-        //Cancel Holding Inventory
-        public function cancelInventory(Order $order)
-        {
-            DB::transaction(function () use ($order) {
-                // Remove hold transactions
-                InventoryTransaction::where('order_id', $order->id)
-                    ->where('type', 'hold')->delete();
 
-               // $order->update(['status' => 'cancelled']);
-            });
+            OrderActivityLogger::log(
+            $order,
+            'cancelled',
+            $request->admin_comments
+            );
+
+    });
+
+    return back()->with('success', 'Order cancelled successfully.');
+}
+
+
+public function dispatch(Request $request, Order $order)
+{
+    // Guard: status
+    if ($order->status !== 'confirmed') {
+        return back()->with('error', 'Only confirmed orders can be dispatched.');
+    }
+
+    // Guard: invoice
+    if ($order->invoice_status !== 'generated') {
+        return back()->with('error', 'Invoice must be generated before dispatch.');
+    }
+
+    // Guard: already dispatched
+    if ($order->dispatch_status === 'dispatched') {
+        return back()->with('error', 'Order is already dispatched.');
+    }
+
+    DB::transaction(function () use ($order) {
+
+        // Update order
+        $order->update([
+            'dispatch_status' => 'dispatched',
+        ]);
+
+        // Log activity
+        OrderActivityLogger::log(
+            $order,
+            'dispatched',
+            'Order dispatched'
+        );
+    });
+
+    return back()->with('success', 'Order dispatched successfully.');
+}
+
+
+
+public function deliver(Request $request, Order $order)
+{
+    // Guard: must be dispatched
+    if ($order->dispatch_status !== 'dispatched') {
+        return back()->with('error', 'Order must be dispatched before delivery.');
+    }
+
+    // Guard: already delivered
+    if ($order->dispatch_status === 'delivered') {
+        return back()->with('error', 'Order is already delivered.');
+    }
+
+    DB::transaction(function () use ($order) {
+
+        // Update order
+        $order->update([
+            'dispatch_status' => 'delivered',
+        ]);
+
+        // Log activity
+        OrderActivityLogger::log(
+            $order,
+            'delivered',
+            'Order delivered'
+        );
+
+
+        //Order Delivery Service to Update in Distributor Inventory
+        //✅ EXACTLY LIKE LOGGER
+        OrderDeliveryService::handle($order);
+
+   
+
+    });
+
+    return back()->with('success', 'Order marked as delivered.');
+}
+
+
+public function markInvoiceGenerated(Request $request, Order $order)
+{
+    // Guard 1: must be confirmed
+    if ($order->status !== 'confirmed') {
+        return back()->with('error', 'Only confirmed orders can be invoiced.');
+    }
+
+    // Guard 2: already invoiced
+    if ($order->invoice_status === 'generated') {
+        return back()->with('error', 'Invoice is already generated.');
+    }
+
+    // Validation
+    $request->validate([
+        'invoice_no'   => ['required', 'string', 'max:100'],
+        'invoice_date' => ['required', 'date'],
+    ]);
+
+    DB::transaction(function () use ($order, $request) {
+
+        // Update invoice details
+        $order->update([
+            'invoice_no'     => $request->invoice_no,
+            'invoice_date'   => $request->invoice_date,
+            'invoice_status' => 'generated',
+            'bill_generated' => true,
+        ]);
+
+        // Log activity
+        OrderActivityLogger::log(
+            $order,
+            'invoice_generated',
+            'Invoice generated manually by admin (Invoice No: '.$request->invoice_no.')'
+        );
+    });
+
+    return back()->with('success', 'Invoice marked as generated.');
+}
+
+
+// ================= REMOVE INVOICE =================
+public function removeInvoice(Order $order)
+{
+    if ($order->invoice_status !== 'generated') {
+        return back()->with('error', 'Invoice not generated.');
+    }
+
+    DB::transaction(function () use ($order) {
+
+        // 1️⃣ Roll back invoice fields
+        $order->update([
+            'invoice_no'     => null,
+            'invoice_date'   => null,
+            'invoice_status' => 'pending',
+            'bill_generated' => false,
+        ]);
+
+        // 2️⃣ Remove invoice-generated activity
+        $order->activities()
+            ->where('event', 'invoice_generated')
+            ->delete();
+
+        // 3️⃣ Add rollback activity (audit trail)
+        // $order->activities()->create([
+        //     'event'        => 'invoice_removed',
+        //     'remarks' => 'Invoice removed by admin',
+        // ]);
+
+        // 4️⃣ Ensure order stays CONFIRMED (not pending)
+        // (no status change required, but this is explicit)
+        if ($order->status !== 'confirmed') {
+            $order->update(['status' => 'confirmed']);
         }
+    });
 
+    return back()->with('success', 'Invoice removed and order rolled back to confirmed stage.');
+}
 
+    // ================= PRINT / DOWNLOAD INVOICE =================
+    public function printInvoice(Order $order)
+    {
+        abort_if($order->invoice_status !== 'generated', 403);
 
+        $order->load([
+            'items.product.parent',
+            'distributor'
+        ]);
+
+        return view('admin.orders.invoice-print', compact('order'));
+    }
 
 }

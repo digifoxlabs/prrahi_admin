@@ -34,7 +34,7 @@ class DistAuthController extends Controller
 
         public function logout(Request $request) {
 
-            Auth::guard('admin')->logout();
+            Auth::guard('distributor')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
         

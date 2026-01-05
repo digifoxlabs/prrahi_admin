@@ -185,7 +185,7 @@ public function store(Request $request)
     return redirect()->route('admin.sales-persons.index')->with('success', 'Sales Person deleted successfully.');
 }
 
-        // AJAX District Fetcher
+    // AJAX District Fetcher
     public function getDistricts(Request $request)
     {
         $state = State::where('name', $request->state)->first();

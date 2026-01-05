@@ -105,3 +105,42 @@ php artisan make:model Fragrance -mcr
 php artisan make:model Product -mcr
 php artisan make:migration create_fragrance_product_table
 
+
+
+
+## Order Controller Architecture
+
+Controllers
+ ├─ OrderController (shared)
+ ├─ AdminOrderController (temporary)
+
+Services
+ ├─ CreateOrderService
+ ├─ AddOrderItemsService
+ ├─ OrderDeliveryService
+
+Inventory
+ ├─ DistributorInventoryService
+
+Blades
+ ├─ orders/*
+
+
+
+
+# Order Controller
+App\Http\Controllers\OrderController
+
+    # Create Helper
+    app/Support/OrderActor.php
+
+        ## Call the Helper
+        $actor = OrderActor::resolve();
+    
+    # Single Order Creation Logic (Service)
+        app/Services/Order/CreateOrderService.php
+
+    
+
+
+

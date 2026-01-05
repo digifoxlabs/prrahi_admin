@@ -246,9 +246,46 @@
 
                                 @endif
 
-                            </div>
+                            </div>    
                         </div>
                     </div>
+
+                     <div class="flex">
+                        <strong>Appointed By:</strong>
+
+                        @php
+                            $appointedBy = $distributor->appointedBy;
+                            $appointedLabel = '—';
+                            $appointedName  = '—';
+
+                            if ($appointedBy) {
+                                switch (class_basename($appointedBy)) {
+                                    case 'User': // Admin
+                                        $appointedLabel = 'Admin';
+                                        $appointedName  = $appointedBy->fname ?? '—';
+                                        break;
+
+                                    case 'Distributor':
+                                        $appointedLabel = 'Distributor';
+                                        $appointedName  = $appointedBy->firm_name ?? '—';
+                                        break;
+
+                                    case 'SalesPerson':
+                                        $appointedLabel = 'Sales Person';
+                                        $appointedName  = $appointedBy->name ?? '—';
+                                        break;
+                                }
+                            }
+                        @endphp
+
+                        <span>
+                            {{ $appointedLabel }}
+                            @if($appointedName !== '—')
+                                – <span class="font-medium">{{ $appointedName }}</span>
+                            @endif
+                        </span>
+                    </div>
+
                 </div>
 
                 <!-- Basic Information -->

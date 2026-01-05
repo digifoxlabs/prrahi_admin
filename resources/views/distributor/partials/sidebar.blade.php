@@ -4,7 +4,7 @@
     <!-- SIDEBAR HEADER -->
     <div :class="sidebarToggle ? 'justify-center' : 'justify-between'"
         class="flex items-center gap-2 pt-8 sidebar-header pb-7">
-        <a href="{{ route('admin.dashboard') }}">
+        <a href="{{ route('distributor.dashboard') }}">
             <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
                 <img class="dark:hidden" src="{{ asset('images/logo/logo.svg') }}" alt="Logo" />
                 <img class="hidden dark:block" src="{{ asset('images/logo/logo-dark.svg') }}" alt="Logo" />
@@ -40,7 +40,7 @@
 
                     <!-- Menu Item Dashboard -->
                     <li>
-                        <a href="{{ route('admin.dashboard') }}"
+                        <a href="{{ route('distributor.dashboard') }}"
                             @click="selected = (selected === 'Dashboard' ? '':'Dashboard')" class="menu-item group"
                             :class="(selected === 'Dashboard') || (page === 'dashboard') ? 'menu-item-active' :
                             'menu-item-inactive'">
@@ -59,6 +59,111 @@
                         </a>
                     </li>
 
+
+<li>
+    <a href="{{ route('distributor.orders.index') }}"
+        @click="selected = (selected === 'Manage Orders' ? '':'Manage Orders')" class="menu-item group"
+        :class="(selected === 'Manage Orders') || (page === 'manage-orders') ? 'menu-item-active' : 'menu-item-inactive'">
+        <svg :class="(selected === 'Manage Orders') || (page === 'manage-orders') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
+            width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Clipboard list icon for Manage Orders -->
+            <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5C15 6.10457 14.1046 7 13 7H11C9.89543 7 9 6.10457 9 5Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 12H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M9 16H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+            Manage Orders
+        </span>
+    </a>
+</li>
+
+<li>
+    <a href="{{ route('distributor.retailers.index') }}"
+        @click="selected = (selected === 'Retail Network' ? '':'Retail Network')" class="menu-item group"
+        :class="(selected === 'Retail Network') || (page === 'retail-network') ? 'menu-item-active' : 'menu-item-inactive'">
+        <svg :class="(selected === 'Retail Network') || (page === 'retail-network') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
+            width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Network/connection icon for Retail Network -->
+            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M19 12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12C5 8.13401 8.13401 5 12 5C15.866 5 19 8.13401 19 12Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M2 12H5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M19 12H22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M12 2V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M12 19V22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+            Retail Network
+        </span>
+    </a>
+</li>
+
+<li>
+    <a href="{{ route('distributor.stock.index') }}"
+        @click="selected = (selected === 'Stock Overview' ? '':'Stock Overview')" class="menu-item group"
+        :class="(selected === 'Stock Overview') || (page === 'stock-overview') ? 'menu-item-active' : 'menu-item-inactive'">
+        <svg :class="(selected === 'Stock Overview') || (page === 'stock-overview') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
+            width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Warehouse/inventory icon for Stock Overview -->
+            <path d="M3 8L12 3L21 8V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V8Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M3 8L12 13L21 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M12 21V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M9 21V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M15 21V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M7 11H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+            Stock Overview
+        </span>
+    </a>
+</li>
+
+<li>
+    <a href="{{ route('distributor.retailer-sales.index') }}"
+        @click="selected = (selected === 'Retail Sale' ? '':'Retail Sale')" class="menu-item group"
+        :class="(selected === 'Retail Sale') || (page === 'retail-sale') ? 'menu-item-active' : 'menu-item-inactive'">
+        <svg :class="(selected === 'Retail Sale') || (page === 'retail-sale') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
+            width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Shopping cart icon for Retail Sale -->
+            <path d="M3 6H22L19 16H6L3 6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M16 20C17.1046 20 18 19.1046 18 18C18 16.8954 17.1046 16 16 16C14.8954 16 14 16.8954 14 18C14 19.1046 14.8954 20 16 20Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 20C9.10457 20 10 19.1046 10 18C10 16.8954 9.10457 16 8 16C6.89543 16 6 16.8954 6 18C6 19.1046 6.89543 20 8 20Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M3 6L2 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M9 11H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+            Retail Sale
+        </span>
+    </a>
+</li>
+
+<li>
+    <a href="#"
+        @click="selected = (selected === 'Retail Orders' ? '':'Retail Orders')" class="menu-item group"
+        :class="(selected === 'Retail Orders') || (page === 'retail-orders') ? 'menu-item-active' : 'menu-item-inactive'">
+        <svg :class="(selected === 'Retail Orders') || (page === 'retail-orders') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
+            width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Package delivery icon for Retail Orders -->
+            <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M12 22V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M20 7L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 7L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M8 5L16 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M8 15L16 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M16 5L8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+            Retail Orders
+        </span>
+    </a>
+</li>
+
+
+
+
+
+
+
                 </ul>
             </div>
 
@@ -68,51 +173,6 @@
 
 
 
-            <!-- Others Group -->
-            <div>
-                <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
-                    <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">
-                        others
-                    </span>
-
-                    <svg :class="sidebarToggle ? 'lg:block hidden' : 'hidden'"
-                        class="mx-auto fill-current menu-group-icon" width="24" height="24"
-                        viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                            d="M5.99915 10.2451C6.96564 10.2451 7.74915 11.0286 7.74915 11.9951V12.0051C7.74915 12.9716 6.96564 13.7551 5.99915 13.7551C5.03265 13.7551 4.24915 12.9716 4.24915 12.0051V11.9951C4.24915 11.0286 5.03265 10.2451 5.99915 10.2451ZM17.9991 10.2451C18.9656 10.2451 19.7491 11.0286 19.7491 11.9951V12.0051C19.7491 12.9716 18.9656 13.7551 17.9991 13.7551C17.0326 13.7551 16.2491 12.9716 16.2491 12.0051V11.9951C16.2491 11.0286 17.0326 10.2451 17.9991 10.2451ZM13.7491 11.9951C13.7491 11.0286 12.9656 10.2451 11.9991 10.2451C11.0326 10.2451 10.2491 11.0286 10.2491 11.9951V12.0051C10.2491 12.9716 11.0326 13.7551 11.9991 13.7551C12.9656 13.7551 13.7491 12.9716 13.7491 12.0051V11.9951Z"
-                            fill="" />
-                    </svg>
-                </h3>
-
-                <ul class="flex flex-col gap-4 mb-6">
-
-
-
-                    <!-- Menu Item Profile -->
-                    <li>
-                        <a href="{{ route('admin.settings.index') }}"
-                            @click="selected = (selected === 'Settings' ? '':'Settings')" class="menu-item group"
-                            :class="(selected === 'Settings') || (page === 'settings') ? 'menu-item-active' :
-                            'menu-item-inactive'">
-                            <svg :class="(selected === 'Settings') || (page === 'settings') ? 'menu-item-icon-active' :
-                            'menu-item-icon-inactive'"
-                                width="24" height="24" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" clip-rule="evenodd"
-                                    d="M12 3.5C7.30558 3.5 3.5 7.30558 3.5 12C3.5 14.1526 4.3002 16.1184 5.61936 17.616C6.17279 15.3096 8.24852 13.5955 10.7246 13.5955H13.2746C15.7509 13.5955 17.8268 15.31 18.38 17.6167C19.6996 16.119 20.5 14.153 20.5 12C20.5 7.30558 16.6944 3.5 12 3.5ZM17.0246 18.8566V18.8455C17.0246 16.7744 15.3457 15.0955 13.2746 15.0955H10.7246C8.65354 15.0955 6.97461 16.7744 6.97461 18.8455V18.856C8.38223 19.8895 10.1198 20.5 12 20.5C13.8798 20.5 15.6171 19.8898 17.0246 18.8566ZM2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM11.9991 7.25C10.8847 7.25 9.98126 8.15342 9.98126 9.26784C9.98126 10.3823 10.8847 11.2857 11.9991 11.2857C13.1135 11.2857 14.0169 10.3823 14.0169 9.26784C14.0169 8.15342 13.1135 7.25 11.9991 7.25ZM8.48126 9.26784C8.48126 7.32499 10.0563 5.75 11.9991 5.75C13.9419 5.75 15.5169 7.32499 15.5169 9.26784C15.5169 11.2107 13.9419 12.7857 11.9991 12.7857C10.0563 12.7857 8.48126 11.2107 8.48126 9.26784Z"
-                                    fill="" />
-                            </svg>
-
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
-                                Settings
-                            </span>
-                        </a>
-                    </li>
-                    <!-- Menu Item Profile -->
-
-
-                </ul>
-            </div>
 
 
         </nav>

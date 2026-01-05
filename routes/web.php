@@ -15,10 +15,20 @@ use App\Http\Controllers\Admin\InventoryTransactionController;
 use App\Http\Controllers\Admin\SalesPersonController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\SettingsController;
-use App\Http\Controllers\Admin\TallyInvoiceController;
+use App\Http\Controllers\Admin\AdminInvoiceController;
 use App\Http\Controllers\Distributor\DistAuthController;
 use App\Http\Controllers\Sales\SalesAuthController;
+use App\Http\Controllers\Admin\AdminRetailerController;
 use App\Http\Controllers\Distributor\DashboardController as DistributorDashboardController;
+use App\Http\Controllers\Distributor\DistRetailerController;
+use App\Http\Controllers\Distributor\DistributorStockController;
+use App\Http\Controllers\Distributor\RetailerSaleController;
+use App\Http\Controllers\Distributor\DistOrderController;
+use App\Http\Controllers\Distributor\DistributorInventoryLedgerController;
+use App\Http\Controllers\OrderController;
+
+
+
 use App\Http\Controllers\Sales\DashboardController as SalesDashboardController;
 /*
 |--------------------------------------------------------------------------
@@ -71,8 +81,11 @@ Route::prefix('admin')->name('admin.')->group(function(){
 
 //API Instruction Route
 Route::get('/api/invoice', function () {
-    return view('api/invoice_doc');
+    return view('api.invoice_doc');
 });
+// Route::get('/api/invoice', function () {
+//     return view('api/invoice_doc')->with(['title' => 'Invoice API Documentation']);
+// });
 
 //Distributor Login Routes
 Route::prefix('distributor')->name('distributor.')->group(function(){
@@ -147,6 +160,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::get('products/{product}/add-variant', [ProductController::class, 'createVariant'])->name('products.add-variant');
     Route::post('products/{product}/store-variant', [ProductController::class, 'storeVariant'])->name('products.store-variant');
 
+    Route::get('products/{product}/variants', [ProductController::class, 'variants'])->name('products.variants');
+
     Route::get('/products/export', [ProductController::class, 'export'])->name('products.export');  
     Route::resource('products', ProductController::class);
 
@@ -170,21 +185,51 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::resource('sales-persons', SalesPersonController::class);
 
 
-    Route::resource('orders', AdminOrderController::class);
-    Route::put('admin/orders/{order}/confirm', [AdminOrderController::class, 'confirm'])->name('orders.confirm');
-    Route::put('admin/orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('orders.cancel');
+    Route::resource('orders', AdminOrderController::class)->only(['index','create','edit','show','destroy']);;
+
+    Route::post('orders/{order}/confirm', [AdminOrderController::class, 'confirm'])->name('orders.confirm');
+    Route::post('orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('orders.cancel');
    // Route::delete('admin/orders/{order}', [AdminOrderController::class, 'destroy'])->name('admin.orders.destroy');
+           // Orders
+        Route::post('/orders/{order}/dispatch', [
+            AdminOrderController::class,
+            'dispatch'
+        ])->name('orders.dispatch');
+
+        Route::post('/orders/{order}/deliver', [
+            AdminOrderController::class,
+            'deliver'
+        ])->name('orders.deliver');
+
+
+        Route::post('/orders/{order}/invoice-generate', [
+        AdminOrderController::class,
+        'markInvoiceGenerated'
+        ])->name('orders.invoice.generate');
+
+
+        Route::post('/orders/{order}/invoice/remove', 
+        [AdminOrderController::class, 'removeInvoice'])
+        ->name('orders.invoice.remove');
+
+         Route::get('/orders/{order}/invoice/print', 
+        [AdminOrderController::class, 'printInvoice'])
+        ->name('orders.invoice.print');
 
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
 
 
-    Route::get('/invoices', [TallyInvoiceController::class, 'index'])->name('tally.invoices.index');
-    Route::get('/invoices/{id}', [TallyInvoiceController::class, 'show'])->name('tally.invoices.show');
-    Route::delete('/invoices/{id}', [TallyInvoiceController::class, 'destroy'])->name('tally.invoices.destroy');
-    
+    // Route::get('/invoices', [TallyInvoiceController::class, 'index'])->name('tally.invoices.index');
+    // Route::get('/invoices/{id}', [TallyInvoiceController::class, 'show'])->name('tally.invoices.show');
+    // Route::delete('/invoices/{id}', [TallyInvoiceController::class, 'destroy'])->name('tally.invoices.destroy');
+    Route::get('/invoices', [AdminInvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('invoices/{order}/print', [AdminInvoiceController::class, 'print'])->name('print');
 
+    //Retailers
+    Route::resource('retailers', AdminRetailerController::class)->names('retailers');
+    Route::get('retailers/export', [AdminRetailerController::class, 'export'])->name('retailers.export');
 
 
 });
@@ -196,6 +241,34 @@ Route::prefix('distributor')->name('distributor.')->middleware('auth:distributor
 
     //Dashboard
     Route::get('/dashboard', [DistributorDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::resource('retailers', DistRetailerController::class)->names('retailers');
+    Route::get('get-districts', [DistRetailerController::class, 'getDistricts'])->name('get-districts');
+
+
+
+
+
+    Route::get('/stock', [DistributorStockController::class, 'index'])
+        ->name('stock.index');
+
+    Route::resource('retailer/sales', RetailerSaleController::class)->names('retailer-sales');
+
+    // Route::get('/sales/create', [RetailerSaleController::class, 'create'])
+    //     ->name('sales.create');
+
+    // Route::post('/sales', [RetailerSaleController::class, 'store'])
+    //     ->name('sales.store');
+
+    Route::resource('/orders', DistOrderController::class);
+    Route::post('/orders/{order}/deliver', [DistOrderController::class,'deliver'])->name('orders.deliver');
+
+      Route::get('/inventory/ledger',
+            [DistributorInventoryLedgerController::class, 'index']
+        )->name('inventory.ledger');
+
+
+
+
 
 
 });
@@ -209,3 +282,42 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
 
 
 });
+
+
+//Shared Order Controller Routes
+// Route::middleware(['auth:admin,distributor,sales'])->group(function () {
+//   //  Route::get('orders/create', [OrderController::class,'create'])->name('orders.create');
+//     Route::post('orders', [OrderController::class,'store'])->name('orders.store');
+//    // Route::get('orders/{order}/edit', [OrderController::class,'edit'])->name('orders.edit');
+//     Route::put('orders/{order}', [OrderController::class,'update'])->name('orders.update');
+// });
+
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware('auth:admin')
+    ->group(function () {   
+
+        Route::post('orders', [OrderController::class, 'store'])
+            ->name('orders.store');
+
+        // Route::get('orders/{order}/edit', [OrderController::class, 'edit'])
+        //     ->name('orders.edit');
+
+        Route::put('orders/{order}', [OrderController::class, 'update'])
+            ->name('orders.update');
+    });
+
+Route::prefix('distributor')
+    ->name('distributor.')
+    ->middleware('auth:distributor')
+    ->group(function () {   
+
+        Route::post('orders', [OrderController::class, 'store'])
+            ->name('orders.store');
+
+        // Route::get('orders/{order}/edit', [OrderController::class, 'edit'])
+        //     ->name('orders.edit');
+
+        Route::put('orders/{order}', [OrderController::class, 'update'])
+            ->name('orders.update');
+    });

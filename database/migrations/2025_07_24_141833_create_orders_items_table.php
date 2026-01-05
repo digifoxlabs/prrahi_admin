@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->decimal('rate', 10, 2); // Use PTR or MRP depending on logic
-            $table->integer('dozen_case');
-            $table->integer('free_dozen_case')->nullable();
+            $table->decimal('rate', 10, 2); 
+            $table->string('base_unit')->nullable();
             $table->integer('quantity');
+            $table->decimal('discount_percent', 10, 2)->nullable();
             $table->decimal('total', 10, 2);
             $table->timestamps();
         });

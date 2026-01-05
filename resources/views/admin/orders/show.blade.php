@@ -1,388 +1,517 @@
 @extends('admin.admin-layout')
+
 @section('page-content')
-    <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
-        @include('admin.orders._breadcrump')
+<div class="max-w-6xl mx-auto bg-white rounded-xl border p-6">
 
-        <!-- Flash Messages -->
-        @if (session('success'))
-            <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
-                class="bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-400 p-3 rounded mb-4">
-                {{ session('success') }}
+    <!-- ================= HEADER ================= -->
+    <div class="flex flex-col md:flex-row justify-between gap-4 mb-6">
+
+    <div>
+        <h1 class="text-2xl font-bold">
+            Order #{{ $order->order_number }}
+        </h1>
+        <p class="text-sm text-gray-600">
+            Order Date: {{ \Carbon\Carbon::parse($order->order_date)->format('d M Y') }}
+        </p>
+        
+        <!-- Status and Admin Comments in same line -->
+        <div class="flex flex-wrap items-center gap-3 mt-1">
+            <div class="flex items-center gap-2">
+                <span class="text-sm">Status:</span>
+                <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold
+                    @if($order->status === 'pending') bg-yellow-100 text-yellow-800
+                    @elseif($order->status === 'confirmed') bg-green-100 text-green-800
+                    @else bg-red-100 text-red-800
+                    @endif">
+                    {{ ucfirst($order->status) }} 
+                </span>   
             </div>
-        @endif
-
-        @if (session('error'))
-            <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
-                class="bg-yellow-100 dark:bg-yellow-500/20 text-red-800 dark:text-red-400 p-3 rounded mb-4">
-                {{ session('error') }}
+            
+            @if($order->admin_comments)
+            <div class="flex items-center gap-2">
+                <div class="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full">
+                    <span class="text-xs font-medium text-blue-700">Remarks:</span>
+                    <span class="text-xs text-blue-600">{{ $order->admin_comments }}</span>
+                </div>
             </div>
-        @endif
-
-        <!-- Main Content Container -->
-        <div
-            class="min-h-screen rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-white/[0.03] px-5 py-7 xl:px-10 xl:py-12">
-            <div class="mx-auto w-full max-w-6xl">
-                <!-- Order Header -->
-                <div class="mb-8 text-center">
-                    <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Order Details</h1>
-                    <div class="mt-2 h-1 w-20 bg-blue-500 mx-auto"></div>
-                </div>
-
-                <!-- Order Information Card -->
-                <div class="bg-white dark:bg-white/[0.03] shadow-md rounded-lg p-6 mb-8 border border-gray-100 dark:border-gray-700">
-                    <h2 class="text-lg font-semibold text-gray-700 dark:text-white mb-4 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
-                            </path>
-                        </svg>
-                        Order Information
-                    </h2>
-                    <div class="grid grid-cols-2 md:grid-cols-2 gap-6">
-                        <!-- Left Column -->
-                        <div class="space-y-4">
-                            <div class="flex items-start">
-                                <div class="w-1/3 font-medium text-gray-700 dark:text-gray-400">Order Number:</div>
-                                <div class="w-2/3 text-gray-600 dark:text-gray-400">{{ $order->order_number ?? 'N/A' }}</div>
-                            </div>
-                            <div class="flex items-start">
-                                <div class="w-1/3 font-medium text-gray-700 dark:text-gray-400">Distributor:</div>
-                                <div class="w-2/3 text-gray-600 dark:text-gray-400">{{ $order->distributor->firm_name ?? '-' }}</div>
-                            </div>
-                            <div class="flex items-start">
-                                <div class="w-1/3 font-medium text-gray-700 dark:text-gray-400">Created By:</div>
-                                <div class="w-2/3 text-gray-600 dark:text-gray-400">
-                                    @php
-                                        $creator = $order->created_by;
-                                        if ($order->created_by_type === \App\Models\User::class) {
-                                            echo 'Admin: ' . optional($creator)->fname;
-                                        } elseif ($order->created_by_type === \App\Models\Distributor::class) {
-                                            echo 'Distributor: ' . optional($creator)->name;
-                                        } elseif ($order->created_by_type === \App\Models\SalesPerson::class) {
-                                            echo 'SalesPerson: ' . optional($creator)->name;
-                                        } else {
-                                            echo '—';
-                                        }
-                                    @endphp
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Right Column -->
-                        <div class="space-y-4">
-                            <div class="flex items-start">
-                                <div class="w-1/3 font-medium text-gray-700 dark:text-gray-400">Order Date:</div>
-                                <div class="w-2/3 text-gray-600 dark:text-gray-400">{{ $order->created_at->format('d M Y, h:i A') }}</div>
-                            </div>
-                            <div class="flex items-start">
-                                <div class="w-1/3 font-medium text-gray-700 dark:text-gray-400">Status:</div>
-                                <div class="w-2/3">
-                                    <span
-                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-            {{ $order->status === 'confirmed'
-                ? 'bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-400'
-                : ($order->status === 'pending'
-                    ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-800 dark:text-yellow-400'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200') }}">
-                                        {{ ucfirst($order->status) }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ordered Products Card -->
-                <div class="bg-white dark:bg-white/[0.03] shadow-md rounded-lg p-6 mb-8 border border-gray-100 dark:border-gray-700">
-                    <h2 class="text-lg font-semibold text-gray-700 dark:text-white mb-4 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-gray-500 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                        </svg>
-                        Ordered Products
-                    </h2>
-
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-400">
-                           <thead class="bg-gray-100 dark:bg-gray-800 text-xs uppercase text-gray-700 dark:text-white">
-                                <tr>
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        #</th>
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Product</th>
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Rate</th>
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Dozen/Case</th>      
-                                        
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Free Dozen/Case</th>
-
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Quantity</th>
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Total</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white dark:bg-transparent divide-y divide-gray-200 dark:divide-gray-700">
-                                @foreach ($order->items as $index => $item)
-                                    <tr class="{{ $index % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-gray-50 dark:bg-gray-800/30' }}">
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $index + 1 }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white/90">
-                                            {{ $item->product->type === 'variant' ? ($item->product->parent->category->name ?? '') . ' - ' . collect($item->product->attributes)->implode(', ') : $item->product->name }}
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white/90">
-                                            ₹{{ number_format($item->rate, 2) }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white/90">
-                                            {{ ($item->dozen_case * $item->quantity) - ($item->free_dozen_case *  $item->quantity) }}</td>          
-                                            
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white/90">
-                                            {{ $item->free_dozen_case *  $item->quantity }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white/90">{{ $item->quantity }}
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                            ₹{{ number_format($item->total, 2) }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Order Summary Card -->
-                <div class="bg-white dark:bg-white/[0.03] shadow-md rounded-lg p-6 mb-8 border border-gray-100 dark:border-gray-700">
-                    <h2 class="text-lg font-semibold text-gray-700 dark:text-white mb-4 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-gray-500 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                            </path>
-                        </svg>
-                        Order Summary
-                    </h2>
-
-                    <div class="grid grid-cols-2 md:grid-cols-2 gap-4 text-sm">
-                        <div class="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                            <span class="font-medium text-gray-700 dark:text-gray-400">Subtotal:</span>
-                            <span class="text-gray-900 dark:text-white">₹{{ number_format($order->subtotal, 2) }}</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                            <span class="font-medium text-gray-700 dark:text-gray-400">Discount:</span>
-                            <span class="text-gray-900 dark:text-white">₹{{ number_format($order->discount, 2) }}</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                            <span class="font-medium text-gray-700 dark:text-gray-400">SGST (9%):</span>
-                            <span class="text-gray-900 dark:text-white">₹{{ number_format($order->sgst, 2) }}</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                            <span class="font-medium text-gray-700 dark:text-gray-400">CGST (9%):</span>
-                            <span class="text-gray-900 dark:text-white">₹{{ number_format($order->cgst, 2) }}</span>
-                        </div>
-                        <div class="col-span-2 flex justify-between py-3 border-t border-gray-200 dark:border-gray-700 mt-2">
-                            <span class="font-bold text-lg text-gray-800 dark:text-white">Total Amount:</span>
-                            <span class="font-bold text-lg text-blue-600 dark:text-blue-400">₹{{ number_format($order->total_amount, 2) }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div x-data="{ confirmModal: false, actionType: '' }">
-                    <div class="flex gap-4 flex-wrap justify-end mb-6">
-
-   <a href="{{ route('admin.orders.index') }}"
-   class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-400 bg-white dark:bg-transparent hover:bg-gray-50 transition dark:hover:bg-blue-700/40 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400 dark:group-hover:text-white" fill="none" stroke="currentColor"
-         viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-    </svg>
-    Back to Orders
-</a>
-
-
-<button @click="window.print()"
-    class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-400 bg-white dark:bg-transparent hover:bg-gray-50 transition dark:hover:bg-blue-700/40 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400 transition-colors group-hover:text-gray-700 dark:group-hover:text-white"
-         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-    </svg>
-    Print Order
-</button>
-
-
-                        @if ($order->status != 'confirmed')
-                            <a href="{{ route('admin.orders.edit', $order->id) }}"
-                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                    </path>
-                                </svg>
-                                Edit Order
-                            </a>
-                        @endif
-
-                        @if ($order->status === 'pending')
-                            <button @click="confirmModal = true; actionType = 'confirm'"
-                                class="inline-flex items-center px-4 py-2 border border-transparent show-shadow text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                Confirm
-                            </button>
-
-                            <button @click="confirmModal = true; actionType = 'cancel'"
-                                class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm">
-                                Cancel
-                            </button>
-                        @endif
-
-                        @if ($order->status === 'cancelled')
-                            <button @click="confirmModal = true; actionType = 'delete'"
-                                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm">
-                                Delete
-                            </button>
-                        @endif
-                    </div>
-
-                    <!-- Modal -->
-                    <div x-show="confirmModal" x-transition
-                        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-400/50 backdrop-blur-[32px]"
-                        style="display: none;">
-                        <div @click.outside="confirmModal = false"
-                            class="bg-white dark:bg-white/[0.03] rounded-lg shadow-lg max-w-sm w-full p-6 border border-gray-100 dark:border-gray-700">
-                            <h2 class="text-lg font-semibold mb-4 capitalize text-gray-800 dark:text-white">
-                                Are you sure you want to <span x-text="actionType"></span> this?
-                            </h2>
-
-                            <div class="flex justify-end gap-3">
-                                <button @click="confirmModal = false"
-                                    class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-400 dark:hover:bg-gray-600 text-sm">
-                                    Cancel
-                                </button>
-
-                                <form method="POST"
-                                    :action="actionType === 'confirm' ? '{{ route('admin.orders.confirm', $order->id) }}' :
-                                        actionType === 'cancel' ? '{{ route('admin.orders.cancel', $order->id) }}' :
-                                        '{{ route('admin.orders.destroy', $order->id) }}'">
-                                    @csrf
-                                    <template x-if="actionType === 'delete'">
-                                        @method('DELETE')
-                                    </template>
-                                    <template x-if="actionType === 'confirm' || actionType === 'cancel'">
-                                        @method('PUT')
-                                    </template>
-                                    <button type="submit"
-                                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 hover:bg-red-700 text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm">
-                                        Yes, Proceed
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+            @endif
         </div>
     </div>
+
+        <div class="text-right">
+            <p class="text-sm text-gray-600">Created By</p>
+            <p class="font-medium">
+                {{ optional($order->created_by)->fname ?? 'System' }}
+            </p>
+        </div>
+    </div>
+    <div x-data="{ showModal: false, action: '', showInvoiceRemove: false, showInvoiceModal: false }">
+
+    <!-- ================= INVOICE INFO ================= -->
+    @if($order->invoice_status === 'generated' && $order->dispatch_status !== 'delivered')
+        <div class="mb-6 p-4 bg-purple-50 border rounded-lg flex flex-col md:flex-row justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold text-purple-700">Invoice Details</p>
+                <p>Invoice No: <strong>{{ $order->invoice_no }}</strong></p>
+                <p>Invoice Date: <strong>{{ \Carbon\Carbon::parse($order->invoice_date)->format('d M Y') }}</strong></p>
+            </div>
+
+            <div class="flex gap-2">
+                <a href="{{ route('admin.orders.invoice.print', $order) }}"
+                   target="_blank"
+                   class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">
+                    Download / Print Invoice
+                </a>
+
+                <button @click="showInvoiceRemove=true"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm">
+                    Remove Invoice
+                </button>
+            </div>
+        </div>
+
+        @elseif ($order->invoice_status === 'generated')
+
+            <!-- Delivered order: print only -->
+        <div class="mb-6 p-4 bg-purple-50 border rounded-lg flex flex-col md:flex-row justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold text-purple-700">Invoice Details</p>
+                <p>Invoice No: <strong>{{ $order->invoice_no }}</strong></p>
+                <p>Invoice Date: <strong>{{ \Carbon\Carbon::parse($order->invoice_date)->format('d M Y') }}</strong></p>
+            </div>
+
+            <div class="flex gap-2">
+                <a href="{{ route('admin.orders.invoice.print', $order) }}"
+                   target="_blank"
+                   class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">
+                    Download / Print Invoice
+                </a>
+
+  
+            </div>
+        </div>
+
+    @endif
+
+
+
+
+     <!-- ================= REMOVE INVOICE MODAL ================= -->
+    <div x-show="showInvoiceRemove" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50" @click="showInvoiceRemove=false"></div>
+
+        <div class="bg-white rounded-xl p-6 z-10 w-full max-w-md">
+            <h3 class="font-semibold text-red-700 mb-2">Remove Invoice</h3>
+            <p class="text-sm mb-4">Are you sure you want to remove invoice details?</p>
+
+            <form method="POST" action="{{ route('admin.orders.invoice.remove',$order) }}">
+                @csrf
+                <div class="flex justify-end gap-3">
+                    <button type="button" @click="showInvoiceRemove=false"
+                            class="px-4 py-2 border rounded-lg">Cancel</button>
+                    <button type="submit"
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg">
+                        Confirm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- <div x-data="{ showInvoiceRemove: false, action: '' }"> --}}
+
+
+    <!-- ================= DISTRIBUTOR & ADDRESS ================= -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+        <!-- Distributor -->
+        <div>
+            <h3 class="font-semibold mb-1">Distributor</h3>
+            <p class="text-sm">{{ $order->distributor->firm_name }}</p>
+            <p class="text-xs text-gray-600">
+                {{ $order->distributor->contact_person }}
+                {{ $order->distributor->contact_number }}
+            </p>
+        </div>
+
+        <!-- Billing Address -->
+        <div>
+            <h3 class="font-semibold mb-1">Billing Address</h3>
+            <pre class="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 border rounded p-3">
+{{ $order->billing_address }}
+            </pre>
+        </div>
+
+    </div>
+
+    <!-- ================= ORDER ITEMS ================= -->
+    <div class="overflow-x-auto mb-6">
+        <table class="w-full border text-sm">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="p-2 text-left">Product</th>
+                    <th class="p-2">Code</th>
+                    <th class="p-2">Qty</th>
+                    <th class="p-2">Rate</th>
+                    <th class="p-2">Disc %</th>
+                    <th class="p-2 text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @php
+                $stockErrors = session('stock_errors', []);
+                @endphp
+
+                @foreach($order->items as $item)
+                <tr class="border-t">
+                    <td class="p-2">
+                        {{ $item->product->type === 'variant'
+                            ? $item->product->parent->name
+                            : $item->product->name
+                        }}
+                        @if($item->product->attributes)
+                            <span class="text-xs text-gray-600">
+                                —
+                                {{ $item->product->attributes['fragrance'] ?? '' }}
+                                @if(!empty($item->product->attributes['size']))
+                                    ({{ $item->product->attributes['size'] }})
+                                @endif
+                            </span>
+                        @endif
+
+
+                        @if(isset($stockErrors[$item->id]))
+                            <p class="text-xs text-red-600 mt-1">
+                                {{ $stockErrors[$item->id] }}
+                            </p>
+                        @endif
+
+
+                    </td>
+
+                    <td class="p-2">{{ $item->product->code }}</td>
+
+                    <td class="p-2 text-center">{{ $item->quantity }}</td>
+
+                    <td class="p-2 text-center">
+                        {{ number_format($item->rate, 2) }}
+                        <span class="text-xs text-gray-500">
+                            / {{ $item->base_unit }}
+                        </span>
+                    </td>
+
+                    <td class="p-2 text-center">
+                        {{ number_format($item->discount_percent ?? 0, 2) }}%
+                    </td>
+
+                    <td class="p-2 text-right">
+                        {{ number_format($item->total, 2) }}
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ================= TOTALS ================= -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div></div>
+
+        <div class="text-right space-y-1 text-sm">
+            <p>
+                Sub Total:
+                <span class="font-medium">{{ number_format($order->subtotal, 2) }}</span>
+            </p>
+
+            <p>
+                Discount:
+                <span class="font-medium">{{ number_format($order->discount, 2) }}</span>
+            </p>
+
+            {{-- ================= TAX BREAKUP ================= --}}
+
+            @if($order->igst > 0)
+                <p>
+                    IGST (5%):
+                    <span class="font-medium">{{ number_format($order->igst, 2) }}</span>
+                </p>
+            @else
+                <p>
+                    CGST (2.5%):
+                    <span class="font-medium">{{ number_format($order->cgst, 2) }}</span>
+                </p>
+
+                <p>
+                    SGST (2.5%):
+                    <span class="font-medium">{{ number_format($order->sgst, 2) }}</span>
+                </p>
+            @endif
+
+            <p>
+                Round Off:
+                <span class="font-medium">{{ number_format($order->round_off, 2) }}</span>
+            </p>
+
+            <p class="text-lg font-bold mt-2">
+                Total:
+                {{ number_format($order->total_amount, 2) }}
+            </p>
+        </div>
+    </div>
+
+
+<div class="flex justify-start gap-3 mb-4">
+
+
+        @if($order->status === 'pending')
+            <button @click="showModal=true; action='confirm'"
+                class="px-4 py-2 bg-green-600 text-white rounded-lg">
+            Confirm Order
+            </button>
+
+            <button @click="showModal=true; action='cancel'"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg">
+                Cancel Order
+            </button>                 
+
+    
+        @endif
+
+        @if($order->status === 'confirmed' && $order->dispatch_status !== 'delivered')
+                <button @click="showModal=true; action='cancel'"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg">
+                Cancel Order
+                </button>
+        @endif
+
+
+        @if($order->status === 'confirmed' && $order->invoice_status !== 'generated')
+        <button @click="showInvoiceModal = true"
+            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+            Mark Invoice Generated
+        </button>
+        @endif
+
+
+</div>
+
+
+    <!-- ================= ACTIONS ================= -->
+    <div class="flex justify-end gap-3 mt-6">
+
+
+        <a href="{{ route('admin.orders.index') }}"
+           class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100">
+            Back
+        </a>
+
+        @if($order->status === 'pending')
+            <a href="{{ route('admin.orders.edit', $order) }}"
+            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                Edit Order
+            </a>
+        @else
+            <span class="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed">
+                Edit Locked
+            </span>
+        @endif
+
+    </div>
+
+
+<!-- ================= INVOICE GENERATED MODAL ================= -->
+<div 
+     x-show="showInvoiceModal"
+     x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center">
+
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+         @click="showInvoiceModal = false"></div>
+
+    <!-- Modal -->
+    <div class="bg-white rounded-xl w-full max-w-md p-6 z-10">
+        <h3 class="text-lg font-semibold mb-4 text-purple-700">
+            Enter Invoice Details
+        </h3>
+
+        <form method="POST"
+              action="{{ route('admin.orders.invoice.generate', $order) }}">
+            @csrf
+
+            <!-- Invoice Number -->
+            <div class="mb-3">
+                <label class="text-sm font-medium">Invoice Number</label>
+                <input type="text"
+                       name="invoice_no"
+                       required
+                       class="w-full border rounded-lg p-2 text-sm"
+                       placeholder="INV-000123">
+            </div>
+
+            <!-- Invoice Date -->
+            <div class="mb-4">
+                <label class="text-sm font-medium">Invoice Date</label>
+                <input type="date"
+                       name="invoice_date"
+                       required
+                       value="{{ now()->toDateString() }}"
+                       class="w-full border rounded-lg p-2 text-sm">
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button type="button"
+                        @click="showInvoiceModal = false"
+                        class="px-4 py-2 border rounded-lg">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="px-4 py-2 bg-purple-600 text-white rounded-lg">
+                    Save Invoice
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div x-show="showModal"
+     x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center">
+
+    <div class="absolute inset-0 bg-gray-700/60 dark:bg-black/70 backdrop-blur-sm"
+         @click="showModal=false"></div>
+
+    <div class="bg-white rounded-xl w-full max-w-lg p-6 z-10">
+        <h3 class="text-lg font-semibold mb-3"
+            x-text="action === 'confirm' ? 'Confirm Order' : 'Cancel Order'">
+        </h3>
+
+        <form method="POST"
+              :action="action === 'confirm'
+                        ? '{{ route('admin.orders.confirm', $order) }}'
+                        : '{{ route('admin.orders.cancel', $order) }}'">
+
+            @csrf
+
+            <textarea name="admin_comments"
+                      rows="4"
+                      required
+                      class="w-full border rounded-lg p-2 text-sm"
+                      placeholder="Enter remarks (Required)..."></textarea>
+
+            <div class="flex justify-end gap-3 mt-4">
+                <button type="button"
+                        @click="showModal=false"
+                        class="px-4 py-2 border rounded-lg">
+                    Close
+                </button>
+
+                <button type="submit"
+                        :class="action === 'confirm'
+                            ? 'bg-green-600'
+                            : 'bg-red-600'"
+                        class="px-4 py-2 text-white rounded-lg">
+                    Submit
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+<!-- ================= ORDER ACTIVITY TIMELINE ================= -->
+<div class="mt-8 border rounded-xl p-5 bg-gray-50">
+    <h3 class="text-lg font-semibold mb-4">
+        Order Activity Timeline
+    </h3>
+
+    <div class="relative pl-6">
+        <!-- Vertical Line -->
+        <div class="absolute left-2 top-0 bottom-0 w-px bg-gray-300"></div>
+
+        @forelse($order->activities as $activity)
+            <div class="relative mb-6">
+
+                <!-- Status Dot -->
+                <div class="absolute -left-[5px] top-1 w-3 h-3 rounded-full
+                    @if(in_array($activity->event, ['confirmed','invoice_generated','dispatched','delivered']))
+                        bg-green-600
+                    @elseif(in_array($activity->event, ['cancelled','invoice_removed']))
+                        bg-red-600
+                    @else
+                        bg-gray-400
+                    @endif
+                ">
+                </div>
+
+                <!-- Content -->
+                <div class="ml-4">
+                    <p class="text-sm font-semibold text-gray-800">
+                        {{ ucwords(str_replace('_',' ', $activity->event)) }}
+                    </p>
+
+                    @if($activity->remarks)
+                        <p class="text-xs text-gray-600 mt-0.5">
+                            {{ $activity->remarks }}
+                        </p>
+                    @endif
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        {{ $activity->created_at->format('d M Y, h:i A') }}
+                        •
+                        <span class="font-medium">
+                            {{ optional($activity->performedBy)->fname
+                                ?? optional($activity->performedBy)->firm_name
+                                ?? 'System' }}
+                        </span>
+                    </p>
+                </div>
+
+            </div>
+        @empty
+            <p class="text-sm text-gray-500 ml-4">
+                No activity recorded yet.
+            </p>
+        @endforelse
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+</div>
 @endsection
 
+
 @push('scripts')
+
     <script>
         window.pageXData = {
-            page: 'orders',
-            confirmModal: false,
-            actionType: '',
+            page: 'createOrder',
         };
     </script>
-@endpush
-
-@push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-    <script>
-        function orderTableComponent() {
-            return {
-                search: '{{ $search ?? '' }}',
-                debounceTimeout: null,
-                updateQuery() {
-                    clearTimeout(this.debounceTimeout);
-                    this.debounceTimeout = setTimeout(() => {
-                        const base = '{{ route('admin.orders.index') }}';
-                        const query = this.search.trim() ? '?search=' + encodeURIComponent(this.search.trim()) : '';
-                        window.location.href = base + query;
-                    }, 500);
-                },
-                exportToExcel() {
-                    const table = document.getElementById('permissionsTable');
-                    const wb = XLSX.utils.table_to_book(table, {
-                        sheet: "Distributors"
-                    });
-                    XLSX.writeFile(wb, "distributors.xlsx");
-                }
-            };
-        }
-    </script>
-@endpush
-
-@push('styles')
-    <style>
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-
-            .max-w-\(--breakpoint-2xl\),
-            .max-w-6xl {
-                max-width: 100% !important;
-                padding: 0 !important;
-            }
-
-            .rounded-2xl,
-            .rounded-lg {
-                border-radius: 0 !important;
-                box-shadow: none !important;
-                border: none !important;
-            }
-
-            .min-h-screen,
-            .mx-auto,
-            .w-full {
-                min-height: auto !important;
-                margin: 0 !important;
-                width: 100% !important;
-            }
-
-            .max-w-6xl,
-            .p-4,
-            .md\:p-6,
-            .px-5,
-            .py-7,
-            .xl\:px-10,
-            .xl\:py-12 {
-                padding: 0 !important;
-            }
-
-            #printable-area,
-            #printable-area * {
-                visibility: visible;
-            }
-
-            #printable-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-
-            .no-print {
-                display: none !important;
-            }
-        }
-    </style>
+    
 @endpush

@@ -25,19 +25,18 @@
 
                  <h2 class="text-xl font-semibold mb-4  text-gray-800 dark:text-white/90">Create Sales Person</h2>
 
-    @include('admin.sales_persons._form', [
-        'action' => route('admin.sales-persons.store'),
-        'method' => 'POST',
-        'buttonText' => 'Create',
-        'salesPerson' => null
-    ])
-
-
+        @include('admin.sales_persons._form', [
+            'action' => route('admin.sales-persons.store'),
+            'method' => 'POST',
+            'buttonText' => 'Create',
+            'salesPerson' => null
+        ])
 
 
             </div>
         </div>
     </div>
+    
 @endsection
 
 @push('scripts')

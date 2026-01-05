@@ -4,7 +4,6 @@
 
         @include('admin.sales_persons._breadcrump')
 
-
         @if (session('success'))
             <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
                 class="bg-green-100 text-green-800 p-3 rounded mb-4">
@@ -105,112 +104,6 @@
                 </div>
 
 
-
-
-
-
-
-{{-- 
-
-                <div class="overflow-x-auto">
-
-                    <table id="salesPersonsTable"
-                        class="min-w-full border text-sm dark:text-white/90 table-auto md:table-fixed">
-                        <thead class="bg-gray-100 text-sm text-gray-700">
-                            <tr>
-                                <th class="p-2">#</th>
-                                <th class="p-2">Name</th>
-                                <th class="p-2">Login ID</th>
-                                <th class="p-2">Designation</th>
-                                <th class="p-2">Headquarter</th>
-                                <th class="p-2">District</th>
-                                <th class="p-2">Town</th>
-                                <th class="p-2">Zone</th>
-                                <th class="p-2">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($salesPersons as $sp)
-                                <tr class="border-t" x-data="{ showModal: false, deleteUrl: '', open: false }">
-                                    <td class="p-2">{{ $loop->iteration }}</td>
-                                    <td class="p-2 font-medium">{{ $sp->name }}</td>
-                                    <td class="p-2">{{ $sp->login_id }}</td>
-                                    <td class="p-2">{{ $sp->designation ?? '-' }}</td>
-                                    <td class="p-2">{{ $sp->headquarter ?? '-' }}</td>
-                                    <td class="p-2">{{ $sp->district ?? '-' }}</td>
-                                    <td class="p-2">{{ $sp->town ?? '-' }}</td>
-                                    <td class="p-2">{{ $sp->zone ?? '-' }}</td>
-                                    <td class="p-2 relative">
-                                        <button @click="open = !open"
-                                            class="bg-gray-200 text-sm px-3 py-1 rounded hover:bg-gray-300">Actions
-                                            ▾</button>
-                                        <div x-show="open" @click.away="open = false" x-transition
-                                            class="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded shadow-md text-left z-10">
-
-
-                                            @if (Auth::guard('admin')->user()->hasPermission('view_sales'))
-                                                <a
-                                                    href="{{ route('admin.sales-persons.show', $sp) }}"class="block px-3 py-2 text-sm text-blue-600 hover:bg-gray-100 hover:text-blue-800">👁️
-                                                    View</a>
-                                            @endif
-
-                                            @if (Auth::guard('admin')->user()->hasPermission('edit_sales'))
-                                                <a href="{{ route('admin.sales-persons.edit', $sp) }}"
-                                                    class="block px-3 py-2 text-sm text-blue-600 hover:bg-gray-100 hover:text-blue-800">✏️
-                                                    Edit</a>
-                                            @endif
-
-                                            @if (Auth::guard('admin')->user()->hasPermission('delete_sales'))
-                                                <button
-                                                    @click.prevent="showModal = true; deleteUrl = '{{ route('admin.sales-persons.destroy', $sp) }}'; open = false;"
-                                                    class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100">🗑️
-                                                    Delete</button>
-                                            @endif
-                                        </div>
-
-                                        <!-- Delete Modal -->
-                                        <template x-if="showModal">
-                                            <div x-show="showModal" x-transition
-                                                class="fixed inset-0 flex items-center justify-center z-[100]">
-                                                <div class="absolute inset-0 bg-gray-700/60 backdrop-blur-sm"
-                                                    @click="showModal = false"></div>
-                                                <div
-                                                    class="relative bg-white rounded-lg shadow-lg w-full max-w-md p-6 z-[101]">
-                                                    <h2 class="text-lg font-semibold mb-4 text-red-600">Confirm Deletion
-                                                    </h2>
-                                                    <p class="mb-6">Delete <strong>{{ $sp->name }}</strong>?</p>
-                                                    <div class="flex justify-end space-x-3">
-                                                        <button @click="showModal = false"
-                                                            class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
-                                                        <form :action="deleteUrl" method="POST">
-                                                            @csrf @method('DELETE')
-                                                            <button type="submit"
-                                                                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Yes,
-                                                                Delete</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="9" class="p-4 text-gray-400">No Sales Persons found.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-
-                    <div class="mt-4">{{ $salesPersons->links() }}</div>
-
-
-                </div> --}}
-
-
-
-
-
 <div class="overflow-x-auto">
     <table id="salesPersonsTable"
         class="min-w-full border text-sm table-auto md:table-fixed text-gray-900 dark:text-white/90 border-gray-200 dark:border-gray-700">
@@ -240,76 +133,15 @@
                     <td class="p-2">{{ $sp->zone ?? '-' }}</td>
 
 
-
-{{-- 
-                    <td class="p-2 relative">
-                        <!-- Actions Button -->
-                        <button @click="open = !open"
-                            class="bg-gray-200 dark:bg-gray-700 text-sm px-3 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600 dark:hover:text-white transition">
-                            Actions ▾
-                        </button>
-
-                        <!-- Dropdown -->
-                        <div x-show="open" @click.away="open = false" x-transition
-                            class="absolute right-0 mt-1 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md text-left z-10">
-                            @if (Auth::guard('admin')->user()->hasPermission('view_sales'))
-                                <a href="{{ route('admin.sales-persons.show', $sp) }}"
-                                    class="block px-3 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white transition">👁️
-                                    View</a>
-                            @endif
-
-                            @if (Auth::guard('admin')->user()->hasPermission('edit_sales'))
-                                <a href="{{ route('admin.sales-persons.edit', $sp) }}"
-                                    class="block px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white transition">✏️
-                                    Edit</a>
-                            @endif
-
-                            @if (Auth::guard('admin')->user()->hasPermission('delete_sales'))
-                                <button
-                                    @click.prevent="showModal = true; deleteUrl = '{{ route('admin.sales-persons.destroy', $sp) }}'; open = false;"
-                                    class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white transition">🗑️
-                                    Delete</button>
-                            @endif
-                        </div>
-
-                        <!-- Delete Modal -->
-                        <template x-if="showModal">
-                            <div x-show="showModal" x-transition
-                                class="fixed inset-0 flex items-center justify-center z-[100]">
-                                <div class="absolute inset-0 bg-gray-700/60 backdrop-blur-sm"
-                                    @click="showModal = false"></div>
-                                <div
-                                    class="relative bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 z-[101]">
-                                    <h2 class="text-lg font-semibold mb-4 text-red-600 dark:text-red-400">Confirm Deletion</h2>
-                                    <p class="mb-6 text-gray-700 dark:text-gray-300">Delete
-                                        <strong>{{ $sp->name }}</strong>?</p>
-                                    <div class="flex justify-end space-x-3">
-                                        <button @click="showModal = false"
-                                            class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 dark:hover:text-white transition">Cancel</button>
-                                        <form :action="deleteUrl" method="POST">
-                                            @csrf @method('DELETE')
-                                            <button type="submit"
-                                                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 dark:hover:bg-red-500 transition">Yes,
-                                                Delete</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </td> --}}
-
-
-
-                    <td class="p-2 relative" 
-    x-data="{
-        open: false,
-        showModal: false,
-        deleteUrl: '',
-        dropdownStyle: '',
-        toggleDropdown($refs) {
-            this.open = !this.open;
-            if (this.open) {
-                this.$nextTick(() => {
+                    <td class="p-2 relative" x-data="{
+                    open: false,
+                    showModal: false,
+                    deleteUrl: '',
+                    dropdownStyle: '',
+                    toggleDropdown($refs) {
+                    this.open = !this.open;
+                    if (this.open) {
+                    this.$nextTick(() => {
                     const rect = $refs.actionsBtn.getBoundingClientRect();
                     const menuWidth = 160; // matches w-40
                     const margin = 8;
@@ -323,96 +155,88 @@
 
                     // If not enough space below, show above
                     if (availableBelow < 140) {
-                        const aboveTop = rect.top - 6 - menuMax;
-                        if (aboveTop > margin) {
-                            top = aboveTop;
-                        } else {
-                            top = Math.max(margin, Math.min(top, window.innerHeight - menuMax - margin));
-                        }
+                    const aboveTop = rect.top - 6 - menuMax;
+                    if (aboveTop > margin) {
+                    top = aboveTop;
+                    } else {
+                    top = Math.max(margin, Math.min(top, window.innerHeight - menuMax - margin));
+                    }
                     }
 
                     this.dropdownStyle = `left:${left}px; top:${top}px; width:${menuWidth}px; max-height:${menuMax}px; overflow:auto;`;
 
                     // Close on scroll
                     const onScroll = () => {
-                        this.open = false;
-                        window.removeEventListener('scroll', onScroll, true);
+                    this.open = false;
+                    window.removeEventListener('scroll', onScroll, true);
                     };
                     window.addEventListener('scroll', onScroll, true);
-                });
-            }
-        }
-    }"
-    @keydown.escape.window="open = false">
+                    });
+                    }
+                    }
+                    }" @keydown.escape.window="open = false">
 
-    <!-- Actions Button -->
-    <button x-ref="actionsBtn" @click="toggleDropdown($refs)"
-        class="bg-gray-200 dark:bg-gray-700 text-sm px-3 py-1 rounded 
-               hover:bg-gray-300 dark:hover:bg-gray-600 dark:hover:text-white transition">
-        Actions ▾
-    </button>
+                        <!-- Actions Button -->
+                        <button x-ref="actionsBtn" @click="toggleDropdown($refs)" class="bg-gray-200 dark:bg-gray-700 text-sm px-3 py-1 rounded 
+                    hover:bg-gray-300 dark:hover:bg-gray-600 dark:hover:text-white transition">
+                            Actions ▾
+                        </button>
 
-    <!-- Fixed Dropdown -->
-    <div x-cloak x-show="open" x-transition @click.away="open = false"
-        :style="dropdownStyle"
-        class="fixed rounded-md shadow-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 z-[100]">
-        
-        @if (Auth::guard('admin')->user()->hasPermission('view_sales'))
-            <a href="{{ route('admin.sales-persons.show', $sp) }}"
-                class="block px-3 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-blue-500 transition">👁️
-                View</a>
-        @endif
+                        <!-- Fixed Dropdown -->
+                        <div x-cloak x-show="open" x-transition @click.away="open = false" :style="dropdownStyle"
+                            class="fixed rounded-md shadow-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 z-[100]">
 
-        @if (Auth::guard('admin')->user()->hasPermission('edit_sales'))
-            <a href="{{ route('admin.sales-persons.edit', $sp) }}"
-                class="block px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-green-400 transition">✏️
-                Edit</a>
-        @endif
+                            @if (Auth::guard('admin')->user()->hasPermission('view_sales'))
+                            <a href="{{ route('admin.sales-persons.show', $sp) }}"
+                                class="block px-3 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-blue-500 transition">👁️
+                                View</a>
+                            @endif
 
-        @if (Auth::guard('admin')->user()->hasPermission('delete_sales'))
-            <button
-                @click.prevent="showModal = true; deleteUrl = '{{ route('admin.sales-persons.destroy', $sp) }}'; open = false;"
-                class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-red-500 transition">🗑️
-                Delete</button>
-        @endif
-    </div>
+                            @if (Auth::guard('admin')->user()->hasPermission('edit_sales'))
+                            <a href="{{ route('admin.sales-persons.edit', $sp) }}"
+                                class="block px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-green-400 transition">✏️
+                                Edit</a>
+                            @endif
 
-    <!-- Delete Modal -->
-    <template x-if="showModal">
-        <div x-show="showModal" x-transition
-            class="fixed inset-0 flex items-center justify-center z-[100]">
-            <div class="absolute inset-0 bg-gray-700/60 backdrop-blur-sm"
-                @click="showModal = false"></div>
-            <div
-                class="relative bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 z-[101]">
-                <h2 class="text-lg font-semibold mb-4 text-red-600 dark:text-red-400">Confirm Deletion</h2>
-                <p class="mb-6 text-gray-700 dark:text-white">Delete
-                    <strong>{{ $sp->name }}</strong>?</p>
-                <div class="flex justify-end space-x-3">
-                    <button @click="showModal = false"
-                class="px-4 py-2 rounded transition
+                            @if (Auth::guard('admin')->user()->hasPermission('delete_sales'))
+                            <button
+                                @click.prevent="showModal = true; deleteUrl = '{{ route('admin.sales-persons.destroy', $sp) }}'; open = false;"
+                                class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-red-500 transition">🗑️
+                                Delete</button>
+                            @endif
+                        </div>
+
+                        <!-- Delete Modal -->
+                        <template x-if="showModal">
+                            <div x-show="showModal" x-transition
+                                class="fixed inset-0 flex items-center justify-center z-[100]">
+                                <div class="absolute inset-0 bg-gray-700/60 backdrop-blur-sm"
+                                    @click="showModal = false"></div>
+                                <div
+                                    class="relative bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 z-[101]">
+                                    <h2 class="text-lg font-semibold mb-4 text-red-600 dark:text-red-400">Confirm
+                                        Deletion</h2>
+                                    <p class="mb-6 text-gray-700 dark:text-white">Delete
+                                        <strong>{{ $sp->name }}</strong>?</p>
+                                    <div class="flex justify-end space-x-3">
+                                        <button @click="showModal = false" class="px-4 py-2 rounded transition
                     bg-gray-200 text-gray-800 hover:bg-gray-300
                     dark:bg-white-700 dark:text-blue-400 
                     dark:hover:bg-blue-600 dark:hover:text-white">
-                Cancel
-            </button>
+                                            Cancel
+                                        </button>
 
-                    <form :action="deleteUrl" method="POST">
-                        @csrf @method('DELETE')
-                        <button type="submit"
-                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 dark:hover:bg-red-500 transition">Yes,
-                            Delete</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </template>
-</td>
-
-
-
-
-
+                                        <form :action="deleteUrl" method="POST">
+                                            @csrf @method('DELETE')
+                                            <button type="submit"
+                                                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 dark:hover:bg-red-500 transition">Yes,
+                                                Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </td>
 
                 </tr>
             @empty
@@ -426,20 +250,8 @@
     <div class="mt-4">{{ $salesPersons->links() }}</div>
 </div>
 
-
-
-
-
-
-
-
-
-
-
-
             </div>
         </div>
-
 
 
     </div>

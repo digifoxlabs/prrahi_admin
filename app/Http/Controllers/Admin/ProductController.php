@@ -5,13 +5,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Models\Category;
-use App\Models\InventoryTransaction;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductsExport;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
@@ -29,7 +25,7 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function indexX(Request $request)
     {
     
     $title = 'Products';
@@ -54,6 +50,116 @@ class ProductController extends Controller
 
     }
 
+
+
+
+
+
+
+// public function index(Request $request)
+// {
+//     $title = 'Products';
+//     $search = $request->query('search');
+
+//     // Fetch only top-level products (parent_id IS NULL) so variables (with variants) and simple products appear.
+//     // Eager load variants and categories
+//     $products = Product::with(['category', 'subCategory', 'variants', 'variants.category', 'variants.subCategory'])
+//         ->whereNull('parent_id')
+//         ->when($search, function ($query, $search) {
+//             $query->where(function ($q) use ($search) {
+//                 // Match on parent (top-level) name/code OR any variant attributes (via variants relation)
+//                 $q->where('name', 'like', "%{$search}%")
+//                   ->orWhere('code', 'like', "%{$search}%")
+//                   ->orWhereHas('category', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+//                   ->orWhereHas('subCategory', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+//                   ->orWhereHas('variants', function ($q3) use ($search) {
+//                       $q3->where('name', 'like', "%{$search}%")
+//                          ->orWhere('code', 'like', "%{$search}%")
+//                          ->orWhereHas('category', fn($q4) => $q4->where('name', 'like', "%{$search}%"))
+//                          ->orWhereHas('subCategory', fn($q4) => $q4->where('name', 'like', "%{$search}%"));
+//                   });
+//             });
+//         })
+//         ->orderByDesc('id')
+//         ->paginate(20)
+//         ->withQueryString();
+
+//     return view('admin.products.index', compact('title', 'products', 'search'));
+// }
+
+
+
+    // Index: return only top-level products (parent_id IS NULL)
+    public function index(Request $request)
+    {
+        $title = 'Products';
+        $search = $request->query('search');
+
+        $productsQuery = Product::with([
+                'category',
+                'subCategory',
+                'variants' => function ($q) {
+                    $q->orderBy('id', 'asc'); // order variants if you like
+                },
+                'variants.category',
+                'variants.subCategory'
+            ])
+            ->whereNull('parent_id');
+
+        if ($search) {
+            $productsQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhereHas('category', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('subCategory', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('variants', function ($q3) use ($search) {
+                      $q3->where('name', 'like', "%{$search}%")
+                         ->orWhere('code', 'like', "%{$search}%")
+                         ->orWhereHas('category', fn($q4) => $q4->where('name', 'like', "%{$search}%"))
+                         ->orWhereHas('subCategory', fn($q4) => $q4->where('name', 'like', "%{$search}%"));
+                  });
+            });
+        }
+
+        $products = $productsQuery->orderByDesc('id')->paginate(20)->withQueryString();
+
+        return view('admin.products.index', compact('title', 'products', 'search'));
+    }
+
+
+
+    public function variants(Product $product)
+{
+
+     $title = 'Products';
+    // ensure product is a variable type
+    if ($product->type !== 'variable') {
+        return redirect()->route('admin.products.index')->with('error', 'Product is not a variable product.');
+    }
+
+    // eager load variants (and category/subCategory if you want)
+    $product->load(['variants', 'category', 'subCategory']);
+
+    // If you used the aggregate-subquery approach in index(), ensure variants have total_stock:
+    // Optionally append total_stock per variant if not provided by query:
+    // $product->variants->each->append('total_stock');
+
+    return view('admin.products.variants', compact('product','title'));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /**
      * Show the form for creating a new resource.
      */
@@ -74,22 +180,24 @@ class ProductController extends Controller
             'name' => 'required',
             'type' => 'required|in:simple,variable',
             'category_id' => 'required',
-            'unit' => 'required',
+            'base_unit' => 'required',
             'variants' => 'required_if:type,variable|array|min:1',
         ]);
 
         $product = Product::create([
             'name' => $request->name,
             'code'=> $request->code,
+            'hsn'=> $request->hsn,
             'type' => $request->type,
             'category_id' => $request->category_id,
             'sub_category_id' => $request->sub_category_id,
-            'unit' => $request->unit,
-            'dozen_per_case' => $request->type == 'simple' ? $request->dozen_per_case : null,
-            'free_dozen_per_case' => $request->type == 'simple' ? $request->free_dozen_per_case : null,
+            'base_unit' => $request->base_unit,
+            'base_quantity' => $request->base_quantity,
             'mrp_per_unit' => $request->type == 'simple' ? $request->mrp_per_unit : null,
             'ptr_per_dozen' => $request->type == 'simple' ? $request->ptr_per_dozen : null,
+            'retailer_discount_percent' => $request->type == 'simple' ? $request->retailer_discount_percent : null,
             'ptd_per_dozen' => $request->type == 'simple' ? $request->ptd_per_dozen : null,
+            'distributor_discount_percent' => $request->type == 'simple' ? $request->distributor_discount_percent : null,
             'weight_gm' => $request->type == 'simple' ? $request->weight_gm : null,
             'size' => $request->type == 'simple' ? $request->size : null,
             'attributes' => $request->type == 'simple' ? null : [],
@@ -100,16 +208,20 @@ class ProductController extends Controller
                 $product->variants()->create([
                     'name' => null,
                     'code' => $variant['code'],
+                    'hsn' => $variant['hsn'],
                     'type' => 'variant',
                     'parent_id' => $product->id,
                     'category_id' => null,
                     'sub_category_id' => null,
-                    'unit' => null,
-                    'dozen_per_case' => $variant['dozen_per_case'],
-                    'free_dozen_per_case' => $variant['free_dozen_per_case'],
+                    'base_unit' => null,
+                    'base_quantity' => null,                    
+                    // 'dozen_per_case' => $variant['dozen_per_case'],
+                    // 'free_dozen_per_case' => $variant['free_dozen_per_case'],
                     'mrp_per_unit' => $variant['mrp_per_unit'],
                     'ptr_per_dozen' => $variant['ptr_per_dozen'],
+                    'retailer_discount_percent' => $variant['retailer_discount_percent'],
                     'ptd_per_dozen' => $variant['ptd_per_dozen'],
+                    'distributor_discount_percent' => $variant['distributor_discount_percent'],
                     'weight_gm' => $variant['weight_gm'],
                     'size' => $variant['size'],
                     'attributes' => [
@@ -163,17 +275,21 @@ class ProductController extends Controller
 
         'name' => 'required|string|max:255',
         'code'=> 'nullable',
+        'hsn'=> 'nullable',
         'category_id' => 'nullable|exists:categories,id',
         'sub_category_id' => 'nullable|exists:categories,id',
-        'unit' => 'nullable|string|max:20',
+        'base_unit' => 'nullable|string|max:20',
+        'base_quantity' => 'nullable|string|max:20',
         'type' => 'required|in:simple,variable,variant',
 
         // For simple product
-        'dozen_per_case' => 'nullable|numeric',
-        'free_dozen_per_case' => 'nullable|numeric',
+        // 'dozen_per_case' => 'nullable|numeric',
+        // 'free_dozen_per_case' => 'nullable|numeric',
         'mrp_per_unit' => 'nullable|numeric',
         'ptr_per_dozen' => 'nullable|numeric',
+        'retailer_discount_percent' => 'nullable|numeric',
         'ptd_per_dozen' => 'nullable|numeric',
+        'distributor_discount_percent' => 'nullable|numeric',
         'weight_gm' => 'nullable|numeric',
         'size' => 'nullable|string|max:255',
 
@@ -182,42 +298,52 @@ class ProductController extends Controller
 
         // For multiple variants (variable product)
         'variants.*.code' => 'nullable',
+        'variants.*.hsn' => 'nullable',
         'variants' => 'nullable|array',
         'variants.*.id' => 'nullable|exists:products,id',
         'variants.*.fragrance' => 'nullable|string|max:255',
         'variants.*.size' => 'nullable|string|max:255',
-        'variants.*.dozen_per_case' => 'nullable|numeric',
-        'variants.*.free_dozen_per_case' => 'nullable|numeric',
+        'variants.*.base_quantity' => 'nullable|numeric',
         'variants.*.mrp_per_unit' => 'nullable|numeric',
         'variants.*.ptr_per_dozen' => 'nullable|numeric',
+        'variants.*.retailer_discount_percent' => 'nullable|numeric',
         'variants.*.ptd_per_dozen' => 'nullable|numeric',
+        'variants.*.distributor_discount_percent' => 'nullable|numeric',
         'variants.*.weight_gm' => 'nullable|numeric',
     ]);
 
     DB::transaction(function () use ($validated, $request, $product) {
+
+
         if ($product->type === 'simple') {
             $product->update([
                 'name' => $validated['name'],
                 'code'=> $validated['code'],
+                'hsn'=> $validated['hsn'],
                 'category_id' => $validated['category_id'],
                 'sub_category_id' => $validated['sub_category_id'],
-                'unit' => $validated['unit'],
-                'dozen_per_case' => $validated['dozen_per_case'],
-                'free_dozen_per_case' => $validated['free_dozen_per_case'],
+                'base_unit' => $validated['base_unit'],
+                'base_quantity' => $validated['base_quantity'],
+                // 'free_dozen_per_case' => $validated['free_dozen_per_case'],
                 'mrp_per_unit' => $validated['mrp_per_unit'],
                 'ptr_per_dozen' => $validated['ptr_per_dozen'],
+                'retailer_discount_percent' => $validated['retailer_discount_percent'],
                 'ptd_per_dozen' => $validated['ptd_per_dozen'],
+                'distributor_discount_percent' => $validated['distributor_discount_percent'],
                 'weight_gm' => $validated['weight_gm'],
-                'attributes' => ['size' => $validated['size']],
+                'size' => $request->type == 'simple' ? $request->size : null,
+                'attributes' => $request->type == 'simple' ? null : [],
             ]);
         }
 
-        if ($product->type === 'variable') {
+        else if ($product->type === 'variable') {
+
+
             $product->update([
                 'name' => $validated['name'],
                 'category_id' => $validated['category_id'],
                 'sub_category_id' => $validated['sub_category_id'],
-                'unit' => $validated['unit'],
+                'base_unit' => $validated['base_unit'],
             ]);
 
             // Update existing variants
@@ -231,11 +357,14 @@ class ProductController extends Controller
                         if ($variant) {
                             $variant->update([      
                                 'code' =>  $variantData['code'],                        
-                                'dozen_per_case' => $variantData['dozen_per_case'],
-                                'free_dozen_per_case' => $variantData['free_dozen_per_case'],
+                                'hsn' =>  $variantData['hsn'],                        
+                                'base_unit' => null,
+                                'base_quantity' => null,
                                 'mrp_per_unit' => $variantData['mrp_per_unit'],
                                 'ptr_per_dozen' => $variantData['ptr_per_dozen'],
+                                'retailer_discount_percent' => $variantData['retailer_discount_percent'],
                                 'ptd_per_dozen' => $variantData['ptd_per_dozen'],
+                                'distributor_discount_percent' => $variantData['distributor_discount_percent'],
                                 'weight_gm' => $variantData['weight_gm'],
                                 'attributes' => [
                                     'fragrance' => $variantData['fragrance'],
@@ -248,20 +377,35 @@ class ProductController extends Controller
             }
         }
 
-        if ($product->type === 'variant') {
+        else if ($product->type === 'variant') {  
+    
+            // Update only the variant record itself (not the parent)
             $product->update([
-                'code' => $validated['code'],
-                'dozen_per_case' => $validated['dozen_per_case'],
-                'free_dozen_per_case' => $validated['free_dozen_per_case'],
-                'mrp_per_unit' => $validated['mrp_per_unit'],
-                'ptr_per_dozen' => $validated['ptr_per_dozen'],
-                'ptd_per_dozen' => $validated['ptd_per_dozen'],
-                'weight_gm' => $validated['weight_gm'],
+                // Code (top-level 'code' in form)
+                'code' => $validated['code'] ?? $product->code,
+                'hsn' => $validated['hsn'] ?? $product->hsn,
+
+                // Pricing / specs
+                'mrp_per_unit' => $validated['mrp_per_unit'] ?? $product->mrp_per_unit,
+                'ptr_per_dozen' => $validated['ptr_per_dozen'] ?? $product->ptr_per_dozen,
+                'retailer_discount_percent' => $validated['retailer_discount_percent'] ?? $product->retailer_discount_percent,
+                'ptd_per_dozen' => $validated['ptd_per_dozen'] ?? $product->ptd_per_dozen,
+                'distributor_discount_percent' => $validated['distributor_discount_percent'] ?? $product->distributor_discount_percent,
+                'weight_gm' => $validated['weight_gm'] ?? $product->weight_gm,
+
+                // Keep base_unit/base_quantity null for variants (they inherit from parent)
+                'base_unit' => $product->base_unit,
+                'base_quantity' => $product->base_quantity,
+
+                // Attributes (fragrance, size) — store as JSON column
                 'attributes' => [
-                    'fragrance' => $validated['fragrance'],
-                    'size' => $validated['size'],
+                    'fragrance' => $validated['fragrance'] ?? ($product->attributes['fragrance'] ?? null),
+                    'size' => $validated['size'] ?? ($product->attributes['size'] ?? null),
                 ],
             ]);
+  
+
+
         }
     });
 
@@ -303,8 +447,9 @@ class ProductController extends Controller
 
 
     //Store variant
-    public function storeVariant(Request $request, Product $product)
-{
+    public function storeVariant(Request $request, Product $product){
+
+
     if ($product->type !== 'variable') {
         abort(403, 'Only variable products can have variants.');
     }
@@ -314,10 +459,11 @@ class ProductController extends Controller
         'variants.*.code' => 'required|string|unique:products,code',
         'variants.*.fragrance' => 'nullable|string',
         'variants.*.size' => 'nullable|string',
-        'variants.*.dozen_per_case' => 'nullable|numeric',
         'variants.*.mrp_per_unit' => 'nullable|numeric',
         'variants.*.ptr_per_dozen' => 'nullable|numeric',
+        'variants.*.retailer_discount_percent' => 'nullable|numeric',
         'variants.*.ptd_per_dozen' => 'nullable|numeric',
+        'variants.*.distributor_discount_percent' => 'nullable|numeric',
         'variants.*.weight_gm' => 'nullable|numeric',
     ]);
 
@@ -329,11 +475,13 @@ class ProductController extends Controller
             'code' => $variant['code'],
             'category_id' => $product->category_id,
             'sub_category_id' => $product->sub_category_id,
-            'unit' => $product->unit,
-            'dozen_per_case' => $variant['dozen_per_case'],
+            'base_unit' => null,
+            'base_quantity' => null,
             'mrp_per_unit' => $variant['mrp_per_unit'],
             'ptr_per_dozen' => $variant['ptr_per_dozen'],
+            'retailer_discount_percent' => $variant['retailer_discount_percent'],
             'ptd_per_dozen' => $variant['ptd_per_dozen'],
+            'distributor_discount_percent' => $variant['distributor_discount_percent'],
             'weight_gm' => $variant['weight_gm'],
             'attributes' => [
                 'fragrance' => $variant['fragrance'],
@@ -342,7 +490,13 @@ class ProductController extends Controller
         ]);
     }
 
-    return redirect()->route('admin.products.index')->with('success', 'Variants added successfully D');
+        // After transaction
+        $redirect = $request->input('redirect_to', route('admin.products.index'));
+
+        return redirect($redirect)
+                ->with('success', 'Variants saved successfully.');
+
+    //return redirect()->route('admin.products.index')->with('success', 'Variants Added Successfully');
 }
 
 

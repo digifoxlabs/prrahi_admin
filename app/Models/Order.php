@@ -13,13 +13,24 @@ class Order extends Model
 
     protected $fillable = [
         'order_number',
+        'order_date',
         'distributor_id',
+        'billing_address',
         'subtotal',
         'sgst',
         'cgst',
+        'igst',
+        'round_off',
         'dsicount',
         'total_amount',
         'status',
+        'admin_comments',
+        'bill_generated',
+        'invoice_status',
+        'invoice_no',
+        'invoice_date',
+        'dispatch_status',
+        'inventory_synced_at',
         'created_by_id',     // ✅ Add this
         'created_by_type',   // ✅ Add this
         'created_at',
@@ -88,6 +99,13 @@ protected static function booted()
     public function tallyInvoice()
     {
         return $this->hasOne(\App\Models\TallyInvoice::class, 'order_number', 'order_number');
+    }
+
+
+
+    public function activities()
+    {
+    return $this->hasMany(OrderActivity::class)->latest();
     }
 
 

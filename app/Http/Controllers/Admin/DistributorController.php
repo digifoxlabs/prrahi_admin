@@ -80,134 +80,9 @@ class DistributorController extends Controller
             ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-   // Store new distributor
-    // public function store(Request $request)
-    // {
-    //     $request->validate([
-    //         'firstname'   => 'required|string|max:100',
-    //         'lastname'    => 'required|string|max:100',
-    //         'email'       => 'required|email|unique:distributors,email',
-    //         'phone'       => 'required|string|max:15',
-    //         'address'     => 'nullable|string',
-    //         'district'    => 'nullable|string',
-    //         'city_town'   => 'nullable|string',
-    //         'state'       => 'nullable|string',
-    //         'pincode'     => 'nullable|string|max:10',
-    //         'gst'         => 'nullable|string|max:25',
-    //         'latitude'    => 'nullable|numeric|between:-90,90',
-    //         'longitude'   => 'nullable|numeric|between:-180,180',
-    //     ]);
-
-    //     $data = $request->except(['profile_photo', 'password', 'password_confirmation']);
-
-    //     $data['password'] = Hash::make('password@123');
-
-    //     Distributor::create($data);
-
-    //     return redirect()->route('admin.distributors.index')->with('success', 'Distributor created successfully.');
-
-        
-    // }
-
-
-    // public function store(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'firstname' => 'required|string',
-    //         'lastname' => 'required|string',
-    //         'email' => 'required|email|unique:distributors,email',
-    //         'phone' => 'required|string',
-    //         'district' => 'required|string',
-    //         'city_town' => 'nullable|string',
-    //         'state' => 'required|string',
-    //         'pincode' => 'required|string',
-    //         'address' => 'nullable|string',
-    //         'gst' => 'nullable|string',
-    //         'latitude' => 'nullable|numeric',
-    //         'longitude' => 'nullable|numeric',
-    //         'login_id' => 'required',
-    //     ]);
-
-    //     DB::beginTransaction();
-
-    //     try {
-    //         $distributor = Distributor::create([
-    //             'firstname' => $validated['firstname'],
-    //             'lastname' => $validated['lastname'],
-    //             'email' => $validated['email'],
-    //             'contact_number' => $validated['phone'],
-    //             'district' => $validated['district'],
-    //             'town' => $validated['city_town'],
-    //             'state' => $validated['state'],
-    //             'pincode' => $validated['pincode'],
-    //             'address_line_1' => $validated['address'],
-    //             'gst' => $validated['gst'],
-    //             'latitude' => $validated['latitude'],
-    //             'longitude' => $validated['longitude'],
-    //             'login_id' => $validated['email'],
-    //             'password' => Hash::make('password@123'),
-    //         ]);
-
-    //         // Companies
-    //         foreach ($request->input('companies', []) as $company) {
-    //             if (!empty($company['company_name'])) {
-    //                 $distributor->companies()->create([
-    //                     'company_name' => $company['company_name'],
-    //                     'segment' => $company['segment'] ?? null,
-    //                     'brand_name' => $company['brand_name'] ?? null,
-    //                     'products' => $company['products'] ?? null,
-    //                     'working_as' => $company['working_as'] ?? null,
-    //                     'margin' => $company['margin'] ?? null,
-    //                     'payment_terms' => $company['payment_terms'] ?? null,
-    //                     'working_since' => $company['working_since'] ?? null,
-    //                     'area_operation' => $company['area_operation'] ?? null,
-    //                     'monthly_to' => $company['monthly_to'] ?? null,
-    //                     'dsr_no' => $company['dsr_no'] ?? null,
-    //                     'details' => $company['details'] ?? null,
-    //                 ]);
-    //             }
-    //         }
-
-    //         // Banks
-    //         foreach ($request->input('banks', []) as $bank) {
-    //             if (!empty($bank['bank_name'])) {
-    //                 $distributor->banks()->create($bank);
-    //             }
-    //         }
-
-    //         // Godowns
-    //         foreach ($request->input('godowns', []) as $godown) {
-    //             if (!empty($godown['no_godown'])) {
-    //                 $distributor->godowns()->create($godown);
-    //             }
-    //         }
-
-    //         // Manpower
-    //         foreach ($request->input('manpowers', []) as $manpower) {
-    //             $distributor->manpowers()->create($manpower);
-    //         }
-
-    //         // Vehicles
-    //         foreach ($request->input('vehicles', []) as $vehicle) {
-    //             $distributor->vehicles()->create($vehicle);
-    //         }
-
-    //         DB::commit();
-
-    //         return redirect()->route('admin.distributors.index')->with('success', 'Distributor created successfully.');
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         return back()->withErrors(['error' => $e->getMessage()])->withInput();
-    //     }
-    // }
-
-
-
+   
     public function store(Request $request)
-{
+    {
     $validated = $request->validate([
         'sales_persons_id' => 'nullable|exists:sales_persons,id',
         'appointment_date' => 'required|date',
@@ -232,6 +107,23 @@ class DistributorController extends Controller
         'login_id' => 'required|string|unique:distributors,login_id',
         'password' => 'required|string|min:6',
     ]);
+
+
+
+
+        // Detect who is creating the distributor
+        $appointedBy = null;
+
+        if (auth('admin')->check()) {
+            $appointedBy = auth('admin')->user();              // App\Models\User
+        } elseif (auth('sales')->check()) {
+            $appointedBy = auth('sales')->user();              // App\Models\SalesPerson
+        } elseif (auth('distributor')->check()) {
+            $appointedBy = auth('distributor')->user();        // App\Models\Distributor
+        }
+
+
+
 
     DB::beginTransaction();
 
@@ -260,6 +152,19 @@ class DistributorController extends Controller
             'login_id' => $validated['login_id'],
             'password' => Hash::make($validated['password']),
         ]);
+
+
+        /**
+         * ---------------------------------------------------------
+         * Attach appointed_by polymorphic relation
+         * ---------------------------------------------------------
+         */
+        if ($appointedBy) {
+            $distributor->appointedBy()->associate($appointedBy);
+            $distributor->save();
+        }
+
+
 
         foreach ($request->input('companies', []) as $company) {
             if (!empty($company['company_name'])) {
@@ -310,27 +215,6 @@ class DistributorController extends Controller
 }
 
 
-
-
-
-
-
-
-    /**
-     * Display the specified resource.
-     */
-//    public function show($id)
-//     {
-//          $title ='Distributors';  
-//         // Find the distributor with related companies and documents
-//         $distributor = Distributor::with(['companies', 'documents'])
-//             ->findOrFail($id);
-
-//         return view('admin.distributors.show', compact('distributor','title'));
-//     }
-
-
-
 public function show(Distributor $distributor)
 {
 
@@ -348,14 +232,6 @@ public function show(Distributor $distributor)
     return view('admin.distributors.show', compact('distributor','title'));
 }
 
-
-
-
-
-
-
-
-
     /**
      * Show the form for editing the specified resource.
      */
@@ -371,40 +247,7 @@ public function show(Distributor $distributor)
 
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    // Update distributor
-    // public function update(Request $request, $id)
-    // {
-    //     $distributor = Distributor::findOrFail($id);
-
-    //     $request->validate([
-    //         'firstname'       => 'required|string|max:100',
-    //         'lastname'        => 'required|string|max:100',
-    //         'email'           => 'required|email|unique:distributors,email,' . $distributor->id,
-    //         'phone'           => 'required|string|max:15',
-    //         'address'         => 'nullable|string',
-    //         'district'        => 'nullable|string',
-    //         'city_town'       => 'nullable|string',
-    //         'state'           => 'nullable|string',
-    //         'pincode'         => 'nullable|string|max:10',
-    //         'gst'             => 'nullable|string|max:25',
-    //         'latitude'        => 'nullable|numeric|between:-90,90',
-    //         'longitude'       => 'nullable|numeric|between:-180,180',
-    //         'profile_photo'   => 'nullable|image|max:2048',
-    //         'password'        => 'nullable|string|min:8|confirmed',
-    //     ]);
-
-    //     $data = $request->except(['profile_photo', 'password', 'password_confirmation']);
-
-    //     $distributor->update($data);
-
-    //     return redirect()->route('admin.distributors.index')->with('success', 'Distributor updated successfully.');
-    // }
-
-
-
+    
 
 public function update(Request $request, Distributor $distributor)
 {
@@ -604,24 +447,20 @@ public function uploadProfile(Request $request, Distributor $distributor)
     ]);
 
     // Delete old image if exists
-    if ($salesPerson->profile_photo) {
+    if ($distributor->profile_photo) {
         Storage::disk('public')->delete($distributor->profile_photo);
     }
 
     // Store new image
     $path = $request->file('image')->store('distributor', 'public');
-    $salesPerson->profile_photo = $path;
-    $salesPerson->save();
+    $distributor->profile_photo = $path;
+    $distributor->save();
 
     return response()->json([
         'success' => true,
         'image_url' => asset('storage/' . $path),
     ]);
 }
-
-
-
-
 
 
 

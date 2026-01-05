@@ -62,7 +62,7 @@
     {{-- Remarks --}}
     <div>
         <label class="font-semibold">Remarks</label>
-        <textarea name="remarks" class="w-full border p-2 rounded" rows="3">{{ old('remarks', $inventory->remarks ?? '') }}</textarea>
+        <textarea name="remarks" required class="w-full border p-2 rounded" rows="3">{{ old('remarks', $inventory->remarks ?? '') }}</textarea>
     </div>
 
     {{-- Submit --}}

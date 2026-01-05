@@ -22,6 +22,7 @@ return new class extends Migration
             // Product basic details
             $table->string('name')->nullable();
             $table->string('code')->nullable();
+            $table->string('hsn')->nullable();
 
             // Type: simple, variable, or variant
             $table->enum('type', ['simple', 'variable', 'variant'])->default('simple');
@@ -30,18 +31,20 @@ return new class extends Migration
             $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
             $table->foreignId('sub_category_id')->nullable()->constrained('categories')->nullOnDelete();
 
-            $table->string('unit')->nullable();
+            $table->string('base_unit')->nullable();
 
             // Pricing and stock-related fields
-            $table->integer('dozen_per_case')->nullable();
+            $table->integer('base_quantity')->nullable();
+
             $table->decimal('mrp_per_unit', 10, 2)->nullable();
             $table->decimal('ptr_per_dozen', 10, 2)->nullable();
+            $table->decimal('retailer_discount_percent', 10, 2)->nullable();
+
             $table->decimal('ptd_per_dozen', 10, 2)->nullable();
+            $table->decimal('distributor_discount_percent', 10, 2)->nullable();
+
             $table->decimal('weight_gm', 10, 2)->nullable();
             $table->string('size')->nullable();
-
-            $table->boolean('has_free_qty')->default(true);
-            $table->integer('free_dozen_per_case')->nullable();
 
             // Variant attributes
             $table->json('attributes')->nullable();

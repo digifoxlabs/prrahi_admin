@@ -51,4 +51,19 @@ class Distributor extends Authenticatable
         return $this->belongsTo(SalesPerson::class, 'sales_persons_id');
     }
 
+
+    public function appointedRetailers()
+    {
+        return $this->morphMany(Retailer::class, 'appointed_by');
+    }
+
+
+    // Polymorphic relationship
+    public function appointedBy()
+    {
+        return $this->morphTo();
+    }
+
+
+
 }

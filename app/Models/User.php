@@ -77,4 +77,10 @@ class User extends Authenticatable
     }
 
 
+    public function appointedRetailers()
+    {
+        return $this->morphMany(Retailer::class, 'appointed_by');
+    }
+
+
 }

@@ -42,10 +42,12 @@ Schema::create('distributors', function (Blueprint $table) {
     $table->date('date_of_birth')->nullable();
     $table->date('date_of_anniversary')->nullable();
 
+    $table->nullableMorphs('appointed_by');//new
+
     // Profile login details
     $table->string('profile_photo')->nullable();
-      $table->string('login_id')->unique();
-      $table->string('password');
+    $table->string('login_id')->unique();
+    $table->string('password');
 
     $table->timestamps();
 });

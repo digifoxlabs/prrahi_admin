@@ -130,6 +130,61 @@
               </span>
             </a>
           </li>  
+
+
+          <li>
+            <a
+              href="{{ route('admin.retailers.index')}}"
+              @click="selected = (selected === 'Retailer' ? '':'Retailer')"             
+              class="menu-item group"
+              :class=" (selected === 'Retailer') || (page === 'retailer') ? 'menu-item-active' : 'menu-item-inactive'"
+            >
+          <svg
+            :class="(selected === 'Retailer') || (page === 'retailer') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16 4L20 8L16 12"
+              :stroke="(selected === 'Retailer') || (page === 'retailer') ? 'currentColor' : '#6B7280'"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M8 20L4 16L8 12"
+              :stroke="(selected === 'Retailer') || (page === 'retailer') ? 'currentColor' : '#6B7280'"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M20 8H10C8.34315 8 7 9.34315 7 11V13"
+              :stroke="(selected === 'Retailer') || (page === 'retailer') ? 'currentColor' : '#6B7280'"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M4 16H14C15.6569 16 17 14.6569 17 13V11"
+              :stroke="(selected === 'Retailer') || (page === 'retailer') ? 'currentColor' : '#6B7280'"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+
+              <span
+                class="menu-item-text"
+                :class="sidebarToggle ? 'lg:hidden' : ''"
+              >
+                Retailers
+              </span>
+            </a>
+          </li>  
                  
           <li>
             <a
@@ -254,7 +309,7 @@
                 @if (Auth::guard('admin')->user()->hasPermission('view_orders'))
                 <li>
                   <a
-                    href="{{ route('admin.tally.invoices.index') }}"
+                    href="{{ route('admin.invoices.index') }}"
                     class="menu-dropdown-item group"
                     :class="page === 'invoices' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
                   >

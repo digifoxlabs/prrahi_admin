@@ -33,6 +33,7 @@ return [
 
     'tally' => [
         'secret' => env('TALLY_SHARED_SECRET', null),
+         'api_key' => env('TALLY_API_KEY'), //New
     ],
 
 ];

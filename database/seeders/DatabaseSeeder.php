@@ -22,19 +22,23 @@ class DatabaseSeeder extends Seeder
         $this->call(RolesAndPermissionsSeeder::class);
         $this->call(DefaultUserSeeder::class);
         $this->call(StateDistrictSeeder::class);
-        $this->call(CategoryTableSeeder::class);
-        $this->call(ProductTableSeeder::class);
-        $this->call(SalesSeeder::class);
-        $this->call(InventoryTransactions::class);
+        $this->call(CategoriesTableSeeder::class);
+        $this->call(ProductsTableSeeder::class);
+       // $this->call(CategoryTableSeeder::class);
+       // $this->call(ProductTableSeeder::class);
+       $this->call(SalesSeeder::class);
+       // $this->call(InventoryTransactions::class);
 
         $this->call(DistributorSeeder::class);
-        $this->call(DistributorCompanies::class);
-        $this->call(DistributorBank::class);
-        $this->call(DistributorGodownSeeder::class);
-        $this->call(DistributorManpowerSeeder::class);
-        $this->call(DistributorVehicleSeeder::class);
+        // $this->call(DistributorCompanies::class);
+        // $this->call(DistributorBank::class);
+        // $this->call(DistributorGodownSeeder::class);
+        // $this->call(DistributorManpowerSeeder::class);
+        // $this->call(DistributorVehicleSeeder::class);
         $this->call(SettingsSeeder::class);
 
 
+        $this->call(CategoriesTableSeeder::class);
+        $this->call(ProductsTableSeeder::class);
     }
 }

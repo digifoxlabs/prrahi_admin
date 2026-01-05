@@ -27,19 +27,19 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet"/>
 
 
-<!-- ✅ jQuery: MUST be loaded first -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- ✅ jQuery: MUST be loaded first -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- ✅ Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- ✅ Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<!-- ✅ Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- ✅ Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-<!-- Flatpickr CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<!-- Flatpickr JS -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 
 
@@ -83,12 +83,10 @@
   
   @yield('page-content')
 </main>
-     </div>
+</div>
   <!-- ===== Content Area End ===== -->
 </div>
 <!-- ===== Page Wrapper End ===== -->
-
-
 
 @yield('scripts')
 

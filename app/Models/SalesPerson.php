@@ -23,8 +23,13 @@ class SalesPerson extends Authenticatable
 
 
     public function distributors()
-{
-    return $this->hasMany(Distributor::class, 'sales_persons_id');
-}
+    {
+        return $this->hasMany(Distributor::class, 'sales_persons_id');
+    }
+
+    public function appointedRetailers()
+    {
+        return $this->morphMany(Retailer::class, 'appointed_by');
+    }
 
 }

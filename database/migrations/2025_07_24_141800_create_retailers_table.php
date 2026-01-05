@@ -14,29 +14,36 @@ return new class extends Migration
         Schema::create('retailers', function (Blueprint $table) {
             $table->id();
 
-            // Linked to Distributor
-            $table->foreignId('distributor_id')->constrained()->onDelete('cascade');
+            $table->string('retailer_name')->nullable();
 
-            $table->date('appointment_date');
-            $table->string('retailer_name');
             $table->string('address_line_1');
             $table->string('address_line_2')->nullable();
-            $table->string('town');
-            $table->string('district');
-            $table->string('state');
-            $table->string('pincode');
+            $table->string('town')->nullable();
+
+            $table->string('district')->nullable();
+            $table->string('state')->nullable();
+
+            $table->string('pincode', 10)->nullable();
             $table->string('landmark')->nullable();
+
             $table->string('contact_person');
-            $table->string('contact_number');
-            $table->string('email');
+            $table->string('contact_number', 20);
+            $table->string('email')->nullable();
+
             $table->string('gst')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->date('date_of_anniversary')->nullable();
+            $table->date('appointment_date')->nullable();
             $table->string('nature_of_outlet')->nullable();
 
-            // Appointed By Information
-            $table->string('appointed_by')->nullable();
-            $table->string('designation')->nullable();
+            // ✅ Polymorphic appointed by
+            $table->nullableMorphs('appointed_by'); 
+            // creates appointed_by_id + appointed_by_type
+
+            $table->foreignId('distributor_id')
+                  ->nullable()
+                  ->constrained()
+                  ->nullOnDelete();
 
             $table->timestamps();
         });
