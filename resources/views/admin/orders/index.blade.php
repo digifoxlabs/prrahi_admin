@@ -6,19 +6,7 @@
     <h1 class="text-2xl font-semibold mb-4">{{ $title }}</h1>
 
 
-    @if (session('success'))
-        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
-            class="bg-green-100 text-green-800 p-3 rounded mb-4">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if (session('error'))
-        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
-            class="bg-yellow-100 text-red-800 p-3 rounded mb-4">
-            {{ session('error') }}
-        </div>
-    @endif
+    @include('partials.flash')
 
 
 <!-- ================= SEARCH & FILTER ================= -->

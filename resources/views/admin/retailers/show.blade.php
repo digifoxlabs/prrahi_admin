@@ -23,29 +23,6 @@
     @endif
 
 
-    <div class="mb-2 flex items-center justify-end">
-    <a href="{{ route('admin.retailers.index') }}"
-       class="inline-flex items-center gap-2
-              rounded-lg border border-gray-300
-              bg-white px-3 py-2 text-sm
-              text-gray-700 hover:bg-gray-100
-              dark:border-gray-700 dark:bg-gray-900
-              dark:text-gray-300 dark:hover:bg-gray-800 transition">
-        ← Back
-    </a>
-
-  
-        {{-- <a href="{{ route('admin.retailers.edit', $retailer) }}"
-           class="inline-flex items-center gap-2
-                  rounded-lg bg-indigo-600
-                  px-4 py-2 text-sm font-medium
-                  text-white hover:bg-indigo-700 transition">
-            ✏️ Edit
-        </a> --}}
-   
-    </div>
-
-
     <div
         class="min-h-screen rounded-2xl border border-gray-200 bg-white
                px-5 py-7 dark:border-gray-700 dark:bg-white/[0.03]
@@ -237,6 +214,21 @@
                     </p>
                 @endif
             </div>
+
+
+
+
+            <div class="mb-2 flex items-center justify-end py-5">
+    <a href="{{ route('admin.retailers.index') }}" class="inline-flex items-center gap-2
+rounded-lg border border-gray-300
+bg-white px-3 py-2 text-sm
+text-gray-700 hover:bg-gray-100
+dark:border-gray-700 dark:bg-gray-900
+dark:text-gray-300 dark:hover:bg-gray-800 transition">
+        ← Back
+    </a>
+
+</div>
 
         </div>
     </div>

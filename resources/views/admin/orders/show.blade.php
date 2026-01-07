@@ -4,11 +4,7 @@
 <div class="max-w-6xl mx-auto bg-white rounded-xl border p-6">
 
 
-@if(session('toast'))
-    <script>
-        toastr.{{ session('toast.type') }}('{{ session('toast.message') }}');
-    </script>
-@endif
+    @include('partials.flash')
 
 
     <!-- ================= HEADER ================= -->
@@ -49,7 +45,15 @@
         <div class="text-right">
             <p class="text-sm text-gray-600">Created By</p>
             <p class="font-medium">
-                {{ optional($order->created_by)->fname ?? 'System' }}
+
+                {{ 
+                    optional($order->created_by)->fname ??
+                    optional($order->created_by)->firm_name ??
+                    optional($order->created_by)->name ??
+                    'System'
+                 }}
+
+
             </p>
         </div>
     </div>
@@ -524,3 +528,4 @@
     </script>
     
 @endpush
+

@@ -154,18 +154,37 @@
 
         <!-- Distributor -->
         <div>
-            <label class="font-medium mb-1 block text-gray-700 dark:text-white">Distributor</label>
-            <select name="distributor_id"
-                    class="w-full p-2 border rounded border-gray-300 dark:border-gray-700
-                           bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-400">
-                <option value="">-- Select Distributor --</option>
-                @foreach($distributors as $d)
-                    <option value="{{ $d->id }}"
-                        @selected(old('distributor_id', $retailer->distributor_id ?? '') == $d->id)>
-                        {{ $d->firm_name }}
-                    </option>
-                @endforeach
-            </select>
+            <label class="font-medium mb-1 block text-gray-700 dark:text-white">
+                Distributor
+            </label>
+
+            @if(auth('distributor')->check())
+                {{-- Locked to logged-in distributor --}}
+                <input type="hidden"
+                    name="distributor_id"
+                    value="{{ auth('distributor')->id() }}">
+
+                <input type="text"
+                    value="{{ auth('distributor')->user()->firm_name }}"
+                    readonly
+                    class="w-full p-2 border rounded border-gray-300
+                            bg-gray-100 text-gray-700
+                            dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 cursor-not-allowed">
+            @else
+                {{-- Admin / Sales / Others --}}
+                <select name="distributor_id"
+                        class="w-full p-2 border rounded border-gray-300 dark:border-gray-700
+                            bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-400">
+                    <option value="">-- Select Distributor --</option>
+                    @foreach($distributors as $d)
+                        <option value="{{ $d->id }}"
+                            @selected(old('distributor_id', $retailer->distributor_id ?? '') == $d->id)>
+                            {{ $d->firm_name }}
+                        </option>
+                    @endforeach
+                </select>
+            @endif
+            
         </div>
 
         

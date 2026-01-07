@@ -2,38 +2,15 @@
 
 @section('page-content')
 <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
-   
 
+    {{-- Flash --}}
+    @include('partials.flash')
 
-
-
-    <div class="mb-2 flex items-center justify-end">
-    <a href="{{ route('distributor.retailers.index') }}"
-       class="inline-flex items-center gap-2
-              rounded-lg border border-gray-300
-              bg-white px-3 py-2 text-sm
-              text-gray-700 hover:bg-gray-100
-              dark:border-gray-700 dark:bg-gray-900
-              dark:text-gray-300 dark:hover:bg-gray-800 transition">
-        ← Back
-    </a>
-
-  
-        {{-- <a href="{{ route('admin.retailers.edit', $retailer) }}"
-           class="inline-flex items-center gap-2
-                  rounded-lg bg-indigo-600
-                  px-4 py-2 text-sm font-medium
-                  text-white hover:bg-indigo-700 transition">
-            ✏️ Edit
-        </a> --}}
-   
-    </div>
-
-
-    <div
-        class="min-h-screen rounded-2xl border border-gray-200 bg-white
+    <div class="min-h-screen rounded-2xl border border-gray-200 bg-white
                px-5 py-7 dark:border-gray-700 dark:bg-white/[0.03]
                xl:px-10 xl:py-12">
+
+
 
         <div class="mx-auto w-full max-w-8xl">
 
@@ -55,114 +32,103 @@
                             Phone: {{ $retailer->contact_number ?? '-' }}
                         </p>
 
+                        <div>
+                            <strong>Appointed By:</strong>
 
-                    <div>
-                        <strong>Appointed By:</strong>
-
-                        @php
+                            @php
                             $appointedBy = $retailer->appointedBy;
                             $appointedLabel = '—';
-                            $appointedName  = '—';
+                            $appointedName = '—';
 
                             if ($appointedBy) {
-                                switch (class_basename($appointedBy)) {
-                                    case 'User': // Admin
-                                        $appointedLabel = 'Admin';
-                                        $appointedName  = $appointedBy->fname ?? '—';
-                                        break;
+                            switch (class_basename($appointedBy)) {
+                            case 'User': // Admin
+                            $appointedLabel = 'Admin';
+                            $appointedName = $appointedBy->fname ?? '—';
+                            break;
 
-                                    case 'Distributor':
-                                        $appointedLabel = 'Distributor';
-                                        $appointedName  = $appointedBy->firm_name ?? '—';
-                                        break;
+                            case 'Distributor':
+                            $appointedLabel = 'Distributor';
+                            $appointedName = $appointedBy->firm_name ?? '—';
+                            break;
 
-                                    case 'SalesPerson':
-                                        $appointedLabel = 'Sales Person';
-                                        $appointedName  = $appointedBy->name ?? '—';
-                                        break;
-                                }
+                            case 'SalesPerson':
+                            $appointedLabel = 'Sales Person';
+                            $appointedName = $appointedBy->name ?? '—';
+                            break;
                             }
-                        @endphp
+                            }
+                            @endphp
 
-                        <span>
-                            {{ $appointedLabel }}
-                            @if($appointedName !== '—')
+                            <span>
+                                {{ $appointedLabel }}
+                                @if($appointedName !== '—')
                                 – <span class="font-medium">{{ $appointedName }}</span>
-                            @endif
-                        </span>
+                                @endif
+                            </span>
+                        </div>
+
                     </div>
-
-
-                    </div>
-
 
                     {{-- ACTION BUTTONS --}}
                     <div class="flex items-center gap-2">
 
                         {{-- Edit --}}
-                      
-                            <a href="{{ route('admin.retailers.edit', $retailer) }}"
-                               class="inline-flex items-center gap-2
+
+                        <a href="{{ route('admin.retailers.edit', $retailer) }}" class="inline-flex items-center gap-2
                                       rounded-md bg-indigo-600
                                       px-4 py-2 text-sm text-white
                                       hover:bg-indigo-700 transition">
-                                ✏️ Edit
-                            </a>
-                        
+                            ✏️ Edit
+                        </a>
 
                         {{-- Delete --}}
-                       
-                            <div x-data="{ showDelete:false }">
-                                <button @click="showDelete=true"
-                                        class="inline-flex items-center gap-2
+
+                        <div x-data="{ showDelete:false }">
+                            <button @click="showDelete=true" class="inline-flex items-center gap-2
                                                rounded-md bg-red-600
                                                px-4 py-2 text-sm text-white
                                                hover:bg-red-700 transition">
-                                    🗑️ Delete
-                                </button>
+                                🗑️ Delete
+                            </button>
 
-                                {{-- Delete Modal --}}
-                                <div x-show="showDelete" x-cloak x-transition
-                                     class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
-                                    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-md">
-                                        <div class="p-6">
-                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                                Confirm Deletion
-                                            </h3>
-                                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                                                Are you sure you want to delete
-                                                <strong>{{ $retailer->retailer_name }}</strong>?
-                                                This action cannot be undone.
-                                            </p>
-                                        </div>
-                                        <div
-                                            class="bg-gray-50 dark:bg-gray-800 px-4 py-3
+                            {{-- Delete Modal --}}
+                            <div x-show="showDelete" x-cloak x-transition
+                                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+                                <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-md">
+                                    <div class="p-6">
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                            Confirm Deletion
+                                        </h3>
+                                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                                            Are you sure you want to delete
+                                            <strong>{{ $retailer->retailer_name }}</strong>?
+                                            This action cannot be undone.
+                                        </p>
+                                    </div>
+                                    <div class="bg-gray-50 dark:bg-gray-800 px-4 py-3
                                                    flex justify-end gap-3">
 
-                                            <button @click="showDelete=false"
-                                                class="px-4 py-2 rounded
+                                        <button @click="showDelete=false" class="px-4 py-2 rounded
                                                        bg-gray-200 dark:bg-gray-700
                                                        text-gray-800 dark:text-white
                                                        hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                                                Cancel
-                                            </button>
+                                            Cancel
+                                        </button>
 
-                                            <form action="{{ route('admin.retailers.destroy', $retailer) }}"
-                                                  method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="px-4 py-2 rounded
+                                        <form action="{{ route('admin.retailers.destroy', $retailer) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="px-4 py-2 rounded
                                                            bg-red-600 text-white
                                                            hover:bg-red-700 transition">
-                                                    Delete
-                                                </button>
-                                            </form>
-                                        </div>
+                                                Delete
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
-                   
+                        </div>
 
                     </div>
                 </div>
@@ -200,37 +166,51 @@
                 </h3>
 
                 @if($retailer->distributor)
-                    <div class="text-sm text-gray-700 dark:text-gray-300">
-                        <p><strong>Firm Name:</strong> {{ $retailer->distributor->firm_name }}</p>
-                        <p><strong>Contact:</strong> {{ $retailer->distributor->contact_person }}</p>
-                        <p><strong>Phone:</strong> {{ $retailer->distributor->contact_number }}</p>
+                <div class="text-sm text-gray-700 dark:text-gray-300">
+                    <p><strong>Firm Name:</strong> {{ $retailer->distributor->firm_name }}</p>
+                    <p><strong>Contact:</strong> {{ $retailer->distributor->contact_person }}</p>
+                    <p><strong>Phone:</strong> {{ $retailer->distributor->contact_number }}</p>
 
-                        <div class="mt-3">
-                            <a href="{{ route('admin.distributors.show', $retailer->distributor) }}"
-                               class="inline-flex items-center rounded-md
+                    <div class="mt-3">
+                        <a href="{{ route('admin.distributors.show', $retailer->distributor) }}" class="inline-flex items-center rounded-md
                                       bg-gray-100 dark:bg-gray-800
                                       px-3 py-1 text-sm
                                       hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-                                View Distributor
-                            </a>
-                        </div>
+                            View Distributor
+                        </a>
                     </div>
+                </div>
                 @else
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        No distributor assigned.
-                    </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    No distributor assigned.
+                </p>
                 @endif
             </div>
+
+
+
+<div class="mb-2 flex items-center justify-end py-5">
+    <a href="{{ route('distributor.retailers.index') }}" class="inline-flex items-center gap-2
+rounded-lg border border-gray-300
+bg-white px-3 py-2 text-sm
+text-gray-700 hover:bg-gray-100
+dark:border-gray-700 dark:bg-gray-900
+dark:text-gray-300 dark:hover:bg-gray-800 transition">
+        ← Back
+    </a>
+
+</div>
+
+
+
+
+
 
         </div>
     </div>
 
-
-
-
-
-    </div>
- @endsection
+</div>
+@endsection
 
 @push('scripts')
 <script>

@@ -45,6 +45,9 @@
 
 
 
+
+
+
 </head>
   <body
     x-data="loadPageData()"
@@ -158,6 +161,9 @@
           document.getElementById('logout-form').submit();
       }
   </script>
+
+
+
 
 </body>
 </html>

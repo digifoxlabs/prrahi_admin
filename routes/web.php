@@ -57,11 +57,11 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('admin/pages/dashboard');
+    return view('admin.pages.dashboard');
 });
 
 Route::get('/login', function () {
-    return view('admin/login');
+    return view('admin.login');
 });
 
 // Route::get('/sales/login', function () {
@@ -232,7 +232,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     // Route::get('invoices/{order}/print', [AdminInvoiceController::class, 'print'])->name('print');
 
     //Retailers
-    Route::resource('retailers', AdminRetailerController::class)->names('retailers');
+    Route::resource('retailers', AdminRetailerController::class)->names('retailers')->only(['index','create','edit','show','destroy']);
 
     Route::get('retailers/export', [AdminRetailerController::class, 'export'])->name('retailers.export');
 
@@ -315,54 +315,13 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
 
 });
 
-//Shared Order Controller
+/*********************
+ * Shared Order Controller
+*********************/
 
-Route::prefix('admin')
-    ->name('admin.')
-    ->middleware('auth:admin')
-    ->group(function () {   
-
-        Route::post('orders', [OrderController::class, 'store'])
-            ->name('orders.store');
-
-        // Route::get('orders/{order}/edit', [OrderController::class, 'edit'])
-        //     ->name('orders.edit');
-
-        Route::put('orders/{order}', [OrderController::class, 'update'])
-            ->name('orders.update');
-
-        Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
-       
-        Route::get('/orders/{order}/invoice/print', [OrderController::class, 'printInvoice'])->name('orders.invoice.print');
-
-
-    });
-
-Route::prefix('distributor')
-    ->name('distributor.')
-    ->middleware('auth:distributor')
-    ->group(function () {   
-
-        Route::post('orders', [OrderController::class, 'store'])
-            ->name('orders.store');
-
-        // Route::get('orders/{order}/edit', [OrderController::class, 'edit'])
-        //     ->name('orders.edit');
-
-        Route::put('orders/{order}', [OrderController::class, 'update'])
-            ->name('orders.update');
-
-        Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
-
-        Route::get('/orders/{order}/invoice/print', [OrderController::class, 'printInvoice'])->name('orders.invoice.print');
-
-
-
-    });
-
-    Route::prefix('sales')
-        ->name('sales.')
-        ->middleware('auth:sales')
+    Route::prefix('admin')
+        ->name('admin.')
+        ->middleware('auth:admin')
         ->group(function () {   
 
             Route::post('orders', [OrderController::class, 'store'])
@@ -374,18 +333,61 @@ Route::prefix('distributor')
             Route::put('orders/{order}', [OrderController::class, 'update'])
                 ->name('orders.update');
 
+            Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+        
+            Route::get('/orders/{order}/invoice/print', [OrderController::class, 'printInvoice'])->name('orders.invoice.print');
+
+
+        });
+
+    Route::prefix('distributor')
+        ->name('distributor.')
+        ->middleware('auth:distributor')
+        ->group(function () {   
+
+            Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+
+            // Route::get('orders/{order}/edit', [OrderController::class, 'edit'])
+            //     ->name('orders.edit');
+
+            Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+
+            Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+
+            Route::get('/orders/{order}/invoice/print', [OrderController::class, 'printInvoice'])->name('orders.invoice.print');
+
+        });
+
+    Route::prefix('sales')
+        ->name('sales.')
+        ->middleware('auth:sales')
+        ->group(function () {   
+
+            Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+
+            // Route::get('orders/{order}/edit', [OrderController::class, 'edit'])
+            //     ->name('orders.edit');
+
+            Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 
              Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
 
              Route::get('/orders/{order}/invoice/print', [OrderController::class, 'printInvoice'])->name('orders.invoice.print');
 
-
-
-
         });
 
 
-    //Shared Retailer Controller
+/******************
+ * Shared Retailer Controller
+ * ******************/
+
+    Route::prefix('distributor')->name('distributor.')->middleware('auth:distributor')->group(function (){
+
+        Route::post('/retailers/store', [RetailerController::class, 'store'])->name('retailers.store');
+        Route::put('retailers/{retailer}', [RetailerController::class, 'update'])->name('retailers.update');
+
+    });
+
     Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function (){
 
         Route::post('/retailers/store', [RetailerController::class, 'store'])->name('retailers.store');

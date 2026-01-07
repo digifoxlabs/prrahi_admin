@@ -4,19 +4,7 @@
 <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
 
     {{-- Flash --}}
-    @if (session('success'))
-        <div x-data="{ show:true }" x-init="setTimeout(()=>show=false,3000)" x-show="show" x-transition
-             class="bg-green-100 text-green-800 p-3 rounded mb-4">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if (session('error'))
-        <div x-data="{ show:true }" x-init="setTimeout(()=>show=false,3000)" x-show="show" x-transition
-             class="bg-yellow-100 text-red-800 p-3 rounded mb-4">
-            {{ session('error') }}
-        </div>
-    @endif
+    @include('partials.flash')
 
     <!-- ================= HEADER ================= -->
     <div class="flex flex-col md:flex-row justify-between gap-4 mb-6">

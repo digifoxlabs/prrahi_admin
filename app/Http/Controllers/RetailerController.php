@@ -111,20 +111,6 @@ class RetailerController extends Controller
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     //Common Validation Data
    private function validatedData(Request $request, ?Retailer $retailer = null): array
     {
@@ -165,9 +151,9 @@ class RetailerController extends Controller
     protected function redirectAfterSave(Retailer $retailer, string $actor)
     {
         return match ($actor) {
-            'admin'       => redirect()->route('admin.retailers.index', $retailer)->with('success', 'Retailer created successfully.'),
-            //'distributor' => redirect()->route('distributor.orders.index', $order),
-            'sales'       => redirect()->route('sales.retailers.index', $retailer),
+            'admin'       => redirect()->route('admin.retailers.index'),
+            'distributor' => redirect()->route('distributor.retailers.index'),
+            'sales'       => redirect()->route('sales.retailers.index'),
             default       => abort(403),
         };
     }
@@ -177,8 +163,8 @@ class RetailerController extends Controller
     {
         return match ($actor) {
            // 'admin'       => redirect()->route('admin.orders.index', $retailer)->with('success', 'Retailer updated successfully.'),
-           // 'distributor' => redirect()->route('distributor.orders.index', $retailer),
-            'sales'       => redirect()->route('sales.retailers.index', $retailer),
+           'distributor' => redirect()->route('distributor.retailers.show', $retailer),
+            'sales'       => redirect()->route('sales.retailers.show', $retailer),
             default       => abort(403),
         };
     }

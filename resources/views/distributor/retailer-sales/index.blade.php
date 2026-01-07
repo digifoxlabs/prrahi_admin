@@ -2,6 +2,13 @@
 
 @section('page-content')
 <div class="min-h-screen bg-gray-50 p-4 md:p-6">
+
+
+    {{-- Flash --}}
+    @include('partials.flash')
+
+
+
     <div class="max-w-7xl mx-auto">
         <!-- Header Section -->
         <div class="mb-8">

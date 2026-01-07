@@ -273,14 +273,9 @@ class OrderController extends Controller
     });
 
 
-        //  return $this->redirectAfterUpdate($order, $actor['role'])->with('success', 'Order updated successfully.');
+         return $this->redirectAfterUpdate($order, $actor['role'])->with('success', 'Order updated successfully.');
         
         
-        return $this->redirectAfterUpdate($order, $actor['role'])
-                    ->with('toast', [
-                         'type' => 'success',
-                         'message' => 'Order Updated successfully!'
-    ]);
 
       //  return back()->with('success', 'Order updated successfully.');
     }
