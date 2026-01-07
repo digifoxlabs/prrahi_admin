@@ -3,6 +3,14 @@
 @section('page-content')
 <div class="max-w-6xl mx-auto bg-white rounded-xl border p-6">
 
+
+@if(session('toast'))
+    <script>
+        toastr.{{ session('toast.type') }}('{{ session('toast.message') }}');
+    </script>
+@endif
+
+
     <!-- ================= HEADER ================= -->
     <div class="flex flex-col md:flex-row justify-between gap-4 mb-6">
 
@@ -478,6 +486,7 @@
                         <span class="font-medium">
                             {{ optional($activity->performedBy)->fname
                                 ?? optional($activity->performedBy)->firm_name
+                                ?? optional($activity->performedBy)->name
                                 ?? 'System' }}
                         </span>
                     </p>

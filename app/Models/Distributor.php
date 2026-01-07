@@ -15,8 +15,8 @@ class Distributor extends Authenticatable
         'address_line_1', 'address_line_2', 'town', 'district', 'state', 'pincode', 'landmark',
         'latitude', 'longitude', 'contact_person', 'designation_contact',
         'contact_number', 'email', 'gst', 'date_of_birth', 'date_of_anniversary',
-        'profile_photo', 'login_id', 'password',
-        'firstname', 'lastname', 'address'
+        'profile_photo', 'login_id', 'password','firstname', 'lastname', 'address','appointed_by_type',
+        'appointed_by_id'
     ];
 
     protected $hidden = ['password'];

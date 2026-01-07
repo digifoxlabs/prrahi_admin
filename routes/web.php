@@ -26,6 +26,9 @@ use App\Http\Controllers\Distributor\RetailerSaleController;
 use App\Http\Controllers\Distributor\DistOrderController;
 use App\Http\Controllers\Distributor\DistributorInventoryLedgerController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\RetailerController;
+use App\Http\Controllers\Sales\SalesRetailerController;
+use App\Http\Controllers\Sales\SalesOrderController;
 
 
 
@@ -188,8 +191,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::resource('orders', AdminOrderController::class)->only(['index','create','edit','show','destroy']);;
 
     Route::post('orders/{order}/confirm', [AdminOrderController::class, 'confirm'])->name('orders.confirm');
-    Route::post('orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('orders.cancel');
-   // Route::delete('admin/orders/{order}', [AdminOrderController::class, 'destroy'])->name('admin.orders.destroy');
+    // Route::post('orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('orders.cancel');
+   
+    // Route::delete('admin/orders/{order}', [AdminOrderController::class, 'destroy'])->name('admin.orders.destroy');
            // Orders
         Route::post('/orders/{order}/dispatch', [
             AdminOrderController::class,
@@ -225,10 +229,11 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     // Route::get('/invoices/{id}', [TallyInvoiceController::class, 'show'])->name('tally.invoices.show');
     // Route::delete('/invoices/{id}', [TallyInvoiceController::class, 'destroy'])->name('tally.invoices.destroy');
     Route::get('/invoices', [AdminInvoiceController::class, 'index'])->name('invoices.index');
-    Route::get('invoices/{order}/print', [AdminInvoiceController::class, 'print'])->name('print');
+    // Route::get('invoices/{order}/print', [AdminInvoiceController::class, 'print'])->name('print');
 
     //Retailers
     Route::resource('retailers', AdminRetailerController::class)->names('retailers');
+
     Route::get('retailers/export', [AdminRetailerController::class, 'export'])->name('retailers.export');
 
 
@@ -281,6 +286,15 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
     Route::get('/dashboard', [SalesDashboardController::class, 'dashboard'])->name('dashboard');
 
 
+    /* Retailers CRUD by Sales Pesons
+    *  Store and Update to be done by Shared OrderController and Services
+    */
+    Route::resource('/retailers', SalesRetailerController::class)->only(['index','create','edit','show','destroy']);
+
+    //Order By Sales Persons
+    Route::resource('/orders', SalesOrderController::class);
+
+
 });
 
 
@@ -291,6 +305,17 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
 //    // Route::get('orders/{order}/edit', [OrderController::class,'edit'])->name('orders.edit');
 //     Route::put('orders/{order}', [OrderController::class,'update'])->name('orders.update');
 // });
+
+
+//Shared District Web Route
+    Route::middleware(['auth:admin,distributor,sales'])->group(function () {
+
+    // Route::get('orders/create', [OrderController::class,'create'])->name('orders.create');
+    Route::get('get-districts', [RetailerController::class, 'getDistricts'])->name('all.get-districts');
+
+});
+
+//Shared Order Controller
 
 Route::prefix('admin')
     ->name('admin.')
@@ -305,6 +330,12 @@ Route::prefix('admin')
 
         Route::put('orders/{order}', [OrderController::class, 'update'])
             ->name('orders.update');
+
+        Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+       
+        Route::get('/orders/{order}/invoice/print', [OrderController::class, 'printInvoice'])->name('orders.invoice.print');
+
+
     });
 
 Route::prefix('distributor')
@@ -320,4 +351,44 @@ Route::prefix('distributor')
 
         Route::put('orders/{order}', [OrderController::class, 'update'])
             ->name('orders.update');
+
+        Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+
+        Route::get('/orders/{order}/invoice/print', [OrderController::class, 'printInvoice'])->name('orders.invoice.print');
+
+
+
+    });
+
+    Route::prefix('sales')
+        ->name('sales.')
+        ->middleware('auth:sales')
+        ->group(function () {   
+
+            Route::post('orders', [OrderController::class, 'store'])
+                ->name('orders.store');
+
+            // Route::get('orders/{order}/edit', [OrderController::class, 'edit'])
+            //     ->name('orders.edit');
+
+            Route::put('orders/{order}', [OrderController::class, 'update'])
+                ->name('orders.update');
+
+
+             Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+
+             Route::get('/orders/{order}/invoice/print', [OrderController::class, 'printInvoice'])->name('orders.invoice.print');
+
+
+
+
+        });
+
+
+    //Shared Retailer Controller
+    Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function (){
+
+        Route::post('/retailers/store', [RetailerController::class, 'store'])->name('retailers.store');
+        Route::put('retailers/{retailer}', [RetailerController::class, 'update'])->name('retailers.update');
+
     });

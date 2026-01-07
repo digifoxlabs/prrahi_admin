@@ -80,7 +80,7 @@
         </button>
 
         @if(request()->filled('q') || request()->filled('status'))
-            <a href="{{ route('admin.orders.index') }}"
+            <a href="{{ route('distributor.orders.index') }}"
                class="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">
                 Clear
             </a>
@@ -184,7 +184,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15l-2-2m0 0l-2-2m2 2l2-2m-2 2l2 2"/>
                                     </svg>
-                                    Deliver
+                                    Accept Delivery
                                 </button>
 
 

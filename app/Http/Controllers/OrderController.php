@@ -16,6 +16,7 @@ use App\Support\OrderActor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use App\Models\InventoryTransaction;
 
 
 class OrderController extends Controller
@@ -160,7 +161,8 @@ class OrderController extends Controller
 
 
          return $this->redirectAfterSave($order, $actor['role'])
-        ->with('success', 'Order created successfully.');
+         ->with('success', 'Order created successfully.');
+
 
         // return redirect()->route($this->redirectRoute(), $order)
         //     ->with('success', 'Order created successfully.');
@@ -228,10 +230,6 @@ class OrderController extends Controller
 
         $validated = $this->validatedData($request, $order);
 
-
-
-
-
         $actor = OrderActor::resolve();
 
         DB::transaction(function () use ($request, $order) {
@@ -275,8 +273,14 @@ class OrderController extends Controller
     });
 
 
-         return $this->redirectAfterUpdate($order, $actor['role'])
-        ->with('success', 'Order Updated successfully.');
+        //  return $this->redirectAfterUpdate($order, $actor['role'])->with('success', 'Order updated successfully.');
+        
+        
+        return $this->redirectAfterUpdate($order, $actor['role'])
+                    ->with('toast', [
+                         'type' => 'success',
+                         'message' => 'Order Updated successfully!'
+    ]);
 
       //  return back()->with('success', 'Order updated successfully.');
     }
@@ -309,9 +313,9 @@ class OrderController extends Controller
     protected function redirectAfterSave(Order $order, string $actor)
     {
         return match ($actor) {
-            'admin'       => redirect()->route('admin.orders.index', $order)->with('success', 'Order created successfully.'),
-            'distributor' => redirect()->route('distributor.orders.index', $order),
-            // 'sales'       => redirect()->route('sales.orders.show', $order),
+            'admin'       => redirect()->route('admin.orders.index'),
+            'distributor' => redirect()->route('distributor.orders.index'),
+            'sales'       => redirect()->route('sales.orders.index'),
             default       => abort(403),
         };
     }
@@ -320,9 +324,9 @@ class OrderController extends Controller
     protected function redirectAfterUpdate(Order $order, string $actor)
     {
         return match ($actor) {
-            'admin'       => redirect()->route('admin.orders.index', $order)->with('success', 'Order updated successfully.'),
-            'distributor' => redirect()->route('distributor.orders.index', $order),
-            // 'sales'       => redirect()->route('sales.orders.show', $order),
+            'admin'       => redirect()->route('admin.orders.show', $order),
+            'distributor' => redirect()->route('distributor.orders.show', $order),
+            'sales'       => redirect()->route('sales.orders.show', $order),
             default       => abort(403),
         };
     }
@@ -359,6 +363,71 @@ class OrderController extends Controller
                 'items.required'          => 'Please add at least one product to the order.',
                 'items.min' => 'Please add at least one product before saving the order.',
         ] );
+    }
+
+
+    //Cancel Order
+    public function cancel(Request $request, Order $order)
+    {
+        if ($order->status === 'cancelled') {
+            return back()->with('error', 'Order is already cancelled.');
+        }
+
+        $request->validate([
+            'admin_comments' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        DB::transaction(function () use ($order, $request) {
+
+            if ($order->status === 'confirmed') {
+                $order->load('items');
+
+                foreach ($order->items as $item) {
+                    InventoryTransaction::create([
+                        'product_id' => $item->product_id,
+                        'order_id'   => $order->id,
+                        'type'       => 'in',
+                        'quantity'   => $item->quantity,
+                        'remarks'    => 'Order Cancelled - ' . $order->order_number,
+                        'date'       => now(),
+                    ]);
+                }
+            }
+
+            $order->update([
+                'status'         => 'cancelled',
+                'admin_comments' => $request->admin_comments,
+            ]);
+
+
+                OrderActivityLogger::log(
+                $order,
+                'cancelled',
+                $request->admin_comments
+                );
+
+        });
+
+         $actor = OrderActor::resolve();
+        
+        return $this->redirectAfterUpdate($order, $actor['role'])->with('success', 'Order Cancelled successfully.');
+
+        // return back()->with('success', 'Order cancelled successfully.');
+    }
+
+
+
+    // ================= PRINT / DOWNLOAD INVOICE =================
+    public function printInvoice(Order $order)
+    {
+        abort_if($order->invoice_status !== 'generated', 403);
+
+        $order->load([
+            'items.product.parent',
+            'distributor'
+        ]);
+
+        return view('orders.invoice-print', compact('order'));
     }
 
 

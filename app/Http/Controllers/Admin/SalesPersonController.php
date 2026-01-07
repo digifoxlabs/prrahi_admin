@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SalesPersonExport;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 
 class SalesPersonController extends Controller
@@ -233,7 +234,7 @@ public function uploadProfile(Request $request, SalesPerson $salesPerson)
 
 public function updatePassword(Request $request)
 {
-    $validator = \Validator::make($request->all(), [
+    $validator = Validator::make($request->all(), [
         'password' => 'required|string|min:8|confirmed',
         'sales_person_id' => 'required|exists:sales_persons,id',
     ]);

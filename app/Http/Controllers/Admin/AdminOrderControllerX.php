@@ -71,177 +71,177 @@ public function index(Request $request)
     /**
      * Store a newly created resource in storage.
      */
-public function store(Request $request)
-{
+// public function store(Request $request)
+// {
 
-    $validated = $request->validate([
-        'order_number' => 'nullable|string|max:255',
-        'distributor_id' => 'required|exists:distributors,id',
-        'order_date' => 'required|date',
-        'product_ids' => 'required|array|min:1',
-        'product_ids.*' => 'required|exists:products,id',
-        'prices' => 'required|array|min:1',
-        'prices.*' => 'required|numeric|min:0',
-        'dozen_cases' => 'required|array|min:1',
-        'dozen_cases.*' => 'required|integer|min:0',
-        'quantities' => 'required|array|min:1',
-        'quantities.*' => 'required|integer|min:1',
-        'totals' => 'required|array|min:1',
-        'totals.*' => 'required|numeric|min:0',
-        'discount'=> 'nullable|numeric|min:0', // ← add this
-    ]);
+//     $validated = $request->validate([
+//         'order_number' => 'nullable|string|max:255',
+//         'distributor_id' => 'required|exists:distributors,id',
+//         'order_date' => 'required|date',
+//         'product_ids' => 'required|array|min:1',
+//         'product_ids.*' => 'required|exists:products,id',
+//         'prices' => 'required|array|min:1',
+//         'prices.*' => 'required|numeric|min:0',
+//         'dozen_cases' => 'required|array|min:1',
+//         'dozen_cases.*' => 'required|integer|min:0',
+//         'quantities' => 'required|array|min:1',
+//         'quantities.*' => 'required|integer|min:1',
+//         'totals' => 'required|array|min:1',
+//         'totals.*' => 'required|numeric|min:0',
+//         'discount'=> 'nullable|numeric|min:0', // ← add this
+//     ]);
 
 
 
-    $checkStock = Setting::get('products', 'check_stock_before_order', true);
-    $insufficientStock = [];
+//     $checkStock = Setting::get('products', 'check_stock_before_order', true);
+//     $insufficientStock = [];
 
-    if ($checkStock) {
+//     if ($checkStock) {
         
-        foreach ($validated['product_ids'] as $index => $productId) {
+//         foreach ($validated['product_ids'] as $index => $productId) {
 
-            $product = Product::find($productId);
-            $productName = ($product->parent->category->name ?? '') . ' - ' . collect($product->attributes)->implode(', ');
+//             $product = Product::find($productId);
+//             $productName = ($product->parent->category->name ?? '') . ' - ' . collect($product->attributes)->implode(', ');
 
-            $availableStock = $product->getAvailableStock();
-            $requestedQty = $validated['quantities'][$index];
+//             $availableStock = $product->getAvailableStock();
+//             $requestedQty = $validated['quantities'][$index];
 
-            if ($requestedQty > $availableStock) {
-                $insufficientStock[] = [
-                    'product_name' => $productName,
-                    'available' => $availableStock,
-                    'requested' => $requestedQty,
-                ];
-            }
-        }
+//             if ($requestedQty > $availableStock) {
+//                 $insufficientStock[] = [
+//                     'product_name' => $productName,
+//                     'available' => $availableStock,
+//                     'requested' => $requestedQty,
+//                 ];
+//             }
+//         }
 
-        if (count($insufficientStock) > 0) {
-            $messages = collect($insufficientStock)->map(function ($item) {
-                return "{$item['product_name']} has only {$item['available']} in stock. You requested {$item['requested']}.";
-            });
+//         if (count($insufficientStock) > 0) {
+//             $messages = collect($insufficientStock)->map(function ($item) {
+//                 return "{$item['product_name']} has only {$item['available']} in stock. You requested {$item['requested']}.";
+//             });
 
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['stock_error' => $messages->implode('<br>')]);
-        }
-
-
-    }
+//             return redirect()->back()
+//                 ->withInput()
+//                 ->withErrors(['stock_error' => $messages->implode('<br>')]);
+//         }
 
 
-
-    DB::beginTransaction();
-
-    try {
-
-
-        // Calculate subtotal
-        $subtotal = collect($validated['totals'])->sum();
-
-        //Discount
-        $discount = $validated['discount'] ?? 0;
-
-        // Calculate taxes (assume SGST and CGST 9% each)
-        $sgst = round($subtotal * 0.09, 2);
-        $cgst = round($subtotal * 0.09, 2);
-        $totalAmount = $subtotal + $sgst + $cgst;
-        $totalAmount = $totalAmount - $discount;
-
-        // Create the order
-        $order = \App\Models\Order::create([    
-            'order_number'   => $validated['order_number'] ?? null,      
-            'distributor_id' => $validated['distributor_id'],
-            'subtotal' => $subtotal,
-            'sgst' => $sgst,
-            'cgst' => $cgst,
-            'discount' => $discount,
-            'total_amount' => $totalAmount,
-            'status' => 'pending',             
-            'created_by_id'    => auth('admin')->user()->id,   // 👇 Created by admin guard user  
-            'created_by_type'  => \App\Models\User::class,
-            'created_at' => $validated['order_date'],
-            'updated_at' => now(),
-        ]);
+//     }
 
 
 
-        // Save order items
-        foreach ($validated['product_ids'] as $index => $productId) {
+//     DB::beginTransaction();
+
+//     try {
 
 
-            $tmpFreeDozen =0;
-            $totalDozenCase =0;
-             $tmpTotal  =0;
+//         // Calculate subtotal
+//         $subtotal = collect($validated['totals'])->sum();
 
-             //Fetch Free Dozen Per Case from Settings
-            $freeDozenCase = Setting::get('orders', 'free-dozen', false);
+//         //Discount
+//         $discount = $validated['discount'] ?? 0;
 
-            // Fetch product model
-            $product = Product::findOrFail($productId);
+//         // Calculate taxes (assume SGST and CGST 9% each)
+//         $sgst = round($subtotal * 0.09, 2);
+//         $cgst = round($subtotal * 0.09, 2);
+//         $totalAmount = $subtotal + $sgst + $cgst;
+//         $totalAmount = $totalAmount - $discount;
 
-            //Check Free Dozen for each product IDs
-            if(!$product->has_free_qty){
+//         // Create the order
+//         $order = \App\Models\Order::create([    
+//             'order_number'   => $validated['order_number'] ?? null,      
+//             'distributor_id' => $validated['distributor_id'],
+//             'subtotal' => $subtotal,
+//             'sgst' => $sgst,
+//             'cgst' => $cgst,
+//             'discount' => $discount,
+//             'total_amount' => $totalAmount,
+//             'status' => 'pending',             
+//             'created_by_id'    => auth('admin')->user()->id,   // 👇 Created by admin guard user  
+//             'created_by_type'  => \App\Models\User::class,
+//             'created_at' => $validated['order_date'],
+//             'updated_at' => now(),
+//         ]);
 
-                $freeDozenCase = 0;
-            }
+
+
+//         // Save order items
+//         foreach ($validated['product_ids'] as $index => $productId) {
+
+
+//             $tmpFreeDozen =0;
+//             $totalDozenCase =0;
+//              $tmpTotal  =0;
+
+//              //Fetch Free Dozen Per Case from Settings
+//             $freeDozenCase = Setting::get('orders', 'free-dozen', false);
+
+//             // Fetch product model
+//             $product = Product::findOrFail($productId);
+
+//             //Check Free Dozen for each product IDs
+//             if(!$product->has_free_qty){
+
+//                 $freeDozenCase = 0;
+//             }
             
-            //Free Dozen per quantity
-            $tmpFreeDozen = $freeDozenCase * $validated['quantities'][$index];
+//             //Free Dozen per quantity
+//             $tmpFreeDozen = $freeDozenCase * $validated['quantities'][$index];
 
-            //dozen per case deducting free dozen
-            $totalDozenCase = ( $validated['dozen_cases'][$index] * $validated['quantities'][$index] ) - $tmpFreeDozen;      
+//             //dozen per case deducting free dozen
+//             $totalDozenCase = ( $validated['dozen_cases'][$index] * $validated['quantities'][$index] ) - $tmpFreeDozen;      
 
-            //Server callculated total
-            $tmpTotal =  round($validated['prices'][$index] * $totalDozenCase, 2);
-
-
-            // Check DB calculated total and posted total
-                if ($tmpTotal != $validated['totals'][$index]) {
-                    // Mismatch → rollback immediately
-                    DB::rollBack();
-                    return back()->withErrors(['totals' => "Total mismatch for product ID: {$productId}"]);
-                }
+//             //Server callculated total
+//             $tmpTotal =  round($validated['prices'][$index] * $totalDozenCase, 2);
 
 
-                    $order->items()->create([
-                        'product_id' => $productId,
-                        'rate' => $validated['prices'][$index],
-                        'dozen_case' =>$validated['dozen_cases'][$index],
-                        'free_dozen_case' => $freeDozenCase,
-                        'quantity' => $validated['quantities'][$index],
-                        'total' => $validated['totals'][$index],
-                    ]);
+//             // Check DB calculated total and posted total
+//                 if ($tmpTotal != $validated['totals'][$index]) {
+//                     // Mismatch → rollback immediately
+//                     DB::rollBack();
+//                     return back()->withErrors(['totals' => "Total mismatch for product ID: {$productId}"]);
+//                 }
 
 
-                    // Create HOLD stock transaction
-                    InventoryTransaction::create([
-                        'product_id' => $productId,
-                        'type' => 'hold',
-                        'quantity' => $validated['quantities'][$index],
-                        'order_id' => $order->id,
-                        'remarks' => 'New Order',
-                    ]);
+//                     $order->items()->create([
+//                         'product_id' => $productId,
+//                         'rate' => $validated['prices'][$index],
+//                         'dozen_case' =>$validated['dozen_cases'][$index],
+//                         'free_dozen_case' => $freeDozenCase,
+//                         'quantity' => $validated['quantities'][$index],
+//                         'total' => $validated['totals'][$index],
+//                     ]);
+
+
+//                     // Create HOLD stock transaction
+//                     InventoryTransaction::create([
+//                         'product_id' => $productId,
+//                         'type' => 'hold',
+//                         'quantity' => $validated['quantities'][$index],
+//                         'order_id' => $order->id,
+//                         'remarks' => 'New Order',
+//                     ]);
 
 
         
       
 
 
-        }
+//         }
 
     
 
-        DB::commit();
+//         DB::commit();
 
-        return redirect()->route('admin.orders.index')->with('success', 'Order created successfully!');
-    } catch (\Exception $e) {
-        DB::rollBack();
+//         return redirect()->route('admin.orders.index')->with('success', 'Order created successfully!');
+//     } catch (\Exception $e) {
+//         DB::rollBack();
 
-        return redirect()->back()
-            ->withInput()
-            ->withErrors(['error' => 'Something went wrong. ' . $e->getMessage()]);
-    }
-}
+//         return redirect()->back()
+//             ->withInput()
+//             ->withErrors(['error' => 'Something went wrong. ' . $e->getMessage()]);
+//     }
+// }
 
     /**
      * Display the specified resource.
@@ -282,171 +282,171 @@ public function store(Request $request)
     /**
      * Update the specified resource in storage.
      */
- public function update(Request $request, $id)
-{
+//  public function update(Request $request, $id)
+// {
 
 
-    $validated = $request->validate([
-        'order_number' => 'nullable|string|max:255',
-        'distributor_id' => 'required|exists:distributors,id',
-        'order_date' => 'required|date',
-        'product_ids' => 'required|array|min:1',
-        'product_ids.*' => 'required|exists:products,id',
-        'prices' => 'required|array|min:1',
-        'prices.*' => 'required|numeric|min:0',
-        'dozen_cases' => 'required|array|min:1',
-        'dozen_cases.*' => 'required|integer|min:0',
-        'quantities' => 'required|array|min:1',
-        'quantities.*' => 'required|integer|min:1',
-        'totals' => 'required|array|min:1',
-        'totals.*' => 'required|numeric|min:0',
-        'discount'=> 'nullable|numeric|min:0',
-    ]);
+//     $validated = $request->validate([
+//         'order_number' => 'nullable|string|max:255',
+//         'distributor_id' => 'required|exists:distributors,id',
+//         'order_date' => 'required|date',
+//         'product_ids' => 'required|array|min:1',
+//         'product_ids.*' => 'required|exists:products,id',
+//         'prices' => 'required|array|min:1',
+//         'prices.*' => 'required|numeric|min:0',
+//         'dozen_cases' => 'required|array|min:1',
+//         'dozen_cases.*' => 'required|integer|min:0',
+//         'quantities' => 'required|array|min:1',
+//         'quantities.*' => 'required|integer|min:1',
+//         'totals' => 'required|array|min:1',
+//         'totals.*' => 'required|numeric|min:0',
+//         'discount'=> 'nullable|numeric|min:0',
+//     ]);
 
 
-    $checkStock = Setting::get('products', 'check_stock_before_order', true);
-    $insufficientStock = [];
+//     $checkStock = Setting::get('products', 'check_stock_before_order', true);
+//     $insufficientStock = [];
 
-    if ($checkStock) {
+//     if ($checkStock) {
         
-        foreach ($validated['product_ids'] as $index => $productId) {
-            $product = Product::find($productId);
-            $productName = ($product->parent->category->name ?? '') . ' - ' . collect($product->attributes)->implode(', ');
+//         foreach ($validated['product_ids'] as $index => $productId) {
+//             $product = Product::find($productId);
+//             $productName = ($product->parent->category->name ?? '') . ' - ' . collect($product->attributes)->implode(', ');
 
-            $availableStock = $product->getAvailableStock();
-            $requestedQty = $validated['quantities'][$index];
+//             $availableStock = $product->getAvailableStock();
+//             $requestedQty = $validated['quantities'][$index];
 
-            if ($requestedQty > $availableStock) {
-                $insufficientStock[] = [
-                    'product_name' => $productName,
-                    'available' => $availableStock,
-                    'requested' => $requestedQty,
-                ];
-            }
-        }
+//             if ($requestedQty > $availableStock) {
+//                 $insufficientStock[] = [
+//                     'product_name' => $productName,
+//                     'available' => $availableStock,
+//                     'requested' => $requestedQty,
+//                 ];
+//             }
+//         }
 
-        if (count($insufficientStock) > 0) {
-            $messages = collect($insufficientStock)->map(function ($item) {
-                return "{$item['product_name']} has only {$item['available']} in stock. You requested {$item['requested']}.";
-            });
+//         if (count($insufficientStock) > 0) {
+//             $messages = collect($insufficientStock)->map(function ($item) {
+//                 return "{$item['product_name']} has only {$item['available']} in stock. You requested {$item['requested']}.";
+//             });
 
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['stock_error' => $messages->implode('<br>')]);
-        }
-
-
-    }
+//             return redirect()->back()
+//                 ->withInput()
+//                 ->withErrors(['stock_error' => $messages->implode('<br>')]);
+//         }
 
 
-
-    DB::beginTransaction();
-
-    try {
-        $order = \App\Models\Order::findOrFail($id);
-
-        // Calculate subtotal
-        $subtotal = collect($validated['totals'])->sum();
-
-        // Discount
-        $discount = $validated['discount'] ?? 0;
-
-        // Taxes
-        $sgst = round($subtotal * 0.09, 2);
-        $cgst = round($subtotal * 0.09, 2);
-        $totalAmount = $subtotal + $sgst + $cgst - $discount;
-
-        // Update the order
-        $order->update([
-            'order_number'   => $validated['order_number'] ?? null,
-            'distributor_id' => $validated['distributor_id'],
-            'subtotal'       => $subtotal,
-            'sgst'           => $sgst,
-            'cgst'           => $cgst,
-            'discount'       => $discount,
-            'total_amount'   => $totalAmount,
-            'created_at'     => $validated['order_date'], // for backdated updates
-            'updated_at'     => now(),
-        ]);
-
-        // Remove existing items and add updated ones
-        $order->items()->delete();
-        //Remove existing transactions
-        $this->cancelInventory($order);
-
-        foreach ($validated['product_ids'] as $index => $productId) {
-
-
-             $tmpFreeDozen =0;
-             $tmpDozen = 0;
-             $tmpTotal  = 0;
-
-             //Fetch Free Dozen Per Case from Settings
-            $freeDozenCase = Setting::get('orders', 'free-dozen', false);
-
-            // Fetch product model
-            $product = Product::findOrFail($productId);
-
-            //Check Free Dozen for each product IDs
-            if(!$product->has_free_qty){
-
-                $freeDozenCase = 0;
-            }
-
-
-            //Free Dozen per quantity
-            $tmpFreeDozen = $freeDozenCase * $validated['quantities'][$index];
-
-            //dozen per case deducting free dozen
-            $totalDozenCase = ( $validated['dozen_cases'][$index] * $validated['quantities'][$index] ) - $tmpFreeDozen;      
-
-            //Server callculated total
-            $tmpTotal =  round($validated['prices'][$index] * $totalDozenCase, 2);
-
-
-             // Check DB calculated total and posted total
-                if ($tmpTotal != $validated['totals'][$index]) {
-                    // Mismatch → rollback immediately
-                    DB::rollBack();
-                    return back()->withErrors(['totals' => "Total mismatch for product ID: {$productId} tmp {$tmpTotal} form {$validated['totals'][$index]}"]);
-                }
+//     }
 
 
 
-            $order->items()->create([
-                'product_id'  => $productId,
-                'rate'        => $validated['prices'][$index],
-                'dozen_case'  => $validated['dozen_cases'][$index],
-                'free_dozen_case'  => $freeDozenCase,
-                'quantity'    => $validated['quantities'][$index],
-                'total'       => $validated['totals'][$index],
-            ]);
+//     DB::beginTransaction();
+
+//     try {
+//         $order = \App\Models\Order::findOrFail($id);
+
+//         // Calculate subtotal
+//         $subtotal = collect($validated['totals'])->sum();
+
+//         // Discount
+//         $discount = $validated['discount'] ?? 0;
+
+//         // Taxes
+//         $sgst = round($subtotal * 0.09, 2);
+//         $cgst = round($subtotal * 0.09, 2);
+//         $totalAmount = $subtotal + $sgst + $cgst - $discount;
+
+//         // Update the order
+//         $order->update([
+//             'order_number'   => $validated['order_number'] ?? null,
+//             'distributor_id' => $validated['distributor_id'],
+//             'subtotal'       => $subtotal,
+//             'sgst'           => $sgst,
+//             'cgst'           => $cgst,
+//             'discount'       => $discount,
+//             'total_amount'   => $totalAmount,
+//             'created_at'     => $validated['order_date'], // for backdated updates
+//             'updated_at'     => now(),
+//         ]);
+
+//         // Remove existing items and add updated ones
+//         $order->items()->delete();
+//         //Remove existing transactions
+//         $this->cancelInventory($order);
+
+//         foreach ($validated['product_ids'] as $index => $productId) {
 
 
-            // Create HOLD stock transaction
-            InventoryTransaction::create([
-                'product_id' => $productId,
-                'type' => 'hold',
-                'quantity' => $validated['quantities'][$index],
-                'order_id' => $order->id,
-                'remarks' => 'New Order Updated',
-            ]);
+//              $tmpFreeDozen =0;
+//              $tmpDozen = 0;
+//              $tmpTotal  = 0;
+
+//              //Fetch Free Dozen Per Case from Settings
+//             $freeDozenCase = Setting::get('orders', 'free-dozen', false);
+
+//             // Fetch product model
+//             $product = Product::findOrFail($productId);
+
+//             //Check Free Dozen for each product IDs
+//             if(!$product->has_free_qty){
+
+//                 $freeDozenCase = 0;
+//             }
+
+
+//             //Free Dozen per quantity
+//             $tmpFreeDozen = $freeDozenCase * $validated['quantities'][$index];
+
+//             //dozen per case deducting free dozen
+//             $totalDozenCase = ( $validated['dozen_cases'][$index] * $validated['quantities'][$index] ) - $tmpFreeDozen;      
+
+//             //Server callculated total
+//             $tmpTotal =  round($validated['prices'][$index] * $totalDozenCase, 2);
+
+
+//              // Check DB calculated total and posted total
+//                 if ($tmpTotal != $validated['totals'][$index]) {
+//                     // Mismatch → rollback immediately
+//                     DB::rollBack();
+//                     return back()->withErrors(['totals' => "Total mismatch for product ID: {$productId} tmp {$tmpTotal} form {$validated['totals'][$index]}"]);
+//                 }
 
 
 
-        }
+//             $order->items()->create([
+//                 'product_id'  => $productId,
+//                 'rate'        => $validated['prices'][$index],
+//                 'dozen_case'  => $validated['dozen_cases'][$index],
+//                 'free_dozen_case'  => $freeDozenCase,
+//                 'quantity'    => $validated['quantities'][$index],
+//                 'total'       => $validated['totals'][$index],
+//             ]);
 
-        DB::commit();
 
-        return redirect()->route('admin.orders.index')->with('success', 'Order updated successfully!');
-    } catch (\Exception $e) {
-        DB::rollBack();
+//             // Create HOLD stock transaction
+//             InventoryTransaction::create([
+//                 'product_id' => $productId,
+//                 'type' => 'hold',
+//                 'quantity' => $validated['quantities'][$index],
+//                 'order_id' => $order->id,
+//                 'remarks' => 'New Order Updated',
+//             ]);
 
-        return redirect()->back()
-            ->withInput()
-            ->withErrors(['error' => 'Something went wrong. ' . $e->getMessage()]);
-    }
-}
+
+
+//         }
+
+//         DB::commit();
+
+//         return redirect()->route('admin.orders.index')->with('success', 'Order updated successfully!');
+//     } catch (\Exception $e) {
+//         DB::rollBack();
+
+//         return redirect()->back()
+//             ->withInput()
+//             ->withErrors(['error' => 'Something went wrong. ' . $e->getMessage()]);
+//     }
+// }
 
 
     /**

@@ -3,7 +3,20 @@
 @section('page-content')
 <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
 
+    {{-- Flash --}}
+    @if (session('success'))
+        <div x-data="{ show:true }" x-init="setTimeout(()=>show=false,3000)" x-show="show" x-transition
+             class="bg-green-100 text-green-800 p-3 rounded mb-4">
+            {{ session('success') }}
+        </div>
+    @endif
 
+    @if (session('error'))
+        <div x-data="{ show:true }" x-init="setTimeout(()=>show=false,3000)" x-show="show" x-transition
+             class="bg-yellow-100 text-red-800 p-3 rounded mb-4">
+            {{ session('error') }}
+        </div>
+    @endif
 
     <!-- ================= HEADER ================= -->
     <div class="flex flex-col md:flex-row justify-between gap-4 mb-6">
@@ -43,7 +56,12 @@
         <div class="text-right">
             <p class="text-sm text-gray-600">Created By</p>
             <p class="font-medium">
-                {{ optional($order->created_by)->fname ?? 'System' }}
+                {{ 
+                    optional($order->created_by)->fname ??
+                    optional($order->created_by)->firm_name ??
+                    optional($order->created_by)->name ??
+                    'System'
+                 }}
             </p>
         </div>
     </div>
@@ -59,7 +77,7 @@
             </div>
 
             <div class="flex gap-2">
-                <a href="{{ route('admin.orders.invoice.print', $order) }}"
+                <a href="{{ route('distributor.orders.invoice.print', $order) }}"
                    target="_blank"
                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">
                     Download / Print Invoice
@@ -83,7 +101,7 @@
             </div>
 
             <div class="flex gap-2">
-                <a href="{{ route('admin.orders.invoice.print', $order) }}"
+                <a href="{{ route('distributor.orders.invoice.print', $order) }}"
                    target="_blank"
                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">
                     Download / Print Invoice
@@ -263,40 +281,18 @@
     </div>
 
 
-{{-- <div class="flex justify-start gap-3 mb-4">
+<div class="flex justify-start gap-3 mb-4">
 
-
-        @if($order->status === 'pending')
-            <button @click="showModal=true; action='confirm'"
-                class="px-4 py-2 bg-green-600 text-white rounded-lg">
-            Confirm Order
-            </button>
+        @if($order->status === 'pending')   
 
             <button @click="showModal=true; action='cancel'"
                     class="px-4 py-2 bg-red-600 text-white rounded-lg">
                 Cancel Order
-            </button>                 
-
-    
+            </button>               
+   
         @endif
 
-        @if($order->status === 'confirmed' && $order->dispatch_status !== 'delivered')
-                <button @click="showModal=true; action='cancel'"
-                    class="px-4 py-2 bg-red-600 text-white rounded-lg">
-                Cancel Order
-                </button>
-        @endif
-
-
-        @if($order->status === 'confirmed' && $order->invoice_status !== 'generated')
-        <button @click="showInvoiceModal = true"
-            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-            Mark Invoice Generated
-        </button>
-        @endif
-
-
-</div> --}}
+</div>
 
 
     <!-- ================= ACTIONS ================= -->
@@ -308,8 +304,8 @@
             Back
         </a>
 
-        {{-- @if($order->status === 'pending')
-            <a href="{{ route('admin.orders.edit', $order) }}"
+        @if($order->status === 'pending')
+            <a href="{{ route('distributor.orders.edit', $order) }}"
             class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
                 Edit Order
             </a>
@@ -317,7 +313,7 @@
             <span class="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed">
                 Edit Locked
             </span>
-        @endif --}}
+        @endif
 
     </div>
 
@@ -385,11 +381,6 @@
 
 
 
-
-
-
-
-
 <div x-show="showModal"
      x-cloak
      class="fixed inset-0 z-50 flex items-center justify-center">
@@ -405,7 +396,7 @@
         <form method="POST"
               :action="action === 'confirm'
                         ? '{{ route('admin.orders.confirm', $order) }}'
-                        : '{{ route('admin.orders.cancel', $order) }}'">
+                        : '{{ route('distributor.orders.cancel', $order) }}'">
 
             @csrf
 
@@ -480,6 +471,7 @@
                         <span class="font-medium">
                             {{ optional($activity->performedBy)->fname
                                 ?? optional($activity->performedBy)->firm_name
+                                ?? optional($activity->performedBy)->name
                                 ?? 'System' }}
                         </span>
                     </p>
@@ -493,16 +485,6 @@
         @endforelse
     </div>
 </div>
-
-
-
-
-
-
-
-
-
-
 
 
 </div>

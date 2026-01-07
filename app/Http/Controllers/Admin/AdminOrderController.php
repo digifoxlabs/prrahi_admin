@@ -98,72 +98,72 @@ class AdminOrderController extends Controller
 
     }
 
- public function store(Request $request)
-{
-    $request->validate([
-        'distributor_id' => ['required', 'exists:distributors,id'],
-        'order_date'     => ['required', 'date'],
-        'items'          => ['required', 'array', 'min:1'],
-        'items.*.product_id' => ['required', 'exists:products,id'],
-        'items.*.quantity'   => ['required', 'integer', 'min:1'],
-        'items.*.rate'       => ['required', 'numeric', 'min:0'],
-        'items.*.amount'     => ['required', 'numeric'],
-    ]);
+//  public function store(Request $request)
+// {
+//     $request->validate([
+//         'distributor_id' => ['required', 'exists:distributors,id'],
+//         'order_date'     => ['required', 'date'],
+//         'items'          => ['required', 'array', 'min:1'],
+//         'items.*.product_id' => ['required', 'exists:products,id'],
+//         'items.*.quantity'   => ['required', 'integer', 'min:1'],
+//         'items.*.rate'       => ['required', 'numeric', 'min:0'],
+//         'items.*.amount'     => ['required', 'numeric'],
+//     ]);
 
-    DB::transaction(function () use ($request) {
+//     DB::transaction(function () use ($request) {
 
-        // 1️⃣ Generate Order Number if not provided
-        $orderNumber = $request->order_number ?: 'ORD-' . now()->format('Ymd') . '-' . Str::upper(Str::random(5));
+//         // 1️⃣ Generate Order Number if not provided
+//         $orderNumber = $request->order_number ?: 'ORD-' . now()->format('Ymd') . '-' . Str::upper(Str::random(5));
 
-        // 2️⃣ Create Order
-        $order = Order::create([
-            'order_number'    => $orderNumber,
-            'order_date'      => $request->order_date,
-            'distributor_id'  => $request->distributor_id,
-            'billing_address' => $request->billing_address,
+//         // 2️⃣ Create Order
+//         $order = Order::create([
+//             'order_number'    => $orderNumber,
+//             'order_date'      => $request->order_date,
+//             'distributor_id'  => $request->distributor_id,
+//             'billing_address' => $request->billing_address,
 
-            'subtotal'        => $request->subtotal,
-            'discount'        => $request->discount_amount ?? 0,
-            'cgst'            => $request->cgst,
-            'sgst'            => $request->sgst,
-            'round_off'       => $request->round_off ?? 0,
-            'total_amount'    => $request->total_amount,
+//             'subtotal'        => $request->subtotal,
+//             'discount'        => $request->discount_amount ?? 0,
+//             'cgst'            => $request->cgst,
+//             'sgst'            => $request->sgst,
+//             'round_off'       => $request->round_off ?? 0,
+//             'total_amount'    => $request->total_amount,
 
-            'status'          => 'pending',
-        ]);
+//             'status'          => 'pending',
+//         ]);
 
-        // 3️⃣ Save creator (Admin / Distributor later)
-        $order->created_by()->associate(auth()->user());
-        $order->save();
+//         // 3️⃣ Save creator (Admin / Distributor later)
+//         $order->created_by()->associate(auth()->user());
+//         $order->save();
 
-        // 4️⃣ Create Order Items
-        foreach ($request->items as $item) {
+//         // 4️⃣ Create Order Items
+//         foreach ($request->items as $item) {
 
-            OrderItem::create([
-                'order_id'   => $order->id,
-                'product_id' => $item['product_id'],
-                'rate'       => $item['rate'],
-                'base_unit'  => $item['base_unit'],
-                'quantity'   => $item['quantity'],
-                'discount_percent'   => $item['discount_percent'],
-                'total'      => $item['amount'],
-            ]);
+//             OrderItem::create([
+//                 'order_id'   => $order->id,
+//                 'product_id' => $item['product_id'],
+//                 'rate'       => $item['rate'],
+//                 'base_unit'  => $item['base_unit'],
+//                 'quantity'   => $item['quantity'],
+//                 'discount_percent'   => $item['discount_percent'],
+//                 'total'      => $item['amount'],
+//             ]);
 
-        }
+//         }
 
 
-        OrderActivityLogger::log(
-            $order,
-            'created',
-            'Order created'
-        );
+//         OrderActivityLogger::log(
+//             $order,
+//             'created',
+//             'Order created'
+//         );
 
-    });
+//     });
 
-    return redirect()
-        ->route('admin.orders.index')
-        ->with('success', 'Order created successfully.');
-}
+//     return redirect()
+//         ->route('admin.orders.index')
+//         ->with('success', 'Order created successfully.');
+// }
 
 
 
@@ -276,72 +276,72 @@ class AdminOrderController extends Controller
 
 
 
-public function update(Request $request, Order $order)
-{
+// public function update(Request $request, Order $order)
+// {
 
 
-    if ($order->status !== 'pending') {
-        return redirect()
-            ->route('admin.orders.show', $order)
-            ->with('error', 'Confirmed or cancelled orders cannot be updated.');
-    }
+//     if ($order->status !== 'pending') {
+//         return redirect()
+//             ->route('admin.orders.show', $order)
+//             ->with('error', 'Confirmed or cancelled orders cannot be updated.');
+//     }
 
 
 
 
-    $request->validate([
-        'distributor_id' => ['required', 'exists:distributors,id'],
-        'order_date'     => ['required', 'date'],
-        'items'          => ['required', 'array', 'min:1'],
-        'items.*.product_id' => ['required', 'exists:products,id'],
-        'items.*.quantity'   => ['required', 'integer', 'min:1'],
-        'items.*.rate'       => ['required', 'numeric', 'min:0'],
-        'items.*.amount'     => ['required', 'numeric'],
-    ]);
+//     $request->validate([
+//         'distributor_id' => ['required', 'exists:distributors,id'],
+//         'order_date'     => ['required', 'date'],
+//         'items'          => ['required', 'array', 'min:1'],
+//         'items.*.product_id' => ['required', 'exists:products,id'],
+//         'items.*.quantity'   => ['required', 'integer', 'min:1'],
+//         'items.*.rate'       => ['required', 'numeric', 'min:0'],
+//         'items.*.amount'     => ['required', 'numeric'],
+//     ]);
 
-    DB::transaction(function () use ($request, $order) {
+//     DB::transaction(function () use ($request, $order) {
 
-        // 1️⃣ Update order header
-        $order->update([
-            'distributor_id'  => $request->distributor_id,
-            'order_number'    => $request->order_number,
-            'order_date'      => $request->order_date,
-            'billing_address' => $request->billing_address,
-            'subtotal'        => $request->subtotal,
-            'discount'        => $request->discount_amount ?? 0,
-            'cgst'            => $request->cgst,
-            'sgst'            => $request->sgst,
-            'round_off'       => $request->round_off ?? 0,
-            'total_amount'    => $request->total_amount,
-        ]);
+//         // 1️⃣ Update order header
+//         $order->update([
+//             'distributor_id'  => $request->distributor_id,
+//             'order_number'    => $request->order_number,
+//             'order_date'      => $request->order_date,
+//             'billing_address' => $request->billing_address,
+//             'subtotal'        => $request->subtotal,
+//             'discount'        => $request->discount_amount ?? 0,
+//             'cgst'            => $request->cgst,
+//             'sgst'            => $request->sgst,
+//             'round_off'       => $request->round_off ?? 0,
+//             'total_amount'    => $request->total_amount,
+//         ]);
 
-        // 2️⃣ Remove old items
-        $order->items()->delete();
+//         // 2️⃣ Remove old items
+//         $order->items()->delete();
 
-        // 3️⃣ Insert updated items
-        foreach ($request->items as $item) {
-            OrderItem::create([
-                'order_id'   => $order->id,
-                'product_id' => $item['product_id'],
-                'rate'       => $item['rate'],
-                'base_unit'  => $item['base_unit'],
-                'quantity'   => $item['quantity'],
-                'discount_percent'   => $item['discount_percent'],
-                'total'      => $item['amount'],
-            ]);
-        }
-    });
+//         // 3️⃣ Insert updated items
+//         foreach ($request->items as $item) {
+//             OrderItem::create([
+//                 'order_id'   => $order->id,
+//                 'product_id' => $item['product_id'],
+//                 'rate'       => $item['rate'],
+//                 'base_unit'  => $item['base_unit'],
+//                 'quantity'   => $item['quantity'],
+//                 'discount_percent'   => $item['discount_percent'],
+//                 'total'      => $item['amount'],
+//             ]);
+//         }
+//     });
 
-    // return redirect()
-    //     ->back()
-    //     ->with('success', 'Order updated successfully.');
+//     // return redirect()
+//     //     ->back()
+//     //     ->with('success', 'Order updated successfully.');
 
-    return redirect()
-    ->route('admin.orders.show', $order)
-    ->with('success', 'Order updated successfully.');
+//     return redirect()
+//     ->route('admin.orders.show', $order)
+//     ->with('success', 'Order updated successfully.');
 
 
-}
+// }
 
 
 public function confirm(Request $request, Order $order)

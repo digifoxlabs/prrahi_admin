@@ -141,6 +141,92 @@ class DistOrderController extends Controller
     }
 
 
+    //Edit
+    public function edit(Order $order)
+    {
+
+         if ($order->status !== 'pending') {
+                    return redirect()
+                    ->route('distributor.orders.show', $order)
+                    ->with('error', 'Confirmed or cancelled orders cannot be edited.');
+            }
+
+        $title = 'Orders';
+        $order->load([
+            'items.product.parent',
+            'distributor'
+        ]);
+
+
+        // Load products with category and variants (with their categories)
+        $products = Product::whereIn('type', ['simple', 'variable'])
+            ->with([
+                'category', // Load category for parent products
+                'variants.parent',
+                'variants.category' // Load category for variants too if needed
+            ])
+            ->orderBy('name')
+            ->get();
+        
+        // Transform the data if needed
+        $products->transform(function ($product) {
+            if ($product->type === 'variable' && $product->variants) {
+                // Ensure each variant has access to parent's category if variant doesn't have its own
+                $product->variants->each(function ($variant) use ($product) {
+                    if (!$variant->category && $product->category) {
+                        $variant->category = $product->category;
+                    }
+                });
+            }
+            return $product;
+        });
+
+
+
+        // Build cart items safely for Alpine
+        $cartItems = $order->items->map(function ($item) {
+
+            $product = $item->product;
+
+            $name = $product->type === 'variant'
+                ? $product->parent->name
+                : $product->name;
+
+            if ($product->attributes) {
+                $name .= ' - ' . ($product->attributes['fragrance'] ?? '');
+                if (!empty($product->attributes['size'])) {
+                    $name .= ' (' . $product->attributes['size'] . ')';
+                }
+            }
+
+            return [
+                'id'        => $product->id,
+                'name'      => $name,
+                'code'      => $product->code,
+                'qty'       => (int) $item->quantity,
+                'rate'      => (float) $item->rate,
+                // 'discount'  => (float) ($product->distributor_discount_percent ?? 0),
+                'discount'  => (float) ($item->discount_percent ?? 0),
+                'base_unit' => $item->base_unit,
+                'amount'    => (float) $item->total,
+            ];
+        });
+
+        return view('orders.edit', [
+            'layout'      => 'distributor.layout', // or distributor.layout / sales.layout
+            'routePrefix' => 'distributor',               // or distributor / sales
+            'products'     => $products,
+            'order'        => $order,
+            'distributors'=> Distributor::orderBy('firm_name')->get(),
+            'cartItems'    => $cartItems,
+            'title' => $title,
+        ]);
+
+
+    }
+
+
+
 
 
 }
