@@ -7,14 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
-class Order extends Model
+class RetailOrder extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
+
+       protected $fillable = [
         'order_number',
         'order_date',
         'distributor_id',
+        'retailer_id',
         'billing_address',
         'subtotal',
         'sgst',
@@ -45,7 +47,7 @@ class Order extends Model
 
     public function items()
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->hasMany(RetailOrderItem::class);
     }
 
     // Accessors
@@ -62,32 +64,32 @@ class Order extends Model
 
 
 
-//Auto Generate Order Number
-protected static function booted()
-{
-    static::creating(function ($order) {
-        if (empty($order->order_number)) {
-            $today = now()->format('Ymd');
-            $prefix = "ORD-{$today}-";
+    //Auto Generate Order Number
+    protected static function booted()
+    {
+        static::creating(function ($order) {
+            if (empty($order->order_number)) {
+                $today = now()->format('Ymd');
+                $prefix = "ORD-{$today}-";
 
-            // Get the max number for today with the pattern
-            $lastOrderNumber = DB::table('orders')
-                ->where('order_number', 'like', $prefix . '%')
-                ->orderByDesc('order_number')
-                ->value('order_number');
+                // Get the max number for today with the pattern
+                $lastOrderNumber = DB::table('orders')
+                    ->where('order_number', 'like', $prefix . '%')
+                    ->orderByDesc('order_number')
+                    ->value('order_number');
 
-            // Extract last number
-            if ($lastOrderNumber) {
-                $lastNumber = (int) Str::afterLast($lastOrderNumber, '-');
-                $nextNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-            } else {
-                $nextNumber = '0001';
+                // Extract last number
+                if ($lastOrderNumber) {
+                    $lastNumber = (int) Str::afterLast($lastOrderNumber, '-');
+                    $nextNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+                } else {
+                    $nextNumber = '0001';
+                }
+
+                $order->order_number = $prefix . $nextNumber;
             }
-
-            $order->order_number = $prefix . $nextNumber;
-        }
-    });
-}
+        });
+    }
 
 
     public function created_by()
@@ -107,8 +109,5 @@ protected static function booted()
     {
     return $this->hasMany(OrderActivity::class)->latest();
     }
-
-
-
 
 }

@@ -162,7 +162,7 @@ class RetailerController extends Controller
     protected function redirectAfterUpdate(Retailer $retailer, string $actor)
     {
         return match ($actor) {
-           // 'admin'       => redirect()->route('admin.orders.index', $retailer)->with('success', 'Retailer updated successfully.'),
+           'admin'       => redirect()->route('admin.retailers.show', $retailer),
            'distributor' => redirect()->route('distributor.retailers.show', $retailer),
             'sales'       => redirect()->route('sales.retailers.show', $retailer),
             default       => abort(403),

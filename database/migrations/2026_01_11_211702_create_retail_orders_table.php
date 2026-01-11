@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('orders', function (Blueprint $table) {
+        Schema::create('retail_orders', function (Blueprint $table) {
+
             $table->id();
             $table->string('order_number')->unique();
-            $table->foreignId('distributor_id')->constrained()->onDelete('cascade');
+            $table->foreignId('retailer_id')->constrained()->onDelete('cascade');
             $table->text('billing_address')->nullable();
-            $table->foreignId('retailer_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('distributor_id')->nullable()->constrained()->nullOnDelete();
             $table->decimal('subtotal', 10, 2)->default(0);
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('sgst', 10, 2)->default(0);
@@ -36,7 +37,6 @@ return new class extends Migration
             $table->nullableMorphs('created_by'); // Adds created_by_id and created_by_type
             $table->timestamps();
         });
-
     }
 
     /**
@@ -44,6 +44,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('orders');
+        Schema::dropIfExists('retail_orders');
     }
 };

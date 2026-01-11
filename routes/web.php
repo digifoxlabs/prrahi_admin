@@ -7,7 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\DistributorController;
+use App\Http\Controllers\Admin\DistributorController as AdminDistributorController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\FragranceController;
 use App\Http\Controllers\Admin\ProductController;
@@ -27,8 +27,12 @@ use App\Http\Controllers\Distributor\DistOrderController;
 use App\Http\Controllers\Distributor\DistributorInventoryLedgerController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RetailerController;
+use App\Http\Controllers\DistributorController;
+use App\Http\Controllers\RetailOrderController;
 use App\Http\Controllers\Sales\SalesRetailerController;
 use App\Http\Controllers\Sales\SalesOrderController;
+use App\Http\Controllers\Sales\SalesDistributorController;
+use App\Http\Controllers\Sales\SalesRetailOrderController;
 
 
 
@@ -77,7 +81,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
 
     Route::get('/login',[AdminAuthController::class,'showLoginForm'])->name('login');
     Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
-      Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
 });
 
@@ -140,19 +144,18 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::post('users/{user}/assign-roles', [UserController::class, 'storeRoles'])->name('users.assign.roles.store');
 
     //Distributor
-   Route::post('/distributors/profile/upload/{id}', [DistributorController::class, 'uploadImage'])->name('distributors.updateProfileImage');
-   Route::post('/distributors/update-password', [DistributorController::class, 'updatePassword'])->name('distributors.updatePassword');
+    // Route::post('/distributors/profile/upload/{id}', [AdminDistributorController::class, 'uploadImage'])->name('distributors.updateProfileImage');
+    // Route::post('/distributors/update-password', [AdminDistributorController::class, 'updatePassword'])->name('distributors.updatePassword');
 
 
     // Password update
-    Route::get('/distributors/export', [DistributorController::class, 'export'])->name('distributors.export');  
-    Route::resource('distributors', DistributorController::class);
+    Route::get('/distributors/export', [AdminDistributorController::class, 'export'])->name('distributors.export');  
+    Route::resource('distributors', AdminDistributorController::class)->only(['index','create','edit','show','destroy']);
 
 
     Route::get('/categories/{id}/children', function ($id) {
     return \App\Models\Category::where('parent_id', $id)->get(['id', 'name']);
     })->name('categories.children');
-
     
 
     Route::resource('categories', CategoryController::class);
@@ -188,48 +191,29 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::resource('sales-persons', SalesPersonController::class);
 
 
-    Route::resource('orders', AdminOrderController::class)->only(['index','create','edit','show','destroy']);;
+    Route::resource('orders', AdminOrderController::class)->only(['index','create','edit','show','destroy']);
 
     Route::post('orders/{order}/confirm', [AdminOrderController::class, 'confirm'])->name('orders.confirm');
-    // Route::post('orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('orders.cancel');
+
    
-    // Route::delete('admin/orders/{order}', [AdminOrderController::class, 'destroy'])->name('admin.orders.destroy');
-           // Orders
-        Route::post('/orders/{order}/dispatch', [
-            AdminOrderController::class,
-            'dispatch'
-        ])->name('orders.dispatch');
 
-        Route::post('/orders/{order}/deliver', [
-            AdminOrderController::class,
-            'deliver'
-        ])->name('orders.deliver');
+    Route::post('/orders/{order}/dispatch', [AdminOrderController::class,'dispatch'])->name('orders.dispatch');
+
+    Route::post('/orders/{order}/deliver', [AdminOrderController::class,'deliver'])->name('orders.deliver');
 
 
-        Route::post('/orders/{order}/invoice-generate', [
-        AdminOrderController::class,
-        'markInvoiceGenerated'
-        ])->name('orders.invoice.generate');
+    Route::post('/orders/{order}/invoice-generate', [AdminOrderController::class,'markInvoiceGenerated'])->name('orders.invoice.generate');
 
+    Route::post('/orders/{order}/invoice/remove',[AdminOrderController::class, 'removeInvoice'])->name('orders.invoice.remove');
 
-        Route::post('/orders/{order}/invoice/remove', 
-        [AdminOrderController::class, 'removeInvoice'])
-        ->name('orders.invoice.remove');
-
-         Route::get('/orders/{order}/invoice/print', 
-        [AdminOrderController::class, 'printInvoice'])
-        ->name('orders.invoice.print');
+    Route::get('/orders/{order}/invoice/print', [AdminOrderController::class, 'printInvoice'])->name('orders.invoice.print');
 
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
 
 
-    // Route::get('/invoices', [TallyInvoiceController::class, 'index'])->name('tally.invoices.index');
-    // Route::get('/invoices/{id}', [TallyInvoiceController::class, 'show'])->name('tally.invoices.show');
-    // Route::delete('/invoices/{id}', [TallyInvoiceController::class, 'destroy'])->name('tally.invoices.destroy');
     Route::get('/invoices', [AdminInvoiceController::class, 'index'])->name('invoices.index');
-    // Route::get('invoices/{order}/print', [AdminInvoiceController::class, 'print'])->name('print');
 
     //Retailers
     Route::resource('retailers', AdminRetailerController::class)->names('retailers')->only(['index','create','edit','show','destroy']);
@@ -250,30 +234,14 @@ Route::prefix('distributor')->name('distributor.')->middleware('auth:distributor
     Route::get('get-districts', [DistRetailerController::class, 'getDistricts'])->name('get-districts');
 
 
-
-
-
-    Route::get('/stock', [DistributorStockController::class, 'index'])
-        ->name('stock.index');
+    Route::get('/stock', [DistributorStockController::class, 'index'])->name('stock.index');
 
     Route::resource('retailer/sales', RetailerSaleController::class)->names('retailer-sales');
-
-    // Route::get('/sales/create', [RetailerSaleController::class, 'create'])
-    //     ->name('sales.create');
-
-    // Route::post('/sales', [RetailerSaleController::class, 'store'])
-    //     ->name('sales.store');
 
     Route::resource('/orders', DistOrderController::class);
     Route::post('/orders/{order}/deliver', [DistOrderController::class,'deliver'])->name('orders.deliver');
 
-      Route::get('/inventory/ledger',
-            [DistributorInventoryLedgerController::class, 'index']
-        )->name('inventory.ledger');
-
-
-
-
+    Route::get('/inventory/ledger',[DistributorInventoryLedgerController::class, 'index'])->name('inventory.ledger');
 
 
 });
@@ -293,6 +261,12 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
 
     //Order By Sales Persons
     Route::resource('/orders', SalesOrderController::class);
+
+    //Distributors Route
+    Route::resource('distributors', SalesDistributorController::class)->only(['index','create','edit','show','destroy']);
+
+    //Retail order Controller
+    Route::resource('retail/orders', SalesRetailOrderController::class)->only(['index','create','edit','show','destroy'])->names('retail.orders');
 
 
 });
@@ -365,9 +339,6 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
 
             Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
 
-            // Route::get('orders/{order}/edit', [OrderController::class, 'edit'])
-            //     ->name('orders.edit');
-
             Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 
              Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
@@ -380,6 +351,13 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
 /******************
  * Shared Retailer Controller
  * ******************/
+
+    Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function (){
+
+        Route::post('/retailers/store', [RetailerController::class, 'store'])->name('retailers.store');
+        Route::put('retailers/{retailer}', [RetailerController::class, 'update'])->name('retailers.update');
+
+    });
 
     Route::prefix('distributor')->name('distributor.')->middleware('auth:distributor')->group(function (){
 
@@ -394,3 +372,41 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
         Route::put('retailers/{retailer}', [RetailerController::class, 'update'])->name('retailers.update');
 
     });
+
+    /************************ 
+     * Shared Distributor Controller
+    */
+
+        Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function (){
+
+            Route::post('/distributors/store', [DistributorController::class, 'store'])->name('distributor.store');
+            Route::put('distributors/{distributor}', [DistributorController::class, 'update'])->name('distributor.update');
+
+
+            Route::post('/distributors/profile/upload/{id}', [DistributorController::class, 'uploadImage'])->name('distributors.updateProfileImage');
+            Route::post('/distributors/update-password', [DistributorController::class, 'updatePassword'])->name('distributors.updatePassword');
+
+        });
+
+        Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function (){
+
+            Route::post('/distributors/store', [DistributorController::class, 'store'])->name('distributor.store');
+            Route::put('distributors/{distributor}', [DistributorController::class, 'update'])->name('distributor.update');
+
+            
+            Route::post('/distributors/profile/upload/{id}', [DistributorController::class, 'uploadImage'])->name('distributors.updateProfileImage');
+            Route::post('/distributors/update-password', [DistributorController::class, 'updatePassword'])->name('distributors.updatePassword');
+
+
+        });
+    
+        /*********************
+         * Shared Retailer Orders
+         *************************/
+        Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function (){
+
+            Route::post('sales/orders', [RetailOrderController::class, 'store'])->name('retail.orders.store');
+
+            Route::put('sales/orders/{order}', [RetailOrderController::class, 'update'])->name('retail.orders.update');
+
+        });

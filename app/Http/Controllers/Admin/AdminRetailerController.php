@@ -38,34 +38,56 @@ class AdminRetailerController extends Controller
     public function create()
     {
         $title ='Add Retailer'; 
-        $states = State::orderBy('name')->get();
-        $distributors = Distributor::orderBy('firm_name')->get();
-        return view('admin.retailers.create',compact('title','states','distributors'));
+        // $states = State::orderBy('name')->get();
+        // $distributors = Distributor::orderBy('firm_name')->get();
+        // return view('admin.retailers.create',compact('title','states','distributors'));
+
+
+
+
+        return view('retailers.create', [
+            'layout'      => 'admin.admin-layout', // or distributor.layout / sales.layout
+            'routePrefix' => 'admin',               // or distributor / sales
+            'states'     => State::orderBy('name')->get(),
+            'retailer'=> Retailer::orderBy('id')->get(),
+            'distributors'=> Distributor::orderBy('firm_name')->get(),
+            'returnURL' =>'admin.retailers.index',
+            'title' => $title,
+        ]);
+
+
+
+
+
+
+
+
+
     }
 
-    public function store(Request $request)
-    {
-        $data = $this->validatedData($request);
+    // public function store(Request $request)
+    // {
+    //     $data = $this->validatedData($request);
 
-        // Detect who is creating the retailer
-        if (auth('admin')->check()) {
-            $data['appointed_by_type'] = \App\Models\User::class;
-            $data['appointed_by_id']   = auth('admin')->id();
-        } elseif (auth('sales')->check()) {
-            $data['appointed_by_type'] = \App\Models\SalesPerson::class;
-            $data['appointed_by_id']   = auth('sales')->id();
-        } elseif (auth('distributor')->check()) {
-            $data['appointed_by_type'] = \App\Models\Distributor::class;
-            $data['appointed_by_id']   = auth('distributor')->id();
-            $data['distributor_id']    = auth('distributor')->id(); // auto-link
-        }
+    //     // Detect who is creating the retailer
+    //     if (auth('admin')->check()) {
+    //         $data['appointed_by_type'] = \App\Models\User::class;
+    //         $data['appointed_by_id']   = auth('admin')->id();
+    //     } elseif (auth('sales')->check()) {
+    //         $data['appointed_by_type'] = \App\Models\SalesPerson::class;
+    //         $data['appointed_by_id']   = auth('sales')->id();
+    //     } elseif (auth('distributor')->check()) {
+    //         $data['appointed_by_type'] = \App\Models\Distributor::class;
+    //         $data['appointed_by_id']   = auth('distributor')->id();
+    //         $data['distributor_id']    = auth('distributor')->id(); // auto-link
+    //     }
 
-        Retailer::create($data);
+    //     Retailer::create($data);
 
-        return redirect()
-            ->route('admin.retailers.index')
-            ->with('success', 'Retailer created successfully.');
-    }
+    //     return redirect()
+    //         ->route('admin.retailers.index')
+    //         ->with('success', 'Retailer created successfully.');
+    // }
 
     public function show(Retailer $retailer)
     {
@@ -79,25 +101,47 @@ class AdminRetailerController extends Controller
 
     public function edit(Retailer $retailer)
     {
-        return view('admin.retailers.edit', [
-            'title' => 'Edit Retailer',
-            'retailer' => $retailer,
-            'distributors' => Distributor::orderBy('firm_name')->get(),
-            'states' => State::all(),
+        // return view('admin.retailers.edit', [
+        //     'title' => 'Edit Retailer',
+        //     'retailer' => $retailer,
+        //     'distributors' => Distributor::orderBy('firm_name')->get(),
+        //     'states' => State::all(),
+        //     'districts' => District::where('state_id', $retailer->state_id)->get(),
+        // ]);
+
+        $title = 'Edit Retailer';
+
+        return view('retailers.edit', [
+            'layout'      => 'admin.admin-layout', // or distributor.layout / sales.layout
+            'routePrefix' => 'admin',               // or distributor / sales
+            'states'     => State::orderBy('name')->get(),
+            'retailer'=> $retailer,
+            'distributors'=> Distributor::orderBy('firm_name')->get(),
             'districts' => District::where('state_id', $retailer->state_id)->get(),
+            'returnURL' =>'admin.retailers.index',
+            'title' => $title,
         ]);
+
+
+
+
+
+
+
+
+
     }
 
-    public function update(Request $request, Retailer $retailer)
-    {
-        $data = $this->validatedData($request);
+    // public function update(Request $request, Retailer $retailer)
+    // {
+    //     $data = $this->validatedData($request);
 
-        $retailer->update($data);
+    //     $retailer->update($data);
 
-        return redirect()
-            ->route('admin.retailers.index')
-            ->with('success', 'Retailer updated successfully.');
-    }
+    //     return redirect()
+    //         ->route('admin.retailers.index')
+    //         ->with('success', 'Retailer updated successfully.');
+    // }
 
     public function destroy(Retailer $retailer)
     {

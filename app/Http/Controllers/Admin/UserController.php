@@ -126,7 +126,15 @@ class UserController extends Controller
         $user->update($validated);
         $user->roles()->sync($request->roles ?? []);
 
-        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
+        // Show with Flash message
+        // return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
+
+        // Show witn Toast Message
+        return redirect()->route('admin.users.index')->with('toast',  [
+                    'type' => 'success',
+                    'message' => 'user Updated successfully!'
+                ]);
+
     }
 
     /**

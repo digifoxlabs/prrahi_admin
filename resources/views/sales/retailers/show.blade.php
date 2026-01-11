@@ -227,29 +227,6 @@
         </div>
     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </div>
 
 @endsection
@@ -258,7 +235,7 @@
 
         <script>
             window.pageXData = {
-                page: 'dashboard',
+                page: 'retail-network',
             };
         </script>
     

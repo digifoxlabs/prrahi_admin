@@ -182,7 +182,7 @@
     @push('scripts')
         <script>
             window.pageXData = {
-                page: 'dashboard',
+                page: 'retail-network',
             };
         </script>
 

@@ -11,7 +11,7 @@ class Distributor extends Authenticatable
     ];
 
     protected $fillable = [
-        'sales_perosns_id', 'appointment_date', 'firm_name', 'nature_of_firm',
+        'sales_persons_id', 'appointment_date', 'firm_name', 'nature_of_firm',
         'address_line_1', 'address_line_2', 'town', 'district', 'state', 'pincode', 'landmark',
         'latitude', 'longitude', 'contact_person', 'designation_contact',
         'contact_number', 'email', 'gst', 'date_of_birth', 'date_of_anniversary',

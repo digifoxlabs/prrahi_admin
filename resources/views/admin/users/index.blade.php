@@ -4,19 +4,12 @@
 
         @include('admin.users._breadcrump')
 
-        @if (session('success'))
-            <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
-                class="bg-green-100 text-green-800 p-3 rounded mb-4">
-                {{ session('success') }}
-            </div>
-        @endif
+        {{-- Show Taost --}}
+        @include('partials.toast')
 
-        @if (session('error'))
-            <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
-                class="bg-yellow-100 text-red-800 p-3 rounded mb-4">
-                {{ session('error') }}
-            </div>
-        @endif
+        {{-- Show Flash --}}
+        @include('partials.flash')
+
 
         <div
             class="min-h-screen rounded-2xl border border-gray-200 bg-white px-4 py-6 dark:border-gray-800 dark:bg-white/[0.03] md:px-6 md:py-8 xl:px-10 xl:py-12">
@@ -240,3 +233,4 @@
         }
     </script>
 @endpush
+

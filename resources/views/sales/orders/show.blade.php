@@ -482,7 +482,7 @@
 
     <script>
         window.pageXData = {
-            page: 'dashboard',
+            page: 'orders',
         };
     </script>
 

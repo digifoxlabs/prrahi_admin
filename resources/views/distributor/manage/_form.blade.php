@@ -21,19 +21,44 @@
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Basic Information</h3>
 
         <div class="grid grid-cols-2 gap-6">
+
+
+ 
+
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Sales Person</label>
-                <select name="sales_persons_id"
-                    class="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-400 focus:ring-blue-500 focus:border-blue-500 transition">
-                    <option value="">-- Select --</option>
-                    @foreach ($salesPersons as $sp)
-                    <option value="{{ $sp->id }}"
-                        {{ old('sales_persons_id', $distributor->sales_persons_id ?? '') == $sp->id ? 'selected' : '' }}>
-                        {{ $sp->name }}
-                    </option>
-                    @endforeach
-                </select>
+
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Sales Person</label>
+
+                @if(auth('sales')->check())
+                    {{-- Locked to logged-in Sales --}}
+
+                    <input type="hidden"
+                        name="sales_persons_id"
+                        value="{{ auth('sales')->id() }}">
+
+                    <input type="text"
+                        value="{{ auth('sales')->user()->name }}"
+                        readonly class="w-full p-2 border rounded border-gray-300
+                                bg-gray-100 text-gray-700
+                                dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 cursor-not-allowed">
+
+                @else
+                {{-- Admin/ Others --}}
+                    <select name="sales_persons_id"
+                        class="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-400 focus:ring-blue-500 focus:border-blue-500 transition">
+                        <option value="">-- Select --</option>
+                        @foreach ($salesPersons as $sp)
+                        <option value="{{ $sp->id }}"
+                            {{ old('sales_persons_id', $distributor->sales_persons_id ?? '') == $sp->id ? 'selected' : '' }}>
+                            {{ $sp->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                @endif
             </div>
+
+
+
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Appointment Date</label>
@@ -229,20 +254,20 @@
 
     {{-- ===================== ACTIONS ===================== --}}
     <div class="flex justify-end gap-4">
-        <a href="{{ route('admin.distributors.index') }}" class="px-6 py-3 rounded-lg 
-bg-gray-200 text-gray-800 hover:bg-gray-300 
-dark:bg-gray-700 dark:text-gray-400/95 dark:hover:bg-gray-600 dark:hover:text-white
-border border-gray-300 dark:border-gray-600 
-shadow-sm transition
-focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-            Cancel
-        </a>
-        <button type="submit" class="px-6 py-3 rounded-lg 
-bg-blue-600 text-white hover:bg-blue-700 
-dark:hover:bg-blue-500 
-shadow-sm transition
-focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            Save Distributor
+        <a href="{{ route($returnURL) }}" class="px-6 py-3 rounded-lg 
+        bg-gray-200 text-gray-800 hover:bg-gray-300 
+        dark:bg-gray-700 dark:text-gray-400/95 dark:hover:bg-gray-600 dark:hover:text-white
+        border border-gray-300 dark:border-gray-600 
+        shadow-sm transition
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-3 rounded-lg 
+        bg-blue-600 text-white hover:bg-blue-700 
+        dark:hover:bg-blue-500 
+        shadow-sm transition
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Save Distributor
         </button>
     </div>
 
