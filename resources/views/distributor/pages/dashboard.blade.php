@@ -127,7 +127,7 @@
     </a>
 
     {{-- Retail Orders --}}
-    <a href="#"
+    <a href="{{ route('distributor.retail.orders.index')}}"
        class="group relative rounded-2xl border border-gray-200 dark:border-gray-700
               bg-white dark:bg-gray-900 p-5 shadow-sm
               hover:shadow-lg hover:-translate-y-1 transition-all duration-200">

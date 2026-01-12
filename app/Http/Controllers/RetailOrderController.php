@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Models\RetailOrder;
 use App\Models\Product;
+use App\Models\Retailer;
 use Illuminate\Support\Str;
 use App\Support\OrderActor;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ use App\Services\RetailOrders\{
     AddOrderItemsService
 };
 use App\Services\OrderActivityLogger;
+use App\Services\RetailOrderActivityLogger;
 
 class RetailOrderController extends Controller
 {
@@ -31,10 +33,17 @@ class RetailOrderController extends Controller
         //Generate Order Number if not provided
         $orderNumber = $request->order_number ?: 'ORD-' . now()->format('Ymd') . '-' . Str::upper(Str::random(5));
 
+        $retailerId = $request->retailer_id;
+
+        $distributorId = Retailer::where('id', $retailerId)
+        ->value('distributor_id'); // returns null if not found
+
+
+
         $order = CreateRetailOrderService::create([
             'order_number'     => $orderNumber,
             'order_date'      => $request->order_date,
-            'distributor_id'  => $request->distributor_id,
+            'distributor_id'  => $distributorId,
             'retailer_id'      => $request->retailer_id,
             'billing_address' => $request->billing_address,
 
@@ -68,16 +77,75 @@ class RetailOrderController extends Controller
      
         AddOrderItemsService::handle($order, $items);
 
-       // OrderActivityLogger::log($order, 'created', 'Order created');
+        RetailOrderActivityLogger::log($order, 'created', 'Order created');
 
-         return $this->redirectAfterSave($order, $actor['role'])
-         ->with('success', 'Order created successfully.');
+        return $this->redirectAfterSave($order, $actor['role'])
+        ->with('success', 'Order created successfully.');
 
 
     }
 
 
+    public function update(Request $request, RetailOrder $order)
+    {
 
+        abort_if($order->status !== 'pending', 403, 'Order cannot be edited.');
+
+        $validated = $this->validatedData($request, $order);
+
+        $actor = OrderActor::resolve();
+
+        $retailerId = $request->retailer_id;
+
+        $distributorId = Retailer::where('id', $retailerId)->value('distributor_id'); // returns null if not found
+
+
+        //Pass variables into transaction
+        DB::transaction(function () use ($request, $order, $retailerId, $distributorId) {
+
+        // 1️⃣ Update order header
+        $order->update([
+            'retailer_id'     => $retailerId,
+            'distributor_id'  => $distributorId,
+            'order_number'    => $request->order_number,
+            'order_date'      => $request->order_date,
+            'billing_address' => $request->billing_address,
+            'subtotal'        => $request->subtotal,
+            'discount'        => $request->discount_amount ?? 0,
+            'cgst'            => $request->cgst ?? 0,
+            'sgst'            => $request->sgst ?? 0,
+            'igst'            => $request->igst ?? 0,
+            'round_off'       => $request->round_off ?? 0,
+            'total_amount'    => $request->total_amount,
+        ]);
+
+        // 2️⃣ Remove old items
+        $order->items()->delete();
+
+            $items = collect($request->items)->map(fn ($row) => [
+                
+                'retail_order_id' => $order->id,
+                'product_id' => $row['product_id'],
+                'price'   => $row['rate'],
+                'base_unit' => $row['base_unit'],
+                'quantity'  => $row['quantity'],
+                'discount_percent'   => $row['discount_percent'],
+                'total'   => $row['amount'],
+
+            ])->toArray();
+
+
+         AddOrderItemsService::handle($order, $items);
+
+        RetailOrderActivityLogger::log($order, 'updated', 'Order updated');
+
+        });
+
+        return $this->redirectAfterUpdate($order, $actor['role'])
+         ->with('success', 'Order Updated successfully.');
+
+
+    }
 
     
     // Validate Request Data for both create and edit
@@ -106,9 +174,19 @@ class RetailOrderController extends Controller
     protected function redirectAfterSave(RetailOrder $order, string $actor)
     {
         return match ($actor) {
-           // 'admin'       => redirect()->route('admin.orders.index'),
-          //  'distributor' => redirect()->route('distributor.orders.index'),
+           'admin'       => redirect()->route('admin.retail.orders.index'),
+           'distributor' => redirect()->route('distributor.retail.orders.index'),
             'sales'       => redirect()->route('sales.retail.orders.index'),
+            default       => abort(403),
+        };
+    }
+
+    protected function redirectAfterUpdate(RetailOrder $order, string $actor)
+    {
+        return match ($actor) {
+           'admin'       => redirect()->route('admin.retail.orders.show', $order),
+           'distributor' => redirect()->route('distributor.retail.orders.show', $order),
+            'sales'       => redirect()->route('sales.retail.orders.show', $order),
             default       => abort(403),
         };
     }

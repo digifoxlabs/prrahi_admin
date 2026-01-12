@@ -67,10 +67,9 @@
         <svg :class="(selected === 'Manage Orders') || (page === 'manage-orders') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
             width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- Clipboard list icon for Manage Orders -->
-            <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5C15 6.10457 14.1046 7 13 7H11C9.89543 7 9 6.10457 9 5Z" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M9 12H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M9 16H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5M9 5C9 6.10457 9.89543 7 11 7H13C14.1046 7 15 6.10457 15 5M9 12H15M9 16H15"
+                fill="" />
         </svg>
         <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
             Manage Orders
@@ -85,12 +84,9 @@
         <svg :class="(selected === 'Retail Network') || (page === 'retail-network') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
             width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- Network/connection icon for Retail Network -->
-            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M19 12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12C5 8.13401 8.13401 5 12 5C15.866 5 19 8.13401 19 12Z" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M2 12H5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M19 12H22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M12 2V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M12 19V22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15ZM12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM2 12H5M19 12H22M12 2V5M12 19V22"
+                fill="" />
         </svg>
         <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
             Retail Network
@@ -105,12 +101,9 @@
         <svg :class="(selected === 'Stock Overview') || (page === 'stock-overview') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
             width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- Warehouse/inventory icon for Stock Overview -->
-            <path d="M3 8L12 3L21 8V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V8Z" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M3 8L12 13L21 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M12 21V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M9 21V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M15 21V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M7 11H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M3 8L12 3L21 8V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V8ZM3 8L12 13L21 8M12 21V13M9 21V11M15 21V11M7 11H17"
+                fill="" />
         </svg>
         <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
             Stock Overview
@@ -125,11 +118,9 @@
         <svg :class="(selected === 'Retail Sale') || (page === 'retail-sale') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
             width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- Shopping cart icon for Retail Sale -->
-            <path d="M3 6H22L19 16H6L3 6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-            <path d="M16 20C17.1046 20 18 19.1046 18 18C18 16.8954 17.1046 16 16 16C14.8954 16 14 16.8954 14 18C14 19.1046 14.8954 20 16 20Z" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M8 20C9.10457 20 10 19.1046 10 18C10 16.8954 9.10457 16 8 16C6.89543 16 6 16.8954 6 18C6 19.1046 6.89543 20 8 20Z" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M3 6L2 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M9 11H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M3 6H22L19 16H6L3 6ZM16 20C17.1046 20 18 19.1046 18 18C18 16.8954 17.1046 16 16 16C14.8954 16 14 16.8954 14 18C14 19.1046 14.8954 20 16 20ZM8 20C9.10457 20 10 19.1046 10 18C10 16.8954 9.10457 16 8 16C6.89543 16 6 16.8954 6 18C6 19.1046 6.89543 20 8 20ZM3 6L2 3M9 11H15"
+                fill="" />
         </svg>
         <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
             Retail Sale
@@ -138,19 +129,15 @@
 </li>
 
 <li>
-    <a href="#"
+    <a href="{{ route('distributor.retail.orders.index') }}"
         @click="selected = (selected === 'Retail Orders' ? '':'Retail Orders')" class="menu-item group"
         :class="(selected === 'Retail Orders') || (page === 'retail-orders') ? 'menu-item-active' : 'menu-item-inactive'">
         <svg :class="(selected === 'Retail Orders') || (page === 'retail-orders') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
             width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- Package delivery icon for Retail Orders -->
-            <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-            <path d="M12 22V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M20 7L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M4 7L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M8 5L16 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M8 15L16 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M16 5L8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M12 2L20 7V17L12 22L4 17V7L12 2ZM12 22V12M20 7L12 12M4 7L12 12M8 5L16 10M8 15L16 20M16 5L8 10"
+                fill="" />
         </svg>
         <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
             Retail Orders

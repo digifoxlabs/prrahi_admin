@@ -45,6 +45,11 @@ class RetailOrder extends Model
         return $this->belongsTo(Distributor::class);
     }
 
+    public function retailer()
+    {
+        return $this->belongsTo(Retailer::class);
+    }
+
     public function items()
     {
         return $this->hasMany(RetailOrderItem::class);
@@ -107,7 +112,7 @@ class RetailOrder extends Model
 
     public function activities()
     {
-    return $this->hasMany(OrderActivity::class)->latest();
+    return $this->hasMany(RetailOrderActivity::class)->latest();
     }
 
 }

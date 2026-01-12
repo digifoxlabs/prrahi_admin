@@ -39,6 +39,8 @@ class CreateRetailerService
             'nature_of_outlet' => $data['nature_of_outlet'],
             'appointment_date' => $data['appointment_date'],
             'distributor_id' => $data['distributor_id'],
+            'latitude' => $data['latitude'],
+            'longitude' => $data['longitude'],
 
           // polymorphic creator
             'appointed_by_type'  => $data['created_by_type'],

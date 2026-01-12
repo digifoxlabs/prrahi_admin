@@ -265,11 +265,40 @@
             </div>
         </div>
 
-
-
-
-
     </div>
+    
+    {{-- Location --}}
+    <div class="border rounded-xl shadow bg-gray-50 dark:bg-gray-800 p-6 transition">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">📍 Location Information</h3>
+        <div class="grid grid-cols-2 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Latitude</label>
+                <input type="text" name="latitude" id="latitude"
+                    value="{{ old('latitude', $retailer->latitude ?? '') }}"
+                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-400"
+                    readonly>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Longitude</label>
+                <input type="text" name="longitude" id="longitude"
+                    value="{{ old('longitude', $retailer->longitude ?? '') }}"
+                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-400"
+                    readonly>
+            </div>
+            <div class="md:col-span-2 text-right">
+                <button type="button" onclick="openMapModal()"
+                    class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-500 transition">
+                    📌 Set Location on Map
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @include('admin.distributors.map-modal')
+
+
+
+
 
     <!-- ACTIONS -->
     <div class="pt-4">

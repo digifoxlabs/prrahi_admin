@@ -1,4 +1,4 @@
-@extends('sales.layout')
+@extends('admin.admin-layout')
 
 @section('page-content')
 <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
@@ -14,7 +14,7 @@
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Retail Orders</h1>
                 <p class="text-gray-600 mt-2">Manage all Retailer Orders</p>
             </div>
-            <a href="{{ route('sales.retail.orders.create') }}"
+            <a href="{{ route('admin.retail.orders.create') }}"
                 class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -140,7 +140,7 @@
                     <td class="p-3 text-right">
                         <div class="flex items-center justify-end space-x-2">
                             <!-- View Button -->
-                            <a href="{{ route('sales.retail.orders.show', $order) }}"
+                            <a href="{{ route('admin.retail.orders.show', $order) }}"
                                 class="inline-flex items-center px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-md hover:bg-indigo-100 hover:shadow-sm transition-colors duration-150 text-sm font-medium">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

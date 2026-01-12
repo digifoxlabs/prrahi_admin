@@ -19,12 +19,14 @@ use App\Http\Controllers\Admin\AdminInvoiceController;
 use App\Http\Controllers\Distributor\DistAuthController;
 use App\Http\Controllers\Sales\SalesAuthController;
 use App\Http\Controllers\Admin\AdminRetailerController;
+use App\Http\Controllers\Admin\AdminRetailOrderController;
 use App\Http\Controllers\Distributor\DashboardController as DistributorDashboardController;
 use App\Http\Controllers\Distributor\DistRetailerController;
 use App\Http\Controllers\Distributor\DistributorStockController;
 use App\Http\Controllers\Distributor\RetailerSaleController;
 use App\Http\Controllers\Distributor\DistOrderController;
 use App\Http\Controllers\Distributor\DistributorInventoryLedgerController;
+use App\Http\Controllers\Distributor\DistRetailOrderController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RetailerController;
 use App\Http\Controllers\DistributorController;
@@ -220,6 +222,14 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
 
     Route::get('retailers/export', [AdminRetailerController::class, 'export'])->name('retailers.export');
 
+    // retail Order
+     Route::resource('retail/orders', AdminRetailOrderController::class)->only(['index','create','edit','show','destroy'])->names('retail.orders');
+    Route::post('retail/orders/{order}/confirm', [AdminRetailOrderController::class, 'confirm'])->name('retail.orders.confirm');
+    Route::post('retail/orders/{order}/cancel', [AdminRetailOrderController::class, 'cancel'])->name('retail.orders.cancel');
+
+    Route::post('/retail-orders/{order}/assign-distributor', [AdminRetailOrderController::class, 'assignDistributor'])->name('retail.orders.assign-distributor');
+
+
 
 });
 
@@ -242,6 +252,11 @@ Route::prefix('distributor')->name('distributor.')->middleware('auth:distributor
     Route::post('/orders/{order}/deliver', [DistOrderController::class,'deliver'])->name('orders.deliver');
 
     Route::get('/inventory/ledger',[DistributorInventoryLedgerController::class, 'index'])->name('inventory.ledger');
+
+    //Retail order Controller
+    Route::resource('retail/orders', DistRetailOrderController::class)->only(['index','create','edit','show','destroy'])->names('retail.orders');
+    Route::post('retail/orders/{order}/confirm', [DistRetailOrderController::class, 'confirm'])->name('retail.orders.confirm');
+    Route::post('retail/orders/{order}/cancel', [DistRetailOrderController::class, 'cancel'])->name('retail.orders.cancel');
 
 
 });
@@ -267,6 +282,11 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
 
     //Retail order Controller
     Route::resource('retail/orders', SalesRetailOrderController::class)->only(['index','create','edit','show','destroy'])->names('retail.orders');
+
+    Route::post('retail/orders/{order}/confirm', [SalesRetailOrderController::class, 'confirm'])->name('retail.orders.confirm');
+    Route::post('retail/orders/{order}/cancel', [SalesRetailOrderController::class, 'cancel'])->name('retail.orders.cancel');
+
+    Route::post('/retail-orders/{order}/assign-distributor', [SalesRetailOrderController::class, 'assignDistributor'])->name('retail.orders.assign-distributor');
 
 
 });
@@ -403,10 +423,28 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
         /*********************
          * Shared Retailer Orders
          *************************/
-        Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function (){
+            Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function (){
 
-            Route::post('sales/orders', [RetailOrderController::class, 'store'])->name('retail.orders.store');
+                Route::post('sales/orders', [RetailOrderController::class, 'store'])->name('retail.orders.store');
 
-            Route::put('sales/orders/{order}', [RetailOrderController::class, 'update'])->name('retail.orders.update');
+                Route::put('sales/orders/{order}', [RetailOrderController::class, 'update'])->name('retail.orders.update');
 
-        });
+
+            });
+            Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function (){
+
+                Route::post('sales/orders', [RetailOrderController::class, 'store'])->name('retail.orders.store');
+
+                Route::put('sales/orders/{order}', [RetailOrderController::class, 'update'])->name('retail.orders.update');
+
+
+            });
+
+            Route::prefix('distributor')->name('distributor.')->middleware('auth:distributor')->group(function (){
+
+                Route::post('sales/orders', [RetailOrderController::class, 'store'])->name('retail.orders.store');
+
+                Route::put('sales/orders/{order}', [RetailOrderController::class, 'update'])->name('retail.orders.update');
+
+
+            });

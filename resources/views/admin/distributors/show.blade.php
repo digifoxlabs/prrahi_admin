@@ -388,7 +388,7 @@
                     class="dark:bg-gray-800">
                 </iframe>
             </div>
-        </div>
+        </div>retailer
     </div>
 </div>
 

@@ -1,6 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Sales;
+namespace App\Http\Controllers\Distributor;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\RetailOrder;
@@ -11,7 +12,7 @@ use App\Models\Retailer;
 use Illuminate\Support\Facades\DB;
 use App\Services\RetailOrderActivityLogger;
 
-class SalesRetailOrderController extends Controller
+class DistRetailOrderController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -21,16 +22,14 @@ class SalesRetailOrderController extends Controller
        
         $title = 'Orders';
 
-        $sales_id = auth('sales')->id();
+        $distributor_id = auth('distributor')->id();
 
        $query = RetailOrder::with(['distributor','retailer'])
-        ->where(function ($q) use ($sales_id) {
+        ->where(function ($q) use ($distributor_id) {
 
-            $q->where('created_by_type', SalesPerson::class)
-                ->where('created_by_id', $sales_id);
+            $q->where('distributor_id', $distributor_id);
 
-        })
-        ->latest();
+        })->latest();
 
         // 🔍 Search by Order Number
         if ($request->filled('q')) {
@@ -46,7 +45,7 @@ class SalesRetailOrderController extends Controller
             ->paginate(20)
             ->appends($request->query());// keep filters during pagination
 
-        return view('sales.retail-orders.index', compact('orders', 'title'));
+        return view('distributor.retail-orders.index', compact('orders', 'title'));
 
     }
 
@@ -55,10 +54,9 @@ class SalesRetailOrderController extends Controller
      */
     public function create()
     {
-        
         $title = 'Retail Orders';
 
-        $sales_id = auth('sales')->id();
+        $distributor_id = auth('distributor')->id();
         
         // Load products with category and variants (with their categories)
         $products = Product::whereIn('type', ['simple', 'variable'])
@@ -85,11 +83,11 @@ class SalesRetailOrderController extends Controller
         
 
         return view('retailers.orders.create', [
-            'layout'      => 'sales.layout', // or distributor.layout / sales.layout
-            'routePrefix' => 'sales',               // or distributor / sales
+            'layout'      => 'distributor.layout', // or distributor.layout / sales.layout
+            'routePrefix' => 'distributor',               // or distributor / sales
             'products'    => $products,
-            'distributors'=> Distributor::orderBy('firm_name')->where('sales_persons_id', $sales_id)->get(),
-            'retailers'=> Retailer::orderBy('retailer_name')->get(),
+            'distributors'=> Distributor::orderBy('firm_name')->get(),
+            'retailers'=> Retailer::orderBy('retailer_name')->where('distributor_id',$distributor_id)->get(),
             'title' => $title,
         ]);
     }
@@ -118,7 +116,7 @@ class SalesRetailOrderController extends Controller
         }
 
         $order->load('items.product','distributor');
-        return view('sales.retail-orders.show', compact('order','title','eligibleDistributors'));
+        return view('distributor.retail-orders.show', compact('order','title','eligibleDistributors'));
     }
 
     /**
@@ -202,8 +200,8 @@ class SalesRetailOrderController extends Controller
      
 
         return view('retailers.orders.edit', [
-            'layout'      => 'sales.layout', // or distributor.layout / sales.layout
-            'routePrefix' => 'sales',               // or distributor / sales
+            'layout'      => 'distributor.layout', // or distributor.layout / sales.layout
+            'routePrefix' => 'distributor',               // or distributor / sales
             'products'     => $products,
             'order'        => $order,
             // 'distributors'=> Distributor::orderBy('firm_name')->get(),
@@ -215,8 +213,6 @@ class SalesRetailOrderController extends Controller
 
 
     }
-
-
 
     /**
      * Update the specified resource in storage.
@@ -233,8 +229,6 @@ class SalesRetailOrderController extends Controller
     {
         //
     }
-
-
 
 
 public function confirm(Request $request, RetailOrder $order)
@@ -298,42 +292,6 @@ public function cancel(Request $request, RetailOrder $order)
 
     return back()->with('success', 'Order cancelled successfully.');
 }
-
-
-
-
-    public function assignDistributor(Request $request, RetailOrder $order)
-    {
-        abort_if($order->status !== 'pending', 403);
-
-        $request->validate([
-            'distributor_id' => ['required', 'exists:distributors,id'],
-        ]);
-
-        // Ensure distributor belongs to retailer
-        if (
-            !$order->retailer ||
-            $order->retailer->distributor_id != $request->distributor_id
-        ) {
-            abort(403, 'Invalid distributor selection');
-        }
-
-        $order->update([
-            'distributor_id' => $request->distributor_id,
-        ]);
-
-        return back()->with('success', 'Distributor assigned successfully.');
-    }
-
-
-
-
-
-
-
-
-
-
 
 
 

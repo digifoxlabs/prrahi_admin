@@ -184,7 +184,103 @@
                         {{ $retailer->address ?? '-' }}
                     </div>
                 </div>
+
+                <div>
+                    <button x-data @click="$dispatch('open-map')"
+                        class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-500 transition">
+                        📍 View Location on Map
+                    </button>
+                </div>
+
             </div>
+
+
+
+
+
+<!-- Map Modal (with fullscreen + close) -->
+<div x-data="{ open: false }" 
+     x-on:open-map.window="open = true" 
+     x-on:keydown.escape.window="open = false" 
+     x-cloak>
+
+    <div x-show="open"
+         class="fixed inset-0 flex items-center justify-center bg-black/60 z-[999999] p-4"
+         x-transition>
+         
+        <div @click.outside="open = false"
+             class="relative bg-white rounded-lg overflow-hidden shadow-lg w-full max-w-3xl dark:bg-gray-900">
+             
+            <!-- Header -->
+            <div class="flex justify-between items-center px-4 py-2 border-b dark:border-gray-700">
+                <h2 class="text-lg font-bold text-gray-800 dark:text-white">📌 Map Location</h2>
+            </div>
+
+            <!-- Control Buttons (absolute top-right) -->
+            <div class="absolute top-3 right-3 flex space-x-2 z-[10000]">
+                <!-- Fullscreen -->
+                <button 
+                    @click="let el=$refs.mapFrame; 
+                            if(el.requestFullscreen){el.requestFullscreen();} 
+                            else if(el.webkitRequestFullscreen){el.webkitRequestFullscreen();}" 
+                    class="h-9 w-9 flex items-center justify-center rounded-full
+                        bg-gray-200 text-gray-700 shadow-sm
+                        hover:bg-gray-300 hover:text-gray-900
+                        dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800 
+                        dark:text-gray-300 
+                        dark:hover:from-gray-600 dark:hover:to-gray-700 dark:hover:text-white
+                        transition duration-200 ease-in-out">
+                    ⛶
+                </button>
+
+                <!-- Close -->
+                <button @click="open = false"
+                        class="h-9 w-9 flex items-center justify-center rounded-full 
+                            bg-gray-200 text-gray-700 shadow-sm
+                            hover:bg-red-500 hover:text-white
+                            dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800 
+                            dark:text-gray-300 
+                            dark:hover:from-red-600 dark:hover:to-red-700 dark:hover:text-white
+                            transition duration-200 ease-in-out text-lg font-bold">
+                    &times;
+                </button>
+
+            </div>
+
+            <!-- Map -->
+            <div class="w-full h-[500px]">
+                <iframe 
+                    x-ref="mapFrame"
+                    width="100%" height="100%" 
+                    frameborder="0" style="border:0"
+                    src="https://www.google.com/maps?q={{ $retailer->latitude }},{{ $retailer->longitude }}&hl=es;z=14&output=embed"
+                    allowfullscreen
+                    class="dark:bg-gray-800">
+                </iframe>
+            </div>
+        </div>retailer
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             {{-- DISTRIBUTOR INFO --}}
             <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">

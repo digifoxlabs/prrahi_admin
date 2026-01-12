@@ -1,4 +1,4 @@
-@extends('sales.layout')
+@extends('admin.admin-layout')
 
 @section('page-content')
 <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
@@ -361,13 +361,13 @@
     <div class="flex justify-end gap-3 mt-6">
 
 
-        <a href="{{ route('sales.retail.orders.index') }}"
+        <a href="{{ route('admin.retail.orders.index') }}"
            class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100">
             Back
         </a>
 
         @if($order->status === 'pending')
-            <a href="{{ route('sales.retail.orders.edit', $order) }}"
+            <a href="{{ route('admin.retail.orders.edit', $order) }}"
             class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
                 Edit Order
             </a>
