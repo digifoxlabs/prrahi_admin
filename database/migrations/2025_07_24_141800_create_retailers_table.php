@@ -36,6 +36,10 @@ return new class extends Migration
             $table->date('appointment_date')->nullable();
             $table->string('nature_of_outlet')->nullable();
 
+            // Location fields
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
+
             // ✅ Polymorphic appointed by
             $table->nullableMorphs('appointed_by'); 
             // creates appointed_by_id + appointed_by_type

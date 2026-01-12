@@ -23,6 +23,8 @@ class Retailer extends Model
         'date_of_birth',
         'date_of_anniversary',
         'nature_of_outlet',
+        'latitude',
+        'longitude',
         'distributor_id',
         'appointed_by_id',
         'appointment_date',
