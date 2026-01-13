@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Role;
 use App\Models\Permission;
 use App\Models\Distributor;
+use App\Models\Retailer;
 use App\Models\SalesPerson;
 use App\Models\Product;
 use App\Models\Order;
@@ -23,7 +24,20 @@ class DashboardController extends Controller
         $allPermissions = Permission::all();             
         $user = auth('admin')->user();    
 
-         $distributors = Distributor::select('id', 'firm_name', 'latitude', 'longitude')->get();
+        $ordersPending = Order::where('status', 'pending')->count();
+
+        $ordersConfirmed = Order::where('status', 'confirmed')->count();
+
+        $ordersDispatchedDelivered = Order::whereIn('dispatch_status', ['dispatched', 'delivered'])->count();
+
+        $ordersCancelled = Order::where('status', 'cancelled')->count();
+
+
+
+
+
+        $distributors = Distributor::select('id', 'firm_name', 'latitude', 'longitude')->get();
+        $retailers = Retailer::select('id', 'retailer_name', 'latitude', 'longitude')->get();
 
         $totalProducts = Product::with(['category', 'subCategory', 'parent.category', 'parent.subCategory'])
         ->whereIn('type', ['simple', 'variant'])
@@ -31,6 +45,7 @@ class DashboardController extends Controller
 
         $totalDistributor = Distributor::count();
         $totalSalesPerson = SalesPerson::count();
+        $totalRetailers = Retailer::count();
 
         $orders = Order::with('distributor')
             ->orderBy('created_at', 'desc')
@@ -39,10 +54,10 @@ class DashboardController extends Controller
 
 
 
+        return view('admin.pages.dashboard', compact(
+            'allRoles','user', 'allPermissions', 'totalProducts','title','totalDistributor','totalSalesPerson','orders','distributors','ordersPending','ordersConfirmed','ordersDispatchedDelivered','ordersCancelled','retailers','totalRetailers'));
 
-        return view('admin.pages.dashboard', compact('allRoles','user', 'allPermissions', 'totalProducts','title','totalDistributor','totalSalesPerson','orders','distributors'));
-
-        // return redirect()->route('admin.profile')->with('success', 'Profile photo updated successfully!');
+    
        
     }
 

@@ -1,24 +1,7 @@
 @extends('admin.admin-layout')
 
-<style>
-/* Fullscreen fix */
-.fullscreen-active {
-    padding: 0 !important;
-    border-radius: 0 !important;
-}
-
-.fullscreen-active .map-wrapper {
-    height: 100vh !important;
-}
-
-.fullscreen-active .map-container {
-    height: calc(100vh - 64px) !important; /* header height */
-}
-</style>
-
-
 @section('page-content')
-<div class="min-h-screen bg-white dark:bg-gray-800 px-4 py-6 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4 py-6 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
         <!-- Header Section -->
         <div class="mb-8">
@@ -35,7 +18,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Distributors Card -->
                     <a href="{{ route('admin.distributors.index') }}" 
-                       class="group relative dark:border-gray-700  dark:bg-gray-700 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden block">
+                       class="group relative bg-gradient-to-br from-white to-white/90 dark:from-gray-800 dark:to-gray-800/80 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden block">
                         <div class="absolute top-4 right-4 w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                             <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,7 +30,7 @@
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Distributors</p>
                             <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $totalDistributor }}</h3>
                         </div>
-                        <div class="mt-4 pt-4 border-t border-gray-500 dark:border-gray-300 flex items-center justify-between">
+                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
                             <span class="text-xs font-medium text-blue-600 dark:text-blue-400">View all</span>
                             <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
@@ -57,7 +40,7 @@
 
                     <!-- Sales Persons Card -->
                     <a href="{{ route('admin.sales-persons.index') }}"
-                       class="group relative dark:border-gray-700  dark:bg-gray-700 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden block">
+                       class="group relative bg-gradient-to-br from-white to-white/90 dark:from-gray-800 dark:to-gray-800/80 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden block">
                         <div class="absolute top-4 right-4 w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                             <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +52,7 @@
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Sales Persons</p>
                             <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $totalSalesPerson }}</h3>
                         </div>
-                        <div class="mt-4 pt-4 border-t border-gray-500 dark:border-gray-300 flex items-center justify-between">
+                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
                             <span class="text-xs font-medium text-purple-600 dark:text-purple-400">View all</span>
                             <svg class="w-4 h-4 text-purple-600 dark:text-purple-400 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
@@ -79,7 +62,7 @@
 
                     <!-- Retailers Card -->
                     <a href="{{ route('admin.retailers.index') }}"
-                       class="group relative dark:border-gray-700  dark:bg-gray-700 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden block">
+                       class="group relative bg-gradient-to-br from-white to-white/90 dark:from-gray-800 dark:to-gray-800/80 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden block">
                         <div class="absolute top-4 right-4 w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                             <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,7 +74,7 @@
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Retailers</p>
                             <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $totalRetailers }}</h3>
                         </div>
-                        <div class="mt-4 pt-4 border-t border-gray-500 dark:border-gray-300 flex items-center justify-between">
+                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
                             <span class="text-xs font-medium text-green-600 dark:text-green-400">View all</span>
                             <svg class="w-4 h-4 text-green-600 dark:text-green-400 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
@@ -101,7 +84,7 @@
 
                     <!-- Products Card -->
                     <a href="{{ route('admin.products.index') }}"
-                       class="group relative dark:border-gray-700  dark:bg-gray-700 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden block">
+                       class="group relative bg-gradient-to-br from-white to-white/90 dark:from-gray-800 dark:to-gray-800/80 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden block">
                         <div class="absolute top-4 right-4 w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                             <div class="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,7 +96,7 @@
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Products</p>
                             <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $totalProducts }}</h3>
                         </div>
-                        <div class="mt-4 pt-4 border-t border-gray-500 dark:border-gray-300 flex items-center justify-between">
+                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
                             <span class="text-xs font-medium text-orange-600 dark:text-orange-400">View all</span>
                             <svg class="w-4 h-4 text-orange-600 dark:text-orange-400 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
@@ -129,7 +112,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Pending Orders -->
         <a href="{{ route('admin.orders.index', ['status' => 'pending']) }}"
-           class="group relative dark:border-gray-700  dark:bg-gray-700 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden">
+           class="group relative bg-gradient-to-br from-white to-white/90 dark:from-gray-800 dark:to-gray-800/80 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-yellow-500/5 rounded-full"></div>
             <div class="flex items-start justify-between mb-4">
                 <div>
@@ -142,14 +125,14 @@
                     <h3 class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $ordersPending }}</h3>
                 </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-gray-500 dark:border-gray-300">
+            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                 <span class="text-xs font-medium text-yellow-600 dark:text-yellow-400">Require attention</span>
             </div>
         </a>
 
         <!-- Confirmed Orders -->
         <a href="{{ route('admin.orders.index', ['status' => 'confirmed']) }}"
-           class="group relative dark:border-gray-700  dark:bg-gray-700 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden">
+           class="group relative bg-gradient-to-br from-white to-white/90 dark:from-gray-800 dark:to-gray-800/80 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/5 rounded-full"></div>
             <div class="flex items-start justify-between mb-4">
                 <div>
@@ -162,14 +145,14 @@
                     <h3 class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $ordersConfirmed }}</h3>
                 </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-gray-500 dark:border-gray-300">
+            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                 <span class="text-xs font-medium text-blue-600 dark:text-blue-400">Ready for processing</span>
             </div>
         </a>
 
         <!-- Dispatched/Delivered -->
         <a href="{{ route('admin.orders.index', ['dispatch_status' => 'dispatched']) }}"
-           class="group relative dark:border-gray-700  dark:bg-gray-700 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden">
+           class="group relative bg-gradient-to-br from-white to-white/90 dark:from-gray-800 dark:to-gray-800/80 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/5 rounded-full"></div>
             <div class="flex items-start justify-between mb-4">
                 <div>
@@ -182,14 +165,14 @@
                     <h3 class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $ordersDispatchedDelivered }}</h3>
                 </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-gray-500 dark:border-gray-300">
+            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                 <span class="text-xs font-medium text-green-600 dark:text-green-400">Completed shipments</span>
             </div>
         </a>
 
         <!-- Cancelled Orders -->
         <a href="{{ route('admin.orders.index', ['status' => 'cancelled']) }}"
-           class="group relative dark:border-gray-700  dark:bg-gray-700 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden">
+           class="group relative bg-gradient-to-br from-white to-white/90 dark:from-gray-800 dark:to-gray-800/80 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1 overflow-hidden">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-red-500/5 rounded-full"></div>
             <div class="flex items-start justify-between mb-4">
                 <div>
@@ -202,7 +185,7 @@
                     <h3 class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $ordersCancelled }}</h3>
                 </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-gray-500 dark:border-gray-300">
+            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                 <span class="text-xs font-medium text-red-600 dark:text-red-400">Review required</span>
             </div>
         </a>
@@ -216,7 +199,7 @@
                 <div class="mt-8">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {{-- Distributor Map --}}
-                        <div class="dark:border-gray-700  dark:bg-gray-700 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+                        <div class="bg-gradient-to-br from-white to-white/90 dark:from-gray-800 dark:to-gray-800/80 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
                             <div class="mb-6">
                                 <div class="flex items-center justify-between">
                                     <div>
@@ -230,13 +213,13 @@
                                     </button>
                                 </div>
                             </div>
-                                <div class="map-wrapper h-[300px] sm:h-[400px] lg:h-[500px] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                                    <div id="mapOne" class="map-container h-full w-full"></div>
-                                </div>
+                            <div class="h-[300px] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                                <div id="mapOne" class="h-full w-full"></div>
+                            </div>
                         </div>
 
                         {{-- Retailer Map --}}
-                        <div class="dark:border-gray-700  dark:bg-gray-700 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+                        <div class="bg-gradient-to-br from-white to-white/90 dark:from-gray-800 dark:to-gray-800/80 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
                             <div class="mb-6">
                                 <div class="flex items-center justify-between">
                                     <div>
@@ -250,19 +233,17 @@
                                     </button>
                                 </div>
                             </div>
-                                   <div class="map-wrapper h-[300px] sm:h-[400px] lg:h-[500px] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                                    <div id="mapTwo" class="map-container h-full w-full"></div>
-                                </div>
+                            <div class="h-[300px] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                                <div id="mapTwo" class="h-full w-full"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-
             </div>
 
             {{-- ================= RIGHT COLUMN - RECENT ORDERS ================= --}}
             <div class="lg:col-span-3">
-                <div class="dark:border-gray-700  dark:bg-gray-200 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 h-full">
+                <div class="bg-gradient-to-br from-white to-white/90 dark:from-gray-800 dark:to-gray-800/80 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 h-full">
                     <div class="flex items-center justify-between mb-6">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Orders</h3>
@@ -279,7 +260,7 @@
 
                     <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                         @forelse ($orders as $order)
-                        <div class="group bg-gray dark:bg-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-800/50">
+                        <div class="group bg-gradient-to-r from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 rounded-xl p-4 hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-800/50">
                             <div class="flex items-start justify-between mb-3">
                                 <div>
                                     <div class="flex items-center gap-2">
@@ -444,36 +425,15 @@
 </script>
 
 <script>
-
-function toggleFullscreen(elem) {
-    if (!document.fullscreenElement) {
-        elem.classList.add('fullscreen-active');
-        elem.requestFullscreen();
-
-        setTimeout(() => {
-            window.dispatchEvent(new Event('resize'));
-        }, 300);
-    } else {
-        document.exitFullscreen();
+    function toggleFullscreen(elem) {
+        if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch(err => {
+                console.log(`Error attempting fullscreen: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
     }
-}
-
-document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement) {
-        document
-            .querySelectorAll('.fullscreen-active')
-            .forEach(el => el.classList.remove('fullscreen-active'));
-    }
-});
-
-
-
-
-
-
-
-
-
 </script>
 
 <style>
