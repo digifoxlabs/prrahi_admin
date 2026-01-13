@@ -6,12 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use App\Models\SalesType;
 
 class Order extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'sales_type_id',
         'order_number',
         'order_date',
         'distributor_id',
@@ -108,6 +110,11 @@ protected static function booted()
     return $this->hasMany(OrderActivity::class)->latest();
     }
 
+
+    public function salesType()
+    {
+        return $this->belongsTo(SalesType::class);
+    }
 
 
 

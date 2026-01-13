@@ -111,12 +111,13 @@ public function pendingInvoiceOrders()
         return [
             'order_number'    => $order->order_number,
             'order_date'      => $order->order_date,
+            'sales_type'      => $order->salesType->sales_type ?? '',
 
             // Distributor data flattened
             'firm_name'       => $order->distributor->firm_name,
             'state'           => $order->distributor->state,
-            'pincode'           => $order->distributor->pincode,
-            'gst_number'             => $order->distributor->gst,
+            'pincode'          => $order->distributor->pincode,
+            'gst_number'       => $order->distributor->gst,
             'contact_person'  => $order->distributor->contact_person,
             'contact_number'  => $order->distributor->contact_number,
 

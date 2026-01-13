@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\SalesType;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+
+class SalesTypeController extends Controller
+{
+        public function index()
+    {
+
+    $title = 'SalesType';
+        $salesTypes = SalesType::latest()->get();
+        return view('admin.sales-types.index', compact('salesTypes','title'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'sales_type' => 'required|string|max:100|unique:sales_types,sales_type',
+        ]);
+
+        SalesType::create($validated);
+
+        return back()->with('success', 'Sales type added successfully.');
+    }
+
+    public function update(Request $request, SalesType $salesType)
+    {
+        $validated = $request->validate([
+            'sales_type' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('sales_types', 'sales_type')->ignore($salesType->id),
+            ],
+        ]);
+
+        $salesType->update($validated);
+
+        return back()->with('success', 'Sales type updated successfully.');
+    }
+
+    public function destroy(SalesType $salesType)
+    {
+        $salesType->delete();
+        return back()->with('success', 'Sales type deleted.');
+    } 
+
+ }
+

@@ -273,14 +273,70 @@
     </div>
 
 
-<div class="flex justify-start gap-3 mb-4">
+
+@if($order->invoice_status == 'pending')
+<div class="border rounded-lg p-4 bg-gray-50 space-y-3">
+    <h4 class="font-medium text-gray-800">Sales Type</h4>
+
+    <form method="POST"
+          action="{{ route('admin.orders.updateSalesType', $order) }}"
+          class="flex gap-3 items-center">
+        @csrf
+        @method('PUT')
+
+        <select name="sales_type_id"
+                class="border rounded-lg p-2 text-sm"
+                required>
+            <option value="">-- Select Sales Type --</option>
+            @foreach($salesType as $type)
+                <option value="{{ $type->id }}"
+                    {{ old('sales_type_id', $order->sales_type_id) == $type->id ? 'selected' : '' }}>
+                    {{ $type->sales_type }}
+                </option>
+            @endforeach
+        </select>
+
+        <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg">
+            Save
+        </button>
+    </form>
+
+    @error('sales_type_id')
+        <p class="text-sm text-red-600">{{ $message }}</p>
+    @enderror
+</div>
+@else
+<div class="text-sm text-gray-500">
+    Sales Type: <strong>{{ $order->salesType?->sales_type ?? '—' }}</strong>
+</div>
+@endif
+
+
+<div class="flex justify-start gap-3 mb-4 py-2">
+
+
+
 
 
         @if($order->status === 'pending')
+
+            {{-- <button @click="showModal=true; action='confirm'"
+                class="px-4 py-2 bg-green-600 text-white rounded-lg">
+            Confirm Order
+            </button> --}}
+
+
+            @if(!$order->sales_type_id)
+            <button disabled class="px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed">
+                Select Sales Type to Confirm
+            </button>
+            @else
             <button @click="showModal=true; action='confirm'"
                 class="px-4 py-2 bg-green-600 text-white rounded-lg">
             Confirm Order
             </button>
+            @endif
+
 
             <button @click="showModal=true; action='cancel'"
                     class="px-4 py-2 bg-red-600 text-white rounded-lg">

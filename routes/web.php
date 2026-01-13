@@ -20,6 +20,7 @@ use App\Http\Controllers\Distributor\DistAuthController;
 use App\Http\Controllers\Sales\SalesAuthController;
 use App\Http\Controllers\Admin\AdminRetailerController;
 use App\Http\Controllers\Admin\AdminRetailOrderController;
+use App\Http\Controllers\Admin\SalesTypeController;
 use App\Http\Controllers\Distributor\DashboardController as DistributorDashboardController;
 use App\Http\Controllers\Distributor\DistRetailerController;
 use App\Http\Controllers\Distributor\DistributorStockController;
@@ -91,7 +92,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
 //API Instruction Route
 Route::get('/api/invoice', function () {
     return view('api.invoice_doc');
-});
+})->name('api.doc');
 // Route::get('/api/invoice', function () {
 //     return view('api/invoice_doc')->with(['title' => 'Invoice API Documentation']);
 // });
@@ -228,6 +229,11 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::post('retail/orders/{order}/cancel', [AdminRetailOrderController::class, 'cancel'])->name('retail.orders.cancel');
 
     Route::post('/retail-orders/{order}/assign-distributor', [AdminRetailOrderController::class, 'assignDistributor'])->name('retail.orders.assign-distributor');
+
+    //Sales Type Controller
+    Route::resource('sales-types', SalesTypeController::class)->names('sales-type');
+    Route::put('orders/{order}/sales-type', [AdminOrderController::class, 'updateSalesType'])->name('orders.updateSalesType');
+
 
 
 

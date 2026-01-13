@@ -74,38 +74,40 @@ X-API-KEY: YOUR_TALLY_API_KEY
 {
   "status": "success",
   "count": 1,
-  "data": [
-    {
-      "distributor": {
-        "firm_name": "ABC Distributors",
-        "nature_of_firm": "Proprietorship",
-        "gst": "18ABCDE1234F1Z5",
-        "contact_person": "Ramesh",
-        "contact_number": "9876543210"
-      },
-      "order": {
-        "order_number": "ORD-2025-00012",
-        "order_date": "2025-01-10",
-        "billing_address": "Guwahati, Assam",
-        "subtotal": 12000,
-        "discount": 500,
-        "cgst": 287.5,
-        "sgst": 287.5,
-        "round_off": -0.5,
-        "total_amount": 12075
-      },
-      "items": [
-        {
-          "product_name": "Detergent Powder - Lemon (DP-001)",
-          "rate": 120,
-          "base_unit": "Dozen",
-          "quantity": 5,
-          "discount_percent": 5,
-          "total": 600
-        }
-      ]
-    }
-  ]
+  "data": {
+    "order": [
+      {
+        "order_number": "ORD-20260113-CJG4Q",
+        "order_date": "2026-01-13",
+        "firm_name": "M/s Baba Loknath Enterprise",
+        "state": "Tripura",
+        "pincode": "799205",
+        "gst_number": "16AZBPC5547Q1Z1",
+        "contact_person": "Anirban Chanda",
+        "contact_number": "88372-59532",
+        "sales_type": "Agarbatti Sales"
+        "billing_address": "M/s Baba  Nayapara\r\nDharmanagar, North Tripura\r\nState: Tripura - 799205",
+        "subtotal": 562.77,
+        "discount": 0,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 28.14,
+        "round_off": 0.09,
+        "total_amount": 591,
+        "items": [
+          {
+            "product_name": "Cup Sambrani (75CUP3in1)",
+            "hsn": 0,
+            "rate": 562.77,
+            "base_unit": "case",
+            "quantity": 1,
+            "discount_percent": 0,
+            "total": 562.77
+          }
+        ]
+      }
+    ]
+  }
 }
         </pre>
     </div>

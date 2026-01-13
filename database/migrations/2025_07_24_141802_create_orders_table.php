@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('order_number')->unique();
             $table->foreignId('distributor_id')->constrained()->onDelete('cascade');
+            $table->foreignId('sales_type_id')->nullable()->constrained('sales_types')->nullOnDelete();
             $table->text('billing_address')->nullable();
             $table->foreignId('retailer_id')->nullable()->constrained()->nullOnDelete();
             $table->decimal('subtotal', 10, 2)->default(0);

@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Distributor;
+use App\Models\SalesType;
 use App\Models\InventoryTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -172,8 +173,9 @@ class AdminOrderController extends Controller
     public function show(Order $order)
     {
         $title = 'Orders';
+        $salesType = SalesType::all();
         $order->load('items.product','distributor');
-        return view('admin.orders.show', compact('order','title'));
+        return view('admin.orders.show', compact('order','title','salesType'));
     }
 
     public function edit(Order $order)
@@ -350,6 +352,13 @@ public function confirm(Request $request, Order $order)
     if ($order->status !== 'pending') {
         return back()->with('error', 'Only pending orders can be confirmed.');
     }
+
+    if (!$order->sales_type_id) {
+        return back()->withErrors([
+            'sales_type_id' => 'Please select Sales Type before confirming the order.'
+        ]);
+    }
+
 
     $request->validate([
         'admin_comments' => ['nullable', 'string', 'max:2000'],
@@ -619,5 +628,35 @@ public function removeInvoice(Order $order)
 
         return view('admin.orders.invoice-print', compact('order'));
     }
+
+
+
+
+
+public function updateSalesType(Request $request, Order $order)
+{
+    if ($order->invoice_status == 'generated') {
+        abort(403, 'Sales Type cannot be changed after invoice generation.');
+    }
+
+    $validated = $request->validate([
+        'sales_type_id' => ['required', 'exists:sales_types,id'],
+    ]);
+
+    $order->update([
+        'sales_type_id' => $validated['sales_type_id'],
+    ]);
+
+    return back()->with('success', 'Sales type updated.');
+}
+
+
+
+
+
+
+
+
+
 
 }
