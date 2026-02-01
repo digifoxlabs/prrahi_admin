@@ -109,9 +109,6 @@ class RetailerController extends Controller
 
         return $this->redirectAfterUpdate($retailer, $actor['role'])
         ->with('success', 'Retailer Updated successfully.');
-
-
-
     }
 
 
