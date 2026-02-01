@@ -63,6 +63,17 @@ return [
             'hash' => false,
         ],
 
+            // NEW API GUARDS (FOR FLUTTER)
+            'sales_api' => [
+                'driver' => 'sanctum',
+                'provider' => 'sales',
+            ],
+
+            'distributor_api' => [
+                'driver' => 'sanctum',
+                'provider' => 'distributors',
+            ],
+
     ],
 
     /*

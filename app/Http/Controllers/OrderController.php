@@ -10,6 +10,9 @@ use App\Services\Orders\{
     CreateOrderService,
     AddOrderItemsService
 };
+use App\Actions\Orders\{
+    SaveOrderAction
+};
 use App\Services\OrderActivityLogger;
 use Illuminate\Support\Str;
 use App\Support\OrderActor;
@@ -36,148 +39,80 @@ class OrderController extends Controller
     ======================*/
     public function store(Request $request)
     {
-     
-        //  $validated = $request->validate([
-        //     'distributor_id' => ['required', 'exists:distributors,id'],
-        //     'order_date'     => ['required', 'date'],
-        //     'items'          => ['required', 'array', 'min:1'],
-        //     'items.*.product_id' => ['required', 'exists:products,id'],
-        //     'items.*.quantity'   => ['required', 'integer', 'min:1'],
-        //     'items.*.rate'       => ['required', 'numeric', 'min:0'],
-        //     'items.*.amount'     => ['required', 'numeric'],
-        //  ],
-        //     [
-        //         // Distributor & Order
-        //         'distributor_id.required' => 'Please select a distributor.',
-        //         'distributor_id.exists'   => 'Selected distributor is invalid.',
-        //         'order_date.required'     => 'Order date is required.',
-        //         'order_date.date'         => 'Order date must be a valid date.',
-
-        //         // Items
-        //         'items.required'          => 'Please add at least one product to the order.',
-        //         'items.array'             => 'Invalid product data submitted.',
-        //         'items.min'               => 'At least one product must be added.',
-
-        //         // Item fields
-        //         'items.*.product_id.required' => 'Product selection is required.',
-        //         'items.*.product_id.exists'   => 'Selected product does not exist.',
-        //         'items.*.quantity.required'   => 'Quantity is required.',
-        //         'items.*.quantity.integer'    => 'Quantity must be a whole number.',
-        //         'items.*.quantity.min'        => 'Quantity must be at least 1.',
-        //         'items.*.rate.required'       => 'Rate is required.',
-        //         'items.*.rate.numeric'        => 'Rate must be a number.',
-        //         'items.*.rate.min'            => 'Rate cannot be negative.',
-        //         'items.*.amount.required'     => 'Amount is required.',
-        //         'items.*.amount.numeric'      => 'Amount must be numeric.',
-        //     ]      
-        
-        // );
+           
+        // dd($request->all());
+        // exit;
 
 
-        //use Validator
-        // $validator = Validator::make(
-        //     $request->all(),
-        //     [
-        //         'distributor_id' => ['required', 'exists:distributors,id'],
-        //         'order_date'     => ['required', 'date'],
-        //         'order_number'   => ['nullable', 'max:50', 'unique:orders,order_number'],
-        //         'items'          => ['required', 'array', 'min:1'],
-        //         'items.*.product_id' => ['required', 'exists:products,id'],
-        //         'items.*.quantity'   => ['required', 'integer', 'min:1'],
-        //     ],
-        //     [
-        //         'distributor_id.required' => 'Please select a distributor.',
-        //         'order_number.unique' => 'Duplicate Order Number',
-        //         'items.required'          => 'Please add at least one product to the order.',
-        //         'items.min' => 'Please add at least one product before saving the order.',
-        //     ]
-        // );
-
-        // if ($validator->fails()) {
-        //     return back()
-        //         ->withErrors($validator)
-        //         ->withInput();
-        // }
-
-        // $validated = $validator->validated();
-
-
-
-         $validated = $this->validatedData($request);
-
-
-
-
-
-
+        $validated = $this->validatedData($request);
+    
 
         /** Detect actor */
        // [$actorType, $actorId] = $this->resolveActor();
-        $actor = OrderActor::resolve();
+       $actor = OrderActor::resolve();
 
         //Generate Order Number if not provided
         $orderNumber = $request->order_number ?: 'ORD-' . now()->format('Ymd') . '-' . Str::upper(Str::random(5));
 
-        // echo $orderNumber;
-        // exit;
 
-        $order = CreateOrderService::create([
-            'order_number'     => $orderNumber,
-            'order_date'      => $request->order_date,
-            'distributor_id'  => $request->distributor_id,
-            'billing_address' => $request->billing_address,
 
-            'subtotal'        => $request->subtotal,
-            'discount'        => $request->discount_amount ?? 0,
-            'cgst'            => $request->cgst,
-            'sgst'            => $request->sgst,
-            'igst'            => $request->igst ?? 0,
-            'round_off'       => $request->round_off ?? 0,
-            'total_amount'    => $request->total_amount,
 
-            'status'          => 'pending',
-            'created_by_type'  => $actor['type'],
-            'created_by_id'    => $actor['id'],
-
+        $order = SaveOrderAction::create([
+                ...$validated,
+                'discount' => $request->discount_amount ?? 0,
+                'order_number' => $orderNumber,
         ]);
 
-        // $items = collect($validated['items'])->map(fn ($row) => [
-        $items = collect($request->items)->map(fn ($row) => [
-            
-                'order_id' => $order->id,
-                'product_id' => $row['product_id'],
-                'price'   => $row['rate'],
-                'base_unit' => $row['base_unit'],
-                'quantity'  => $row['quantity'],
-                'discount_percent'   => $row['discount_percent'],
-                'total'   => $row['amount'],
 
-        ])->toArray();
+
+
+
+ 
+
+        // $order = CreateOrderService::create([
+        //     'order_number'     => $orderNumber,
+        //     'order_date'      => $request->order_date,
+        //     'distributor_id'  => $request->distributor_id,
+        //     'billing_address' => $request->billing_address,
+
+        //     'subtotal'        => $request->subtotal,
+        //     'discount'        => $request->discount_amount ?? 0,
+        //     'cgst'            => $request->cgst,
+        //     'sgst'            => $request->sgst,
+        //     'igst'            => $request->igst ?? 0,
+        //     'round_off'       => $request->round_off ?? 0,
+        //     'total_amount'    => $request->total_amount,
+
+        //     'status'          => 'pending',
+        //     'created_by_type'  => $actor['type'],
+        //     'created_by_id'    => $actor['id'],
+
+        // ]);
+
+        // // $items = collect($validated['items'])->map(fn ($row) => [
+        // $items = collect($request->items)->map(fn ($row) => [
+            
+        //         'order_id' => $order->id,
+        //         'product_id' => $row['product_id'],
+        //         'price'   => $row['rate'],
+        //         'base_unit' => $row['base_unit'],
+        //         'quantity'  => $row['quantity'],
+        //         'discount_percent'   => $row['discount_percent'],
+        //         'total'   => $row['amount'],
+
+        // ])->toArray();
 
      
-        AddOrderItemsService::handle($order, $items);
+        // AddOrderItemsService::handle($order, $items);
 
-        OrderActivityLogger::log($order, 'created', 'Order created');
+        // OrderActivityLogger::log($order, 'created', 'Order created');
 
 
          return $this->redirectAfterSave($order, $actor['role'])
          ->with('success', 'Order created successfully.');
 
 
-        // return redirect()->route($this->redirectRoute(), $order)
-        //     ->with('success', 'Order created successfully.');
     }
-
-    /* =====================
-       EDIT
-    ======================*/
-    // public function edit(Order $order)
-    // {
-    //     $products = Product::with('parent')->orderBy('name')->get();
-    //     $order->load('items.product');
-
-    //     return view('orders.edit', compact('order', 'products'));
-    // }
 
     /* =====================
        UPDATE
@@ -185,48 +120,6 @@ class OrderController extends Controller
     public function update(Request $request, Order $order)
     {
         abort_if($order->status !== 'pending', 403, 'Order cannot be edited.');
-
-
-          // Same validation as store
-        // $request->validate([
-        //     'distributor_id' => ['required', 'exists:distributors,id'],
-        //     'order_date'     => ['required', 'date'],
-        //     'items'          => ['required', 'array', 'min:1'],
-        //     'items.*.product_id' => ['required', 'exists:products,id'],
-        //     'items.*.quantity'   => ['required', 'integer', 'min:1'],
-        //     'items.*.rate'       => ['required', 'numeric', 'min:0'],
-        //     'items.*.amount'     => ['required', 'numeric'],
-        // ]);
-
-
-
-        //use Validator
-        // $validator = Validator::make(
-        //     $request->all(),
-        //     [
-        //         'distributor_id' => ['required', 'exists:distributors,id'],
-        //         'order_date'     => ['required', 'date'],
-        //         'order_number'   => ['nullable', 'max:50', Rule::unique('orders', 'order_number')->ignore($order->id)],
-        //         'items'          => ['required', 'array', 'min:1'],
-        //         'items.*.product_id' => ['required', 'exists:products,id'],
-        //         'items.*.quantity'   => ['required', 'integer', 'min:1'],
-        //     ],
-        //     [
-        //         'distributor_id.required' => 'Please select a distributor.',
-        //         'order_number.unique' => 'Duplicate Order Number',
-        //         'items.required'          => 'Please add at least one product to the order.',
-        //         'items.min' => 'Please add at least one product before saving the order.',
-        //     ]
-        // );
-
-        // if ($validator->fails()) {
-        //     return back()
-        //         ->withErrors($validator)
-        //         ->withInput();
-        // }
-
-        // $validated = $validator->validated();
-
 
         $validated = $this->validatedData($request, $order);
 
@@ -253,8 +146,8 @@ class OrderController extends Controller
             $order->items()->delete();
 
 
-        $items = collect($request->items)->map(fn ($row) => [
-            
+            $items = collect($request->items)->map(fn($row) => [
+
                 'order_id' => $order->id,
                 'product_id' => $row['product_id'],
                 'price'   => $row['rate'],
@@ -263,21 +156,15 @@ class OrderController extends Controller
                 'discount_percent'   => $row['discount_percent'],
                 'total'   => $row['amount'],
 
-        ])->toArray();
-
-        
-        AddOrderItemsService::handle($order, $items);
-
-        OrderActivityLogger::log($order, 'updated', 'Order updated');
-
-    });
+            ])->toArray();
 
 
-         return $this->redirectAfterUpdate($order, $actor['role'])->with('success', 'Order updated successfully.');
-        
-        
+            AddOrderItemsService::handle($order, $items);
 
-      //  return back()->with('success', 'Order updated successfully.');
+            OrderActivityLogger::log($order, 'updated', 'Order updated');
+        });
+
+        return $this->redirectAfterUpdate($order, $actor['role'])->with('success', 'Order updated successfully.');
     }
 
     /* =====================

@@ -34,6 +34,21 @@ class OrderActor
             ];
         }
 
+         // 🔹 API GUARDS (IMPORTANT)
+        if (auth('sales_api')->check()) {
+            return [
+                'type' => SalesPerson::class,
+                'id' => auth('sales_api')->id(),
+            ];
+        }
+
+        if (auth('distributor_api')->check()) {
+            return [
+                'type' => Distributor::class,
+                'id' => auth('distributor_api')->id(),
+            ];
+        }
+
         abort(403);
     }
 }

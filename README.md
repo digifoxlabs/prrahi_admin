@@ -140,7 +140,26 @@ App\Http\Controllers\OrderController
     # Single Order Creation Logic (Service)
         app/Services/Order/CreateOrderService.php
 
-    
+## Order Flow Architecture
+
+    UI (Web Blade / Flutter App)
+        ↓
+    Controller (Web OR API)
+            ↓
+    Request Validation
+            ↓
+    SaveOrderAction
+            ↓
+    OrderCalculationService   ← SINGLE SOURCE OF TRUTH
+            ↓
+    CreateOrderService / Update
+            ↓
+    AddOrderItemsService
+            ↓
+    OrderActivityLogger
+            ↓
+    Database
+
 
 
 

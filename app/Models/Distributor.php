@@ -3,9 +3,14 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 class Distributor extends Authenticatable
 {
+        use HasApiTokens;
+
+    protected $guard = 'distributor';
+
     protected $casts = [
     'appointment_date' => 'date',
     ];
@@ -63,6 +68,24 @@ class Distributor extends Authenticatable
     {
         return $this->morphTo();
     }
+
+
+    //Get Billing Address
+
+    public function getFormattedBillingAddressAttribute(): string
+    {
+        return collect([
+            $this->firm_name,
+            $this->address_line_1,
+            $this->address_line_2,
+            $this->town,
+            $this->district,
+            $this->state ? 'State: ' . $this->state : null,
+            $this->pincode ? 'Pincode: ' . $this->pincode : null,
+            $this->gst ? 'GST: ' . $this->gst : null,
+        ])->filter()->implode("\n");
+    }
+
 
 
 

@@ -23,7 +23,7 @@ class RetailOrder extends Model
         'cgst',
         'igst',
         'round_off',
-        'dsicount',
+        'discount',
         'total_amount',
         'status',
         'admin_comments',
