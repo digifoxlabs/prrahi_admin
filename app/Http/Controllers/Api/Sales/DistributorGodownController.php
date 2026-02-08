@@ -42,7 +42,10 @@ class DistributorGodownController extends Controller
     ) {
         $this->authorizeDistributor($distributor);
 
-        abort_if($godown->distributor_id !== $distributor->id, 403);
+        abort_if(
+            (int) $godown->distributor_id !== (int) $distributor->id,
+            403
+        );
 
         $validated = $request->validate([
             'no_godown' => ['required', 'integer'],
@@ -61,7 +64,12 @@ class DistributorGodownController extends Controller
     {
         $this->authorizeDistributor($distributor);
 
-        abort_if($godown->distributor_id !== $distributor->id, 403);
+
+
+        abort_if(
+            (int) $godown->distributor_id !== (int) $distributor->id,
+            403
+        );
 
         $godown->delete();
 
@@ -70,11 +78,18 @@ class DistributorGodownController extends Controller
         ]);
     }
 
-    protected function authorizeDistributor(Distributor $distributor)
+    protected function authorizeDistributor(Distributor $distributor): void
     {
+        $salesPerson = auth('sales_api')->user();
+
+        abort_if(!$salesPerson, 403, 'Unauthenticated');
+
         abort_if(
-            $distributor->sales_persons_id !== auth('sales_api')->id(),
-            403
+            (int) $distributor->sales_persons_id !== (int) $salesPerson->id,
+            403,
+            'Unauthorized'
         );
     }
+
+
 }

@@ -43,7 +43,10 @@ class DistributorVehicleController extends Controller
     ) {
         $this->authorizeDistributor($distributor);
 
-        abort_if($vehicle->distributor_id !== $distributor->id, 403);
+          abort_if(
+            (int) $vehicle->distributor_id !== (int) $distributor->id,
+            403
+        );
 
         $validated = $request->validate([
             'two_wheeler' => ['nullable', 'integer'],
@@ -63,7 +66,11 @@ class DistributorVehicleController extends Controller
     {
         $this->authorizeDistributor($distributor);
 
-        abort_if($vehicle->distributor_id !== $distributor->id, 403);
+
+        abort_if(
+            (int) $vehicle->distributor_id !== (int) $distributor->id,
+            403
+        );
 
         $vehicle->delete();
 
@@ -72,11 +79,16 @@ class DistributorVehicleController extends Controller
         ]);
     }
 
-    protected function authorizeDistributor(Distributor $distributor)
+    protected function authorizeDistributor(Distributor $distributor): void
     {
+        $salesPerson = auth('sales_api')->user();
+
+        abort_if(!$salesPerson, 403, 'Unauthenticated');
+
         abort_if(
-            $distributor->sales_persons_id !== auth('sales_api')->id(),
-            403
+            (int) $distributor->sales_persons_id !== (int) $salesPerson->id,
+            403,
+            'Unauthorized'
         );
     }
 }
