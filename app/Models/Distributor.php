@@ -9,7 +9,7 @@ class Distributor extends Authenticatable
 {
     use HasApiTokens;
 
-    protected $guard = 'distributor';
+    // protected $guard = 'distributor';
 
     protected $casts = [
     'appointment_date' => 'date',

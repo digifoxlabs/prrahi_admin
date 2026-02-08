@@ -33,8 +33,8 @@ return [
     |
     */
 
-    // 'guard' => ['web'],
-    'guard' => ['sales_api'],
+    'guard' => ['web'],
+
 
 
     /*
