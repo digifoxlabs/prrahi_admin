@@ -7,7 +7,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class Distributor extends Authenticatable
 {
-        use HasApiTokens;
+    use HasApiTokens;
 
     protected $guard = 'distributor';
 

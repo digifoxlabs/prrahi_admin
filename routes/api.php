@@ -26,6 +26,13 @@ use App\Http\Controllers\Api\Sales\DistributorVehicleController;
 |
 */
 
+
+Route::get('/health', function () {
+    return 'OK';
+});
+
+
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
