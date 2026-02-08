@@ -108,11 +108,20 @@ Route::middleware('auth:sales_api')->prefix('sales')->group(function () {
 
 
     // Distributors
-    Route::get('/distributors', [DistributorController::class, 'index']);
+    // Route::get('/distributors', [DistributorController::class, 'index']);
     Route::post('/distributors', [DistributorController::class, 'store']); // 👈 NEW
     Route::put('/distributors/{distributor}', [DistributorController::class, 'update']);
 
 });
+
+
+//temp api
+Route::get('/sales/distributors', function () {
+    return response()->json([
+        'user' => auth('sales_api')->user(),
+    ]);
+})->middleware('auth:sales_api');
+
 
 //Companies Under Distributors 
 Route::middleware('auth:sales_api')
