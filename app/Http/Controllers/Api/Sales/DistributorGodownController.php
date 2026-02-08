@@ -14,7 +14,7 @@ class DistributorGodownController extends Controller
         $this->authorizeDistributor($distributor);
 
         return response()->json([
-            'data' => $distributor->godowns,
+            'data' => $distributor->godowns()->get(),
         ]);
     }
 

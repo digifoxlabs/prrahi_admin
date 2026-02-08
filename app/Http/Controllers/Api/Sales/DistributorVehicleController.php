@@ -14,7 +14,8 @@ class DistributorVehicleController extends Controller
         $this->authorizeDistributor($distributor);
 
         return response()->json([
-            'data' => $distributor->vehicles,
+            'data' => $distributor->vehicles()->get(),
+     
         ]);
     }
 
