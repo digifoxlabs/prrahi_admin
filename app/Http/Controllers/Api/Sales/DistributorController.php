@@ -103,7 +103,7 @@ public function update(Request $request, Distributor $distributor)
     abort_if(!$salesPerson, 403, 'Unauthenticated');
 
     abort_if(
-        $distributor->sales_persons_id !== $salesPerson->id,
+        (int) $distributor->sales_persons_id !== (int) $salesPerson->id,
         403,
         'Unauthorized'
     );
