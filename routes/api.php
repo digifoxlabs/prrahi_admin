@@ -8,6 +8,12 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TallyOrderController; //New
 use App\Http\Controllers\Api\Sales\OrderController;
 use App\Http\Controllers\Api\Sales\RetailOrderController;
+use App\Http\Controllers\Api\Sales\DistributorController;
+use App\Http\Controllers\Api\Sales\DistributorCompanyController;
+use App\Http\Controllers\Api\Sales\DistributorBankController;
+use App\Http\Controllers\Api\Sales\DistributorGodownController;
+use App\Http\Controllers\Api\Sales\DistributorManpowerController;
+use App\Http\Controllers\Api\Sales\DistributorVehicleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -93,4 +99,50 @@ Route::middleware('auth:sales_api')->prefix('sales')->group(function () {
     Route::put('/retail-orders/{id}', [RetailOrderController::class, 'update']);
     Route::post('/retail-orders/preview', [RetailOrderController::class, 'preview']);
 
+
+    // Distributors
+    Route::get('distributors', [DistributorController::class, 'index']);
+    Route::post('distributors', [DistributorController::class, 'store']); // 👈 NEW
+    Route::put('distributors/{distributor}', [DistributorController::class, 'update']);
+
 });
+
+//Companies Under Distributors 
+Route::middleware('auth:sales_api')
+    ->prefix('sales/distributors/{distributor}')
+    ->group(function () {
+        Route::get('companies', [DistributorCompanyController::class, 'index']);
+        Route::post('companies', [DistributorCompanyController::class, 'store']);
+        Route::put('companies/{company}', [DistributorCompanyController::class, 'update']);
+        Route::delete('companies/{company}', [DistributorCompanyController::class, 'destroy']);
+
+        //Distributor Banks
+        Route::get('banks', [DistributorBankController::class, 'index']);
+        Route::post('banks', [DistributorBankController::class, 'store']);
+        Route::put('banks/{bank}', [DistributorBankController::class, 'update']);
+        Route::delete('banks/{bank}', [DistributorBankController::class, 'destroy']);
+
+
+        //Godown Controller
+        Route::get('godowns', [DistributorGodownController::class, 'index']);
+        Route::post('godowns', [DistributorGodownController::class, 'store']);
+        Route::put('godowns/{godown}', [DistributorGodownController::class, 'update']);
+        Route::delete('godowns/{godown}', [DistributorGodownController::class, 'destroy']);
+
+        //  Manpower Controller
+        Route::get('manpowers', [DistributorManpowerController::class, 'index']);
+        Route::post('manpowers', [DistributorManpowerController::class, 'store']);
+        Route::put('manpowers/{manpower}', [DistributorManpowerController::class, 'update']);
+        Route::delete('manpowers/{manpower}', [DistributorManpowerController::class, 'destroy']);
+
+        // Vehcile Controller
+        Route::get('vehicles', [DistributorVehicleController::class, 'index']);
+        Route::post('vehicles', [DistributorVehicleController::class, 'store']);
+        Route::put('vehicles/{vehicle}', [DistributorVehicleController::class, 'update']);
+        Route::delete('vehicles/{vehicle}', [DistributorVehicleController::class, 'destroy']);
+
+        Route::post('profile-photo',  [DistributorController::class, 'uploadProfilePhoto']);
+        Route::post('change-password',[DistributorController::class, 'changePassword']);
+
+
+    });
