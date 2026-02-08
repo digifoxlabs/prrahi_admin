@@ -12,7 +12,8 @@ class Distributor extends Authenticatable
     // protected $guard = 'distributor';
 
     protected $casts = [
-    'appointment_date' => 'date',
+        'appointment_date' => 'date',
+        'sales_persons_id' => 'integer',
     ];
 
     protected $fillable = [
