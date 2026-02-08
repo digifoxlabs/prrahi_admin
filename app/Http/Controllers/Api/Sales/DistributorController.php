@@ -11,56 +11,13 @@ use Illuminate\Support\Facades\Hash;
 
 class DistributorController extends Controller
 {
-
-    // List all Distributors
-    // public function index(Request $request)
-    // {
-    //     $salesPerson = $request->user();
-
-    //     $distributors = Distributor::query()
-    //         ->where('sales_persons_id', $salesPerson->id)
-    //         ->select([
-    //             'id',
-    //             'sales_persons_id',
-    //             'appointment_date',
-    //             'firm_name',
-    //             'nature_of_firm',
-    //             'town',
-    //             'district',
-    //             'contact_person',
-    //             'contact_number',
-    //             'login_id',
-    //             'latitude',
-    //             'longitude',
-    //         ])
-    //         ->orderBy('firm_name')
-    //         ->get();
-
-    //     return response()->json([
-    //         'data' => $distributors,
-    //     ]);
-    // }
-
-//     public function index(Request $request)
-// {
-//     $salesPerson = $request->user();
-
-//     $distributors = Distributor::where(
-//             'sales_persons_id',
-//             $salesPerson->id
-//         )
-//         ->orderBy('firm_name')
-//         ->get();
-
-//     return response()->json([
-//         'data' => $distributors,
-//     ]);
-// }
-
+   
 
 public function index(Request $request)
 {
-    $salesPerson = $request->user();
+    // $salesPerson = $request->user();
+    $salesPerson = auth('sales_api')->user();
+
 
     $distributors = Distributor::where(
             'sales_persons_id',
@@ -88,8 +45,10 @@ public function index(Request $request)
     //Store New Distributor
     public function store(Request $request)
     {
-        // $salesPerson = auth('sales')->user();
-        $salesPerson = $request->user();
+      
+        // $salesPerson = $request->user();
+        $salesPerson = auth('sales_api')->user();
+
 
         $validated = $request->validate([
             'appointment_date' => ['required', 'date'],
@@ -137,50 +96,48 @@ public function index(Request $request)
     }
 
     //Update Distributor
-    public function update(Request $request, Distributor $distributor)
-    {
-        // $salesPerson = auth('sales_person')->user();
-        $salesPerson = $request->user();
+public function update(Request $request, Distributor $distributor)
+{
+    $salesPerson = auth('sales_api')->user();
 
-        // 🔒 Security: sales person can edit only their distributors
-        abort_if(
-            $distributor->sales_persons_id !== $salesPerson->id,
-            403,
-            'Unauthorized'
-        );
+    abort_if(!$salesPerson, 403, 'Unauthenticated');
 
-        $validated = $request->validate([
-            
-            // ✅ ALWAYS REQUIRED
-            'firm_name' => 'required|string',
-            'nature_of_firm' => 'required|string',
+    abort_if(
+        $distributor->sales_persons_id !== $salesPerson->id,
+        403,
+        'Unauthorized'
+    );
 
-            // ✅ OPTIONAL FIELDS
-            'contact_person' => 'nullable|string',
-            'designation_contact' => 'nullable|string',
-            'contact_number' => 'nullable|string',
-            'email' => 'nullable|email',
+    $validated = $request->validate([
+        'firm_name' => 'required|string',
+        'nature_of_firm' => 'required|string',
 
-            'address_line_1' => 'nullable|string',
-            'address_line_2' => 'nullable|string',
-            'town' => 'nullable|string',
-            'district' => 'nullable|string',
-            'state' => 'nullable|string',
-            'pincode' => 'nullable|string',
-            'landmark' => 'nullable|string',
+        'contact_person' => 'nullable|string',
+        'designation_contact' => 'nullable|string',
+        'contact_number' => 'nullable|string',
+        'email' => 'nullable|email',
 
-            'gst' => 'nullable|string',
-            'date_of_birth' => 'nullable|date',
-            'date_of_anniversary' => 'nullable|date',
-            ]);
+        'address_line_1' => 'nullable|string',
+        'address_line_2' => 'nullable|string',
+        'town' => 'nullable|string',
+        'district' => 'nullable|string',
+        'state' => 'nullable|string',
+        'pincode' => 'nullable|string',
+        'landmark' => 'nullable|string',
 
-        $distributor->update($validated);
+        'gst' => 'nullable|string',
+        'date_of_birth' => 'nullable|date',
+        'date_of_anniversary' => 'nullable|date',
+    ]);
 
-        return response()->json([
-            'message' => 'Distributor updated successfully',
-            'data' => $distributor,
-        ]);
-    }
+    $distributor->update($validated);
+
+    return response()->json([
+        'message' => 'Distributor updated successfully',
+        'data' => $distributor,
+    ]);
+}
+
 
 public function uploadProfilePhoto(Request $request, $id)
 {

@@ -58,26 +58,26 @@ class AuthController extends Controller
         /**
      * Logout Sales (Mobile)
      */
-    public function salesLogout(Request $request)
-    {
-        // Revoke only current access token
-        $request->user()->currentAccessToken()->delete();
+    // public function salesLogout(Request $request)
+    // {
+    //     // Revoke only current access token
+    //     $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'message' => 'Sales user logged out successfully',
-        ]);
-    }
+    //     return response()->json([
+    //         'message' => 'Sales user logged out successfully',
+    //     ]);
+    // }
 
     /**
      * Logout Distributor (Mobile)
      */
-    public function distributorLogout(Request $request)
-    {
-        // Revoke only current access token
-        $request->user()->currentAccessToken()->delete();
+    // public function distributorLogout(Request $request)
+    // {
+    //     // Revoke only current access token
+    //     $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'message' => 'Distributor logged out successfully',
-        ]);
-    }
+    //     return response()->json([
+    //         'message' => 'Distributor logged out successfully',
+    //     ]);
+    // }
 }
