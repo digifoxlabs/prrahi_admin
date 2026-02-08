@@ -12,7 +12,7 @@ class SalesPerson extends Authenticatable
     use Notifiable;
      use HasApiTokens;
 
-    protected $guard = 'sales';
+    // protected $guard = 'sales';
 
 
     protected $table = 'sales_persons';
