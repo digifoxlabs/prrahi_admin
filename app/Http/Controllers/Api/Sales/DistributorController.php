@@ -95,7 +95,7 @@ public function index(Request $request)
         ], 201);
     }
 
-    //Update Distributor
+//Update Distributor
 public function update(Request $request, Distributor $distributor)
 {
     $salesPerson = auth('sales_api')->user();

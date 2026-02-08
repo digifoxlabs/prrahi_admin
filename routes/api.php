@@ -101,9 +101,9 @@ Route::middleware('auth:sales_api')->prefix('sales')->group(function () {
 
 
     // Distributors
-    Route::get('distributors', [DistributorController::class, 'index']);
-    Route::post('distributors', [DistributorController::class, 'store']); // 👈 NEW
-    Route::put('distributors/{distributor}', [DistributorController::class, 'update']);
+    Route::get('/distributors', [DistributorController::class, 'index']);
+    Route::post('/distributors', [DistributorController::class, 'store']); // 👈 NEW
+    Route::put('/distributors/{distributor}', [DistributorController::class, 'update']);
 
 });
 
