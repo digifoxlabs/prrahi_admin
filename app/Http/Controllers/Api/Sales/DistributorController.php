@@ -11,41 +11,100 @@ use Illuminate\Support\Facades\Hash;
 
 class DistributorController extends Controller
 {
-   
-
-public function index(Request $request)
-{
-    // $salesPerson = $request->user();
-    $salesPerson = auth('sales_api')->user();
 
 
-    $distributors = Distributor::where(
+    public function index(Request $request)
+    {
+        // $salesPerson = $request->user();
+        $salesPerson = auth('sales_api')->user();
+
+
+        $distributors = Distributor::where(
             'sales_persons_id',
             $salesPerson->id
         )
-        ->orderBy('firm_name')
-        ->get()
-        ->map(function ($d) {
+            ->orderBy('firm_name')
+            ->get()
+            ->map(function ($d) {
 
-            // ✅ ALWAYS RETURN FULL URL
-            if ($d->profile_photo) {
-                $d->profile_photo = asset('storage/' . $d->profile_photo);
-            }
+                // ✅ ALWAYS RETURN FULL URL
+                if ($d->profile_photo) {
+                    $d->profile_photo = asset('storage/' . $d->profile_photo);
+                }
 
-            return $d;
-        });
+                return $d;
+            });
 
-    return response()->json([
-        'data' => $distributors,
-    ]);
-}
+        return response()->json([
+            'data' => $distributors,
+        ]);
+    }
+
+
+//     public function index(Request $request)
+// {
+//     $salesPerson = auth('sales_api')->user();
+
+//     $distributors = $salesPerson
+//         ->distributors()
+//         ->orderBy('firm_name')
+//         ->get()
+//         ->map(function ($d) {
+//             if ($d->profile_photo) {
+//                 $d->profile_photo = asset('storage/' . $d->profile_photo);
+//             }
+//             return $d;
+//         });
+
+//     return response()->json([
+//         'data' => $distributors,
+//     ]);
+// }
+
+// public function index(Request $request)
+// {
+//     $salesPerson = auth('sales_api')->user();
+
+//     dd([
+//         'auth_guard' => 'sales_api',
+//         'sales_person_id' => $salesPerson?->id,
+//         'sales_person_class' => get_class($salesPerson),
+//     ]);
+// }
+
+
+
+    public function show(Distributor $distributor)
+    {
+        $salesPerson = auth('sales_api')->user();
+
+        abort_if(!$salesPerson, 403, 'Unauthenticated');
+
+        // abort_if(
+        //     (int) $distributor->sales_persons_id !== (int) $salesPerson->id,
+        //     403,
+        //     'Unauthorized'
+        // );
+
+        // ✅ Always return full image URL
+        if ($distributor->profile_photo) {
+            $distributor->profile_photo = asset(
+                'storage/' . $distributor->profile_photo
+            );
+        }
+
+        return response()->json([
+            'data' => $distributor,
+        ]);
+    }
+
 
 
 
     //Store New Distributor
     public function store(Request $request)
     {
-      
+
         // $salesPerson = $request->user();
         $salesPerson = auth('sales_api')->user();
 
@@ -95,86 +154,86 @@ public function index(Request $request)
         ], 201);
     }
 
-//Update Distributor
-public function update(Request $request, Distributor $distributor)
-{
-    $salesPerson = auth('sales_api')->user();
+    //Update Distributor
+    public function update(Request $request, Distributor $distributor)
+    {
+        $salesPerson = auth('sales_api')->user();
 
-    abort_if(!$salesPerson, 403, 'Unauthenticated');
+        abort_if(!$salesPerson, 403, 'Unauthenticated');
 
-    abort_if(
-        (int) $distributor->sales_persons_id !== (int) $salesPerson->id,
-        403,
-        'Unauthorized'
-    );
+        abort_if(
+            (int) $distributor->sales_persons_id !== (int) $salesPerson->id,
+            403,
+            'Unauthorized'
+        );
 
-    $validated = $request->validate([
-        'firm_name' => 'required|string',
-        'nature_of_firm' => 'required|string',
+        $validated = $request->validate([
+            'firm_name' => 'required|string',
+            'nature_of_firm' => 'required|string',
 
-        'contact_person' => 'nullable|string',
-        'designation_contact' => 'nullable|string',
-        'contact_number' => 'nullable|string',
-        'email' => 'nullable|email',
+            'contact_person' => 'nullable|string',
+            'designation_contact' => 'nullable|string',
+            'contact_number' => 'nullable|string',
+            'email' => 'nullable|email',
 
-        'address_line_1' => 'nullable|string',
-        'address_line_2' => 'nullable|string',
-        'town' => 'nullable|string',
-        'district' => 'nullable|string',
-        'state' => 'nullable|string',
-        'pincode' => 'nullable|string',
-        'landmark' => 'nullable|string',
+            'address_line_1' => 'nullable|string',
+            'address_line_2' => 'nullable|string',
+            'town' => 'nullable|string',
+            'district' => 'nullable|string',
+            'state' => 'nullable|string',
+            'pincode' => 'nullable|string',
+            'landmark' => 'nullable|string',
 
-        'gst' => 'nullable|string',
-        'date_of_birth' => 'nullable|date',
-        'date_of_anniversary' => 'nullable|date',
-    ]);
+            'gst' => 'nullable|string',
+            'date_of_birth' => 'nullable|date',
+            'date_of_anniversary' => 'nullable|date',
+        ]);
 
-    $distributor->update($validated);
+        $distributor->update($validated);
 
-    return response()->json([
-        'message' => 'Distributor updated successfully',
-        'data' => $distributor,
-    ]);
-}
-
-
-public function uploadProfilePhoto(Request $request, $id)
-{
-    $request->validate([
-        'profile_photo' => 'required|image|max:2048', // max 2MB
-    ]);
-
-    $distributor = Distributor::findOrFail($id);
-
-    // ✅ Delete old image if exists
-    if (
-        $distributor->profile_photo &&
-        Storage::disk('public')->exists($distributor->profile_photo)
-    ) {
-        Storage::disk('public')->delete($distributor->profile_photo);
+        return response()->json([
+            'message' => 'Distributor updated successfully',
+            'data' => $distributor,
+        ]);
     }
 
-    // ✅ Store new image (SAME PATH & FORMAT AS WEB)
-    $filename =
-        'profile_' .
-        Str::random(10) .
-        '.' .
-        $request->file('profile_photo')->getClientOriginalExtension();
 
-    $path = $request
-        ->file('profile_photo')
-        ->storeAs('distributors', $filename, 'public');
+    public function uploadProfilePhoto(Request $request, $id)
+    {
+        $request->validate([
+            'profile_photo' => 'required|image|max:2048', // max 2MB
+        ]);
 
-    // ✅ Update DB
-    $distributor->profile_photo = $path;
-    $distributor->save();
+        $distributor = Distributor::findOrFail($id);
 
-    // return response()->json([
-    //     'success' => true,
-    //     'message' => 'Profile image updated successfully.',
-    //     'path' => asset('storage/' . $path), // 👈 IMPORTANT for Flutter
-    // ]);
+        // ✅ Delete old image if exists
+        if (
+            $distributor->profile_photo &&
+            Storage::disk('public')->exists($distributor->profile_photo)
+        ) {
+            Storage::disk('public')->delete($distributor->profile_photo);
+        }
+
+        // ✅ Store new image (SAME PATH & FORMAT AS WEB)
+        $filename =
+            'profile_' .
+            Str::random(10) .
+            '.' .
+            $request->file('profile_photo')->getClientOriginalExtension();
+
+        $path = $request
+            ->file('profile_photo')
+            ->storeAs('distributors', $filename, 'public');
+
+        // ✅ Update DB
+        $distributor->profile_photo = $path;
+        $distributor->save();
+
+        // return response()->json([
+        //     'success' => true,
+        //     'message' => 'Profile image updated successfully.',
+        //     'path' => asset('storage/' . $path), // 👈 IMPORTANT for Flutter
+        // ]);
 
 
         return response()->json([
@@ -182,12 +241,10 @@ public function uploadProfilePhoto(Request $request, $id)
             'message' => 'Profile image updated successfully.',
             'data' => $distributor->fresh(),
         ]);
-
-
-}
+    }
     public function changePassword(
-    Request $request,
-    Distributor $distributor
+        Request $request,
+        Distributor $distributor
     ) {
         $request->validate([
             'password' => 'required|string|min:6|confirmed',
@@ -201,5 +258,4 @@ public function uploadProfilePhoto(Request $request, $id)
             'message' => 'Password updated successfully',
         ]);
     }
-
 }

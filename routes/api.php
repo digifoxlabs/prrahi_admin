@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\Sales\DistributorBankController;
 use App\Http\Controllers\Api\Sales\DistributorGodownController;
 use App\Http\Controllers\Api\Sales\DistributorManpowerController;
 use App\Http\Controllers\Api\Sales\DistributorVehicleController;
+use App\Http\Controllers\Api\Sales\RetailerController;
+use App\Http\Controllers\Api\Sales\VisitController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,7 +32,6 @@ use App\Http\Controllers\Api\Sales\DistributorVehicleController;
 Route::get('/health', function () {
     return 'OK';
 });
-
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -110,17 +111,45 @@ Route::middleware('auth:sales_api')->prefix('sales')->group(function () {
     // Distributors
     Route::get('/distributors', [DistributorController::class, 'index']);
     Route::post('/distributors', [DistributorController::class, 'store']); // 👈 NEW
+    Route::get('/distributors/{distributor}', [DistributorController::class, 'show']);
     Route::put('/distributors/{distributor}', [DistributorController::class, 'update']);
+
+    // Retailers
+    Route::get('/retailers', [RetailerController::class, 'index']);
+    Route::post('/retailers', [RetailerController::class, 'store']);
+    Route::get('/retailers/{retailer}', [RetailerController::class, 'show']);
+    Route::put('/retailers/{retailer}', [RetailerController::class, 'update']);
+    Route::delete('/retailers/{retailer}', [RetailerController::class, 'destroy']);
+
+    // States & Districts
+    Route::get('/states', fn () =>
+        \App\Models\State::select('name')->orderBy('name')->get()
+    );
+
+    Route::get('/states/{state}/districts', function ($state) {
+        return \App\Models\District::whereHas('state', function ($q) use ($state) {
+            $q->where('name', $state);
+        })
+        ->select('name')
+        ->orderBy('name')
+        ->get();
+    });
+
+    //Visits
+    Route::get('/visit-threads', [VisitController::class, 'visitThreads']);
+    Route::get('/visits', [VisitController::class, 'visitNotes']);
+    Route::post('/visits', [VisitController::class, 'store']);
+    Route::get('/visit-parties', [VisitController::class, 'visitParties']);
 
 });
 
+Route::middleware('auth:sales_api')->group(function () {
+    // Distributors (for dropdown)
+    Route::get('/distributors', fn () =>
+        \App\Models\Distributor::select('id', 'firm_name')->get()
+    );
 
-//temp api
-// Route::get('/sales/distributors', function () {
-//     return response()->json([
-//         'user' => auth('sales_api')->user(),
-//     ]);
-// })->middleware('auth:sales_api');
+});
 
 
 //Companies Under Distributors 
@@ -162,3 +191,5 @@ Route::middleware('auth:sales_api')
 
 
     });
+
+
