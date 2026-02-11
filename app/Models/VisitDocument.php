@@ -11,4 +11,12 @@ class VisitDocument extends Model
         'file_path',
         'file_type',
     ];
+
+    public function getFilePathAttribute($value)
+{
+    return $value
+        ? asset('storage/' . $value)
+        : null;
+}
+
 }

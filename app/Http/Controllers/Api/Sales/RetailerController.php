@@ -9,70 +9,70 @@ use Illuminate\Http\Request;
 
 class RetailerController extends Controller
 {
-public function index()
-{
-    return Retailer::where('appointed_by_type', SalesPerson::class)
-        ->where('appointed_by_id', auth()->id())
-        ->latest()
-        ->get();
-}
+    public function index()
+    {
+        return Retailer::where('appointed_by_type', SalesPerson::class)
+            ->where('appointed_by_id', auth()->id())
+            ->latest()
+            ->get();
+    }
 
-public function store(Request $request)
-{
-    $data = $request->validate([
-        // Basic
-        'retailer_name'       => 'nullable|string|max:255',
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            // Basic
+            'retailer_name'       => 'nullable|string|max:255',
 
-        'address_line_1'      => 'required|string|max:255',
-        'address_line_2'      => 'nullable|string|max:255',
-        'town'                => 'nullable|string|max:255',
+            'address_line_1'      => 'required|string|max:255',
+            'address_line_2'      => 'nullable|string|max:255',
+            'town'                => 'nullable|string|max:255',
 
-        'state'            => 'required|string|max:255',
-        'district'         => 'required|string|max:255',
+            'state'            => 'required|string|max:255',
+            'district'         => 'required|string|max:255',
 
-        'pincode'             => 'nullable|string|max:10',
-        'landmark'            => 'nullable|string|max:255',
+            'pincode'             => 'nullable|string|max:10',
+            'landmark'            => 'nullable|string|max:255',
 
-        // Contact
-        'contact_person'      => 'required|string|max:255',
-        'contact_number'      => 'required|string|max:20',
-        'email'               => 'nullable|email|max:255',
+            // Contact
+            'contact_person'      => 'required|string|max:255',
+            'contact_number'      => 'required|string|max:20',
+            'email'               => 'nullable|email|max:255',
 
-        // Business
-        'gst'                 => 'nullable|string|max:50',
-        'nature_of_outlet'    => 'nullable|string|max:255',
+            // Business
+            'gst'                 => 'nullable|string|max:50',
+            'nature_of_outlet'    => 'nullable|string|max:255',
 
-        // Dates
-        'date_of_birth'       => 'nullable|date',
-        'date_of_anniversary' => 'nullable|date',
-        'appointment_date'    => 'nullable|date',
+            // Dates
+            'date_of_birth'       => 'nullable|date',
+            'date_of_anniversary' => 'nullable|date',
+            'appointment_date'    => 'nullable|date',
 
-        // Location
-        'latitude'            => 'nullable|numeric',
-        'longitude'           => 'nullable|numeric',
+            // Location
+            'latitude'            => 'nullable|numeric',
+            'longitude'           => 'nullable|numeric',
 
-        // Relations
-        'distributor_id'      => 'nullable|exists:distributors,id',
-    ]);
+            // Relations
+            'distributor_id'      => 'nullable|exists:distributors,id',
+        ]);
 
-    // 🔐 Sales ownership (polymorphic)
-    $data['appointed_by_type'] = SalesPerson::class;
-    $data['appointed_by_id']   = auth()->id();
+        // 🔐 Sales ownership (polymorphic)
+        $data['appointed_by_type'] = SalesPerson::class;
+        $data['appointed_by_id']   = auth()->id();
 
-    // 🕒 Safety: if Flutter didn't send appointment_date
-    $data['appointment_date'] ??= now()->toDateString();
+        // 🕒 Safety: if Flutter didn't send appointment_date
+        $data['appointment_date'] ??= now()->toDateString();
 
-    return Retailer::create($data);
-}
+        return Retailer::create($data);
+    }
 
     public function show(Retailer $retailer)
     {
-    $retailer->load('distributor:id,firm_name');
+        $retailer->load('distributor:id,firm_name');
 
-    return response()->json([
-        ...$retailer->toArray(),
-        'distributor_name' => $retailer->distributor?->firm_name,
-    ]);
+        return response()->json([
+            ...$retailer->toArray(),
+            'distributor_name' => $retailer->distributor?->firm_name,
+        ]);
     }
 
 
@@ -118,7 +118,7 @@ public function store(Request $request)
     {
         abort_if(
             $retailer->appointed_by_type !== SalesPerson::class ||
-            $retailer->appointed_by_id !== auth()->id(),
+               (int) $retailer->appointed_by_id !== (int) auth('sale_api')->id(),
             403,
             'Unauthorized retailer access'
         );
