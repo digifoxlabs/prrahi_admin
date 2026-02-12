@@ -21,6 +21,7 @@ use App\Http\Controllers\Sales\SalesAuthController;
 use App\Http\Controllers\Admin\AdminRetailerController;
 use App\Http\Controllers\Admin\AdminRetailOrderController;
 use App\Http\Controllers\Admin\SalesTypeController;
+use App\Http\Controllers\Admin\VisitController;
 use App\Http\Controllers\Distributor\DashboardController as DistributorDashboardController;
 use App\Http\Controllers\Distributor\DistRetailerController;
 use App\Http\Controllers\Distributor\DistributorStockController;
@@ -234,9 +235,18 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::resource('sales-types', SalesTypeController::class)->names('sales-type');
     Route::put('orders/{order}/sales-type', [AdminOrderController::class, 'updateSalesType'])->name('orders.updateSalesType');
 
+    //Sales Visit Controller
 
+    Route::delete('/visits/{visitNote}', [VisitController::class, 'destroy'])
+        ->name('visits.destroy');
 
+    Route::get('/visits', [VisitController::class, 'index'])
+        ->name('visits.index');
 
+    Route::get('/visits/load-more', [VisitController::class, 'loadMore'])
+        ->name('visits.loadMore');
+
+   
 });
 
 

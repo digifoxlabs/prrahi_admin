@@ -186,7 +186,7 @@
             </a>
           </li>  
                  
-          <li>
+          {{-- <li>
             <a
               href="{{ route('admin.sales-persons.index')}}"
               @click="selected = (selected === 'Sales-Persons' ? '':'Sales-Persons')"   
@@ -217,7 +217,102 @@
                 Sales Person
               </span>
             </a>
+          </li> --}}
+
+
+
+           <!-- Menu Item Pages -->
+          <li>
+            <a
+              href="#"          
+              @click.prevent="selected = (selected === 'Sales-Persons' ? '':'Sales-Persons')"    
+              class="menu-item group"
+              :class="(selected === 'Sales-Persons') || (page === 'sales-persons' || page === 'sales-visits'  ) ? 'menu-item-active' : 'menu-item-inactive'"
+            >
+              <svg
+                :class="(selected === 'Sales-Persons') || (page === 'sales-persons') ? 'menu-item-icon-active'  :'menu-item-icon-inactive'"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
+                  fill="none"
+                />
+              </svg>
+
+              <span
+                class="menu-item-text"
+                :class="sidebarToggle ? 'lg:hidden' : ''"
+              >
+                Sales Persons
+              </span>
+
+              <svg
+                class="menu-item-arrow absolute right-2.5 top-1/2 -translate-y-1/2 stroke-current"
+                :class="[(selected === 'Sales-Persons') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive', sidebarToggle ? 'lg:hidden' : '' ]"
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4.79175 7.39584L10.0001 12.6042L15.2084 7.39585"
+                  stroke=""
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </a>
+
+            <!-- Dropdown Menu Start -->
+            <div
+              class="overflow-hidden transform translate"
+              :class="(selected === 'Sales-Persons') ? 'block' :'hidden'"
+            >
+              <ul
+                :class="sidebarToggle ? 'lg:hidden' : 'flex'"
+                class="flex flex-col gap-1 mt-2 menu-dropdown pl-9"
+              >
+
+            
+                <li>
+                  <a
+                    href="{{ route('admin.sales-persons.index')}}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'sales-persons' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    All Sales Persons
+                  </a>
+                </li>            
+
+           
+                <li>
+                  <a
+                    href="{{ route('admin.visits.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'sales-visits' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Sales Visits
+                  </a>
+       
+                   
+                   
+
+              </ul>
+            </div>
+            <!-- Dropdown Menu End -->
           </li>
+          <!-- Menu Item Pages -->
+
+
       
          
 

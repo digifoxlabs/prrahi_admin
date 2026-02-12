@@ -37,4 +37,10 @@ class SalesPerson extends Authenticatable
         return $this->morphMany(Retailer::class, 'appointed_by');
     }
 
+    public function visitNotes()
+{
+    return $this->hasMany(\App\Models\VisitNote::class, 'sales_person_id');
+}
+
+
 }
