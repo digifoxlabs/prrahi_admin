@@ -69,10 +69,10 @@
       <!-- Hamburger Toggle BTN -->
 
       <a href="{{ route('distributor.dashboard') }}" class="lg:hidden">
-        <img class="dark:hidden" src="{{ asset('images/logo/logo.svg') }}" alt="Logo" />
+        <img class="dark:hidden" src="{{ asset('images/logo/sidebar_logo.png') }}" alt="Logo" />
         <img
           class="hidden dark:block"
-          src="{{ asset('images/logo/logo-dark.svg')}}"
+          src="{{ asset('images/logo/sidebar_logo.png')}}"
           alt="Logo"
         />
       </a>

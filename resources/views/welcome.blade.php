@@ -24,12 +24,12 @@
   <div class="text-white text-center w-full max-w-2xl mx-auto px-4 space-y-10">
 
     <!-- Logo -->
-    <img src="{{ asset('images/logo/auth-logo.svg') }}" alt="Logo"
+    <img src="{{ asset('images/logo/logo.png') }}" alt="Logo"
          class="w-48 h-32 sm:w-32 sm:h-28 md:w-64 md:h-32 mx-auto mt-4 mb-0 sm:mt-0" />
 
     <!-- Welcome Message -->
     <h1 class="text-2xl sm:text-4xl md:text-6xl font-bold drop-shadow-lg">
-      Welcome to Prrahi
+      Welcome!
     </h1>
 
     <!-- Login Buttons -->

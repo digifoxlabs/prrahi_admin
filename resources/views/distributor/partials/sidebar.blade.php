@@ -6,12 +6,12 @@
         class="flex items-center gap-2 pt-8 sidebar-header pb-7">
         <a href="{{ route('distributor.dashboard') }}">
             <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
-                <img class="dark:hidden" src="{{ asset('images/logo/logo.svg') }}" alt="Logo" />
-                <img class="hidden dark:block" src="{{ asset('images/logo/logo-dark.svg') }}" alt="Logo" />
+                <img class="dark:hidden" src="{{ asset('images/logo/sidebar_logo.png') }}" alt="Logo" />
+                <img class="hidden dark:block" src="{{ asset('images/logo/sidebar_logo.png') }}" alt="Logo" />
             </span>
 
             <img class="logo-icon" :class="sidebarToggle ? 'lg:block' : 'hidden'"
-                src="{{ asset('images/logo/logo-icon.svg') }}" alt="Logo" />
+                src="{{ asset('images/logo/sidebar_logo.png') }}" alt="Logo" />
         </a>
     </div>
     <!-- SIDEBAR HEADER -->

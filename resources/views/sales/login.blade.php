@@ -7,7 +7,7 @@
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Sign In| Prrahi Admin</title>
-    <link rel="icon" href="{{ asset('images/logo/logo-icon.svg') }}">
+    <link rel="icon" href="{{ asset('images/logo/logo.png') }}">
     {{-- <link href="style.css" rel="stylesheet"> --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -181,7 +181,7 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
     <!-- Center branding/text -->
     <div class="flex flex-col items-center max-w-xs">
       <a href="#" class="block mb-4">
-        <img src="{{ asset('images/logo/auth-logo.svg') }}" alt="Sales Logo">
+        <img src="{{ asset('images/logo/logo.png') }}" alt="Sales Logo">
       </a>
       <p class="text-center text-white/90 font-semibold">
         Sales Workspace — Pipeline • Quotes • Revenue
