@@ -60,8 +60,8 @@ class SaveOrderAction
                 'activity_type' => 'order_created',
                 'subject_type'  => \App\Models\Order::class,
                 'subject_id'    => $order->id,
-                'latitude'  => $data['latitude'],
-                'longitude' => $data['longitude'],
+                'latitude'  => $data['latitude'] ?? null,
+                'longitude' => $data['longitude'] ?? null,
                 'meta' => [
                     'order_number' => $order->order_number,
                     'total_amount' => $order->total_amount,

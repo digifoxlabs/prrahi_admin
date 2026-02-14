@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\TallyController;
 use App\Http\Controllers\Api\AuthController;
+use App\Models\Order;
 
 use App\Http\Controllers\Api\TallyOrderController; //New
 use App\Http\Controllers\Api\Sales\OrderController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Api\Sales\DistributorManpowerController;
 use App\Http\Controllers\Api\Sales\DistributorVehicleController;
 use App\Http\Controllers\Api\Sales\RetailerController;
 use App\Http\Controllers\Api\Sales\VisitController;
+use App\Http\Controllers\Api\Distributor\DistOrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -193,3 +195,15 @@ Route::middleware('auth:sales_api')
     });
 
 
+Route::middleware(['auth:distributor_api'])
+    ->prefix('distributor')
+    ->group(function () {
+
+        Route::get('/orders', [DistOrderController::class, 'index']);
+        Route::get('/orders/create', [DistOrderController::class, 'create']);
+        Route::post('/orders', [DistOrderController::class, 'store']);
+        Route::get('/orders/{order}', [DistOrderController::class, 'show']);
+        Route::put('/orders/{order}', [DistOrderController::class, 'update']);
+        Route::post('/orders/preview', [DistOrderController::class, 'preview']);
+
+    });

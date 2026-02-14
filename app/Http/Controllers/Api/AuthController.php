@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\SalesPerson;
 use App\Models\Distributor;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -58,26 +59,48 @@ class AuthController extends Controller
         /**
      * Logout Sales (Mobile)
      */
-    // public function salesLogout(Request $request)
-    // {
-    //     // Revoke only current access token
-    //     $request->user()->currentAccessToken()->delete();
+    public function salesLogout(Request $request)
+    {
+        $user = auth('sales_api')->user();
 
-    //     return response()->json([
-    //         'message' => 'Sales user logged out successfully',
-    //     ]);
-    // }
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        // Sanctum may return TransientToken (no delete method) for session auth.
+        $token = $user->currentAccessToken();
+        if ($token instanceof PersonalAccessToken) {
+            $token->delete();
+        } else {
+            $user->tokens()->delete();
+        }
+
+        return response()->json([
+            'message' => 'Sales user logged out successfully',
+        ]);
+    }
 
     /**
      * Logout Distributor (Mobile)
      */
-    // public function distributorLogout(Request $request)
-    // {
-    //     // Revoke only current access token
-    //     $request->user()->currentAccessToken()->delete();
+    public function distributorLogout(Request $request)
+    {
+        $user = auth('distributor_api')->user();
 
-    //     return response()->json([
-    //         'message' => 'Distributor logged out successfully',
-    //     ]);
-    // }
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        // Sanctum may return TransientToken (no delete method) for session auth.
+        $token = $user->currentAccessToken();
+        if ($token instanceof PersonalAccessToken) {
+            $token->delete();
+        } else {
+            $user->tokens()->delete();
+        }
+
+        return response()->json([
+            'message' => 'Distributor logged out successfully',
+        ]);
+    }
 }
