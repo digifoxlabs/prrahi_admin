@@ -27,22 +27,19 @@ class OrderController extends Controller
     /* =====================
        CREATE
     ======================*/
-    public function create(Request $request)
-    {
-        $products = Product::with('parent')->orderBy('name')->get();
+    // public function create(Request $request)
+    // {
+    //     $products = Product::with('parent')->orderBy('name')->get();
 
-        return view('orders.create', compact('products'));
-    }
+    //     return view('orders.create', compact('products'));
+    // }
 
     /* =====================
-       STORE
+       STORE DISTRIBUTOR ORDER
     ======================*/
     public function store(Request $request)
     {
            
-        // dd($request->all());
-        // exit;
-
 
         $validated = $this->validatedData($request);
     
@@ -55,18 +52,11 @@ class OrderController extends Controller
         $orderNumber = $request->order_number ?: 'ORD-' . now()->format('Ymd') . '-' . Str::upper(Str::random(5));
 
 
-
-
         $order = SaveOrderAction::create([
                 ...$validated,
                 'discount' => $request->discount_amount ?? 0,
                 'order_number' => $orderNumber,
         ]);
-
-
-
-
-
  
 
         // $order = CreateOrderService::create([
@@ -236,7 +226,6 @@ class OrderController extends Controller
             'items'          => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity'   => ['required', 'integer', 'min:1'],
-
         ],
     
         [

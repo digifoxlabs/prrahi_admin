@@ -30,7 +30,6 @@ class SaveOrderAction
             );
 
 
-
             $order = CreateOrderService::create([
                 'order_number'     => $data['order_number'],
                 'order_date'       => $data['order_date'],
@@ -52,8 +51,10 @@ class SaveOrderAction
 
             AddOrderItemsService::handle($order, $calculation['items']);
 
+            //Log Order Activity
             OrderActivityLogger::log($order, 'created', 'Order created');
 
+            //Log User Activity
             LogActivityAction::handle([
                 'actor_type' => $actor['type'],
                 'actor_id'   => $actor['id'],

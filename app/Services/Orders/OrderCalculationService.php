@@ -17,6 +17,7 @@ class OrderCalculationService
         int $distributorId,
         float $discount = 0
     ): array {
+        
         $distributor = Distributor::findOrFail($distributorId);
 
         return self::calculate(

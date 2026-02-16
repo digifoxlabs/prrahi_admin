@@ -326,29 +326,19 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
 });
 
 /*********************
- * Shared Order Controller
+ * Shared Distributor Order Controller
 *********************/
 
-    Route::prefix('admin')
-        ->name('admin.')
-        ->middleware('auth:admin')
-        ->group(function () {   
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware('auth:admin')
+    ->group(function () {
 
-            Route::post('orders', [OrderController::class, 'store'])
-                ->name('orders.store');
-
-            // Route::get('orders/{order}/edit', [OrderController::class, 'edit'])
-            //     ->name('orders.edit');
-
-            Route::put('orders/{order}', [OrderController::class, 'update'])
-                ->name('orders.update');
-
-            Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
-        
-            Route::get('/orders/{order}/invoice/print', [OrderController::class, 'printInvoice'])->name('orders.invoice.print');
-
-
-        });
+        Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+        Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+        Route::get('/orders/{order}/invoice/print', [OrderController::class, 'printInvoice'])->name('orders.invoice.print');
+    });
 
     Route::prefix('distributor')
         ->name('distributor.')
