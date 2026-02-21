@@ -49,6 +49,21 @@
                         </div>
 
 
+                        <div class="flex items-center gap-2 sm:gap-3 sm:ml-4 shrink-0 whitespace-nowrap">
+                            <a href="{{ route('admin.distributors.index', ['view' => 'active', 'search' => $search]) }}"
+                                class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'active' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                                Active
+                            </a>
+                            <a href="{{ route('admin.distributors.index', ['view' => 'trashed', 'search' => $search]) }}"
+                                class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'trashed' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                                Trashed
+                            </a>
+                            <a href="{{ route('admin.distributors.index', ['view' => 'all', 'search' => $search]) }}"
+                                class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                                All
+                            </a>
+                        </div>
+
                         <!-- Actions (right) -->
                         <div class="flex items-center gap-2 sm:gap-3 sm:ml-4 shrink-0 whitespace-nowrap">
 
@@ -114,6 +129,9 @@
                                 <th class="px-4 py-3">Email</th>
                                 <th class="px-4 py-3">Phone</th>
                                 <th class="px-4 py-3">Address</th>
+                                @if (($view ?? 'active') !== 'active')
+                                    <th class="px-4 py-3">Deleted At</th>
+                                @endif
                                 <th class="px-4 py-3 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -131,6 +149,9 @@
                                     <td class="px-4 py-3">{{ $distributor->email }}</td>
                                     <td class="px-4 py-3">{{ $distributor->contact_number }}</td>
                                     <td class="px-4 py-3">{{ $distributor->town . '/' . $distributor->state }}</td>
+                                    @if (($view ?? 'active') !== 'active')
+                                        <td class="px-4 py-3">{{ optional($distributor->deleted_at)->format('d M Y h:i A') ?? '-' }}</td>
+                                    @endif
 
 
                                     <td class="px-4 py-3 text-right" x-data="{
@@ -200,52 +221,73 @@
                                             class="fixed rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 dark:ring-gray-700 z-50"
                                             style="will-change: transform;">
                                             <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
-                                                <!-- View -->
-                                                @if (Auth::guard('admin')->user()->hasPermission('view_distributors'))
-                                                    <li>
-                                                        <a href="{{ route('admin.distributors.show', $distributor) }}"
-                                                            class="flex items-center px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-blue-600 transition">
-                                                            <svg class="w-4 h-4 mr-2 text-blue-500" fill="none"
-                                                                stroke="currentColor" stroke-width="2"
-                                                                viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                            </svg>
-                                                            View
-                                                        </a>
-                                                    </li>
-                                                @endif
+                                                @if (! $distributor->trashed())
+                                                    @if (Auth::guard('admin')->user()->hasPermission('view_distributors'))
+                                                        <li>
+                                                            <a href="{{ route('admin.distributors.show', $distributor) }}"
+                                                                class="flex items-center px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-blue-600 transition">
+                                                                <svg class="w-4 h-4 mr-2 text-blue-500" fill="none"
+                                                                    stroke="currentColor" stroke-width="2"
+                                                                    viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                                View
+                                                            </a>
+                                                        </li>
+                                                    @endif
 
-                                                <!-- Edit -->
-                                                @if (Auth::guard('admin')->user()->hasPermission('edit_distributors'))
-                                                    <li>
-                                                        <a href="{{ route('admin.distributors.edit', $distributor) }}"
-                                                            class="flex items-center px-4 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-green-600 transition">
-                                                            <svg class="w-4 h-4 mr-2 text-green-500" fill="none"
-                                                                stroke="currentColor" stroke-width="2"
-                                                                viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M11 5H6a2 2 0 00-2 2v11c0 1.1.9 2 2 2h11a2 2 0 002-2v-5m-5.586-6.586a2 2 0 112.828 2.828L11 15H8v-3l5.586-5.586z" />
-                                                            </svg>
-                                                            Edit
-                                                        </a>
-                                                    </li>
-                                                @endif
+                                                    @if (Auth::guard('admin')->user()->hasPermission('edit_distributors'))
+                                                        <li>
+                                                            <a href="{{ route('admin.distributors.edit', $distributor) }}"
+                                                                class="flex items-center px-4 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-green-600 transition">
+                                                                <svg class="w-4 h-4 mr-2 text-green-500" fill="none"
+                                                                    stroke="currentColor" stroke-width="2"
+                                                                    viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        d="M11 5H6a2 2 0 00-2 2v11c0 1.1.9 2 2 2h11a2 2 0 002-2v-5m-5.586-6.586a2 2 0 112.828 2.828L11 15H8v-3l5.586-5.586z" />
+                                                                </svg>
+                                                                Edit
+                                                            </a>
+                                                        </li>
+                                                    @endif
 
-                                                <!-- Delete -->
-                                                @if (Auth::guard('admin')->user()->hasPermission('delete_distributors'))
+                                                    @if (Auth::guard('admin')->user()->hasPermission('delete_distributors'))
+                                                        <li>
+                                                            <button
+                                                                @click.prevent="deleteUrl = '{{ route('admin.distributors.destroy', $distributor) }}'; open = false; showModal = true;"
+                                                                class="w-full text-left flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-red-600 dark:hover:text-red-400 text-red-500 dark:text-red-400 transition">
+                                                                <svg class="w-4 h-4 mr-2" fill="none"
+                                                                    stroke="currentColor" stroke-width="2"
+                                                                    viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                                Delete
+                                                            </button>
+                                                        </li>
+                                                    @endif
+                                                @else
                                                     <li>
-                                                        <button
-                                                            @click.prevent="deleteUrl = '{{ route('admin.distributors.destroy', $distributor) }}'; open = false; showModal = true;"
-                                                            class="w-full text-left flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-red-600 dark:hover:text-red-400 text-red-500 dark:text-red-400 transition">
-                                                            <svg class="w-4 h-4 mr-2" fill="none"
-                                                                stroke="currentColor" stroke-width="2"
-                                                                viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M6 18L18 6M6 6l12 12" />
-                                                            </svg>
-                                                            Delete
-                                                        </button>
+                                                        <form action="{{ route('admin.distributors.restore', $distributor->id) }}" method="POST">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <button type="submit"
+                                                                class="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-100">
+                                                                Restore
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form action="{{ route('admin.distributors.forceDelete', $distributor->id) }}" method="POST"
+                                                            onsubmit="return confirm('Permanently delete this distributor? This cannot be undone.')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit"
+                                                                class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                                                Permanent Delete
+                                                            </button>
+                                                        </form>
                                                     </li>
                                                 @endif
                                             </ul>
@@ -295,7 +337,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-4 py-3 text-center text-gray-400 dark:text-gray-500">No
+                                    <td colspan="{{ ($view ?? 'active') !== 'active' ? 9 : 8 }}" class="px-4 py-3 text-center text-gray-400 dark:text-gray-500">No
                                         Distributors found.</td>
                                 </tr>
                             @endforelse
@@ -332,12 +374,16 @@
         function distributorTableComponent() {
             return {
                 search: '{{ $search ?? '' }}',
+                view: '{{ $view ?? 'active' }}',
                 debounceTimeout: null,
                 updateQuery() {
                     clearTimeout(this.debounceTimeout);
                     this.debounceTimeout = setTimeout(() => {
                         const base = '{{ route('admin.distributors.index') }}';
-                        const query = this.search.trim() ? '?search=' + encodeURIComponent(this.search.trim()) : '';
+                        const params = new URLSearchParams();
+                        if (this.search.trim()) params.set('search', this.search.trim());
+                        if (this.view && this.view !== 'active') params.set('view', this.view);
+                        const query = params.toString() ? '?' + params.toString() : '';
                         window.location.href = base + query;
                     }, 500);
                 },

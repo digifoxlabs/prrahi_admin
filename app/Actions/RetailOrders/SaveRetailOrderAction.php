@@ -95,8 +95,10 @@ class SaveRetailOrderAction
             );
 
             $order->update([
+                'order_number'    => $data['order_number'] ?? $order->order_number,
                 'order_date'      => $data['order_date'],
                 'retailer_id'     => $data['retailer_id'],
+                'distributor_id'  => $data['distributor_id'] ?? $order->distributor_id,
                 'billing_address' => $data['billing_address'] ?? null,
 
                 'subtotal'        => $calculation['subtotal'],

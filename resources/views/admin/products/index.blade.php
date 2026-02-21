@@ -28,11 +28,14 @@
             {{-- Action Bar (search + create + export) --}}
             <div x-data="{
                     search: new URLSearchParams(window.location.search).get('search') || '',
+                    view: '{{ $view ?? 'active' }}',
                     exportAllUrl: '{{ route('admin.products.export') }}?search=' + encodeURIComponent(new URLSearchParams(window.location.search).get('search') || ''),
                     updateQuery() {
                         const url = new URL(window.location.href);
                         if (this.search && this.search.length > 0) url.searchParams.set('search', this.search);
                         else url.searchParams.delete('search');
+                        if (this.view && this.view !== 'active') url.searchParams.set('view', this.view);
+                        else url.searchParams.delete('view');
                         url.searchParams.delete('page');
                         window.location.href = url.toString();
                     },
@@ -67,6 +70,19 @@
 
                     <!-- Actions -->
                     <div class="flex items-center gap-2 sm:gap-3 sm:ml-4 shrink-0 whitespace-nowrap">
+                        <a href="{{ route('admin.products.index', ['view' => 'active', 'search' => $search]) }}"
+                            class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'active' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                            Active
+                        </a>
+                        <a href="{{ route('admin.products.index', ['view' => 'trashed', 'search' => $search]) }}"
+                            class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'trashed' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                            Trashed
+                        </a>
+                        <a href="{{ route('admin.products.index', ['view' => 'all', 'search' => $search]) }}"
+                            class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                            All
+                        </a>
+
                         <div x-data="{ open:false }" class="relative">
                             <button @click="open = !open" class="inline-flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm text-white">
                                 Export
@@ -118,6 +134,9 @@
                                 <div class="flex items-center gap-2">
                                     <h3 class="text-sm font-semibold truncate">{{ $product->name ?? '-' }}</h3>
                                     <span class="text-xs bg-gray-100 px-2 py-0.5 rounded">{{ ucfirst($product->type) }}</span>
+                                    @if ($product->trashed())
+                                        <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">Trashed</span>
+                                    @endif
                                 </div>
 
                                 <p class="text-xs text-gray-500">Code: <span class="font-medium">{{ $product->code ?? '-' }}</span></p>
@@ -137,7 +156,7 @@
                                     </div>
                                 @endif
 
-                                @if ($product->type === 'variable')
+                                @if ($product->type === 'variable' && ! $product->trashed())
                                     <div class="mt-3 flex gap-2">
                                         <a href="{{ route('admin.products.add-variant', $product->id) }}?redirect_to={{ urlencode(url()->current()) }}" class="text-xs px-2 py-1 border rounded">+ Add Variant</a>
 

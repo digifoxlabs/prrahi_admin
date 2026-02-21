@@ -36,17 +36,13 @@
                             </p>
 
 
-                            <div class="flex justify-end gap-2">
-                                <span>Round Off:</span>
-                                <input type="number" step="0.01"
-                                       x-model.number="roundOff"
-                                       @input="applyRoundOff()"
-                                       class="w-24 border rounded p-1 text-right">
-                            </div>
+                            <p>Round Off: <span x-text="roundOff.toFixed(2)"></span></p>
 
                             <p class="font-bold text-lg mt-2">
                                 Total: <span x-text="total.toFixed(2)"></span>
                             </p>
+                            <p x-show="previewLoading" class="text-xs text-gray-500">Updating preview...</p>
+                            <p x-show="previewError" x-text="previewError" class="text-xs text-red-600"></p>
 
 
                             <!-- ================= HIDDEN TOTAL FIELDS ================= -->

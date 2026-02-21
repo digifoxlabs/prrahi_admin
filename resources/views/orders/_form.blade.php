@@ -59,14 +59,16 @@
                         </select> --}}
 
                         <!-- Distributor -->
-                        <div    x-data
-                                x-init="
-                                    selectedDistributorId = '{{ old('distributor_id', $order->distributor_id ?? auth('distributor')->id() ?? '') }}';
-                                    fillAddress();
-                                ">
+                        <div>
                             <label class="block font-medium mb-1">Distributor</label>
 
-                            <select name="distributor_id" x-model="selectedDistributorId" @change="fillAddress()"
+                            <select name="distributor_id"
+                                x-model="selectedDistributorId"
+                                x-init="
+                                    selectedDistributorId = @js(old('distributor_id', $order->distributor_id ?? auth('distributor')->id() ?? ''));
+                                    fillAddress();
+                                "
+                                @change="fillAddress()"
                                 class="w-full border rounded-lg p-2 text-sm" @if(auth('distributor')->check()) disabled
                                 @endif
                                 required>
@@ -119,8 +121,9 @@
                     <div class="col-span-12 lg:col-span-6">
                         <textarea name="billing_address"
                                   x-model="billingAddress"
+                                  readonly
                                   rows="5"
-                                  class="w-full h-full border rounded-lg p-2 text-sm resize-none"></textarea>
+                                  class="w-full h-full border rounded-lg p-2 text-sm resize-none bg-gray-50"></textarea>
                     </div>
                 </div>
 

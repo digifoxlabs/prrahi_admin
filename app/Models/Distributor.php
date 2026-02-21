@@ -2,12 +2,15 @@
 
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\DB;
+use LogicException;
 use Laravel\Sanctum\HasApiTokens;
 
 class Distributor extends Authenticatable
 {
-    use HasApiTokens;
+    use HasApiTokens, SoftDeletes;
 
     // protected $guard = 'distributor';
 
@@ -68,6 +71,41 @@ class Distributor extends Authenticatable
     public function appointedBy()
     {
         return $this->morphTo();
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (self $distributor): void {
+            if (! $distributor->isForceDeleting()) {
+                return;
+            }
+
+            $id = $distributor->getKey();
+            $isReferenced = DB::table('distributor_documents')->where('distributor_id', $id)->exists()
+                || DB::table('distributor_companies')->where('distributor_id', $id)->exists()
+                || DB::table('distributor_banks')->where('distributor_id', $id)->exists()
+                || DB::table('distributor_godowns')->where('distributor_id', $id)->exists()
+                || DB::table('distributor_manpowers')->where('distributor_id', $id)->exists()
+                || DB::table('distributor_vehicles')->where('distributor_id', $id)->exists()
+                || DB::table('distributor_investments')->where('distributor_id', $id)->exists()
+                || DB::table('retailers')->where('distributor_id', $id)->exists()
+                || DB::table('orders')->where('distributor_id', $id)->exists()
+                || DB::table('retail_orders')->where('distributor_id', $id)->exists()
+                || DB::table('distributor_products')->where('distributor_id', $id)->exists()
+                || DB::table('distributor_stocks')->where('distributor_id', $id)->exists()
+                || DB::table('distributor_inventory_transactions')->where('distributor_id', $id)->exists()
+                || DB::table('retailer_sales')->where('distributor_id', $id)->exists()
+                || DB::table('retailers')->where('appointed_by_type', self::class)->where('appointed_by_id', $id)->exists()
+                || DB::table('distributors')->where('appointed_by_type', self::class)->where('appointed_by_id', $id)->exists()
+                || DB::table('orders')->where('created_by_type', self::class)->where('created_by_id', $id)->exists()
+                || DB::table('retail_orders')->where('created_by_type', self::class)->where('created_by_id', $id)->exists()
+                || DB::table('order_activities')->where('performed_by_type', self::class)->where('performed_by_id', $id)->exists()
+                || DB::table('retail_order_activities')->where('performed_by_type', self::class)->where('performed_by_id', $id)->exists();
+
+            if ($isReferenced) {
+                throw new LogicException('Distributor is referenced in other records and cannot be permanently deleted.');
+            }
+        });
     }
 
 

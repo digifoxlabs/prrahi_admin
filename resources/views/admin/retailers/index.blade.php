@@ -49,6 +49,18 @@
 
                     {{-- Right actions --}}
                     <div class="flex items-center gap-3 shrink-0">
+                        <a href="{{ route('admin.retailers.index', ['view' => 'active', 'search' => $search]) }}"
+                           class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'active' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                            Active
+                        </a>
+                        <a href="{{ route('admin.retailers.index', ['view' => 'trashed', 'search' => $search]) }}"
+                           class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'trashed' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                            Trashed
+                        </a>
+                        <a href="{{ route('admin.retailers.index', ['view' => 'all', 'search' => $search]) }}"
+                           class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                            All
+                        </a>
 
                         {{-- Export --}}
                         <div x-data="{ open:false }" class="relative">
@@ -104,6 +116,9 @@
                             <th class="p-2">Town</th>
                             <th class="p-2">Distributor</th>
                             <th class="p-2">Appointed By</th>
+                            @if (($view ?? 'active') !== 'active')
+                                <th class="p-2">Deleted At</th>
+                            @endif
                             <th class="p-2">Actions</th>
                         </tr>
                     </thead>
@@ -160,6 +175,9 @@
 
 
                             </td>
+                            @if (($view ?? 'active') !== 'active')
+                                <td class="p-2">{{ optional($retailer->deleted_at)->format('d M Y h:i A') ?? '-' }}</td>
+                            @endif
 
                             {{-- ACTIONS (SAME AS SALESPERSON) --}}
                             <td class="p-2 relative"
@@ -198,21 +216,42 @@
                                             border border-gray-200 dark:border-gray-700
                                             rounded shadow-lg">
 
-                                    <a href="{{ route('admin.retailers.show',$retailer) }}"
-                                       class="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        👁️ View
-                                    </a>
+                                    @if (! $retailer->trashed())
+                                        <a href="{{ route('admin.retailers.show',$retailer) }}"
+                                           class="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            👁️ View
+                                        </a>
 
-                                    <a href="{{ route('admin.retailers.edit',$retailer) }}"
-                                       class="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        ✏️ Edit
-                                    </a>
+                                        <a href="{{ route('admin.retailers.edit',$retailer) }}"
+                                           class="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            ✏️ Edit
+                                        </a>
 
-                                    <button
-                                        @click.prevent="showModal=true; deleteUrl='{{ route('admin.retailers.destroy',$retailer) }}'; open=false"
-                                        class="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        🗑️ Delete
-                                    </button>
+                                        <button
+                                            @click.prevent="showModal=true; deleteUrl='{{ route('admin.retailers.destroy',$retailer) }}'; open=false"
+                                            class="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            🗑️ Delete
+                                        </button>
+                                    @else
+                                        <form action="{{ route('admin.retailers.restore', $retailer->id) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit"
+                                                    class="block w-full text-left px-3 py-2 text-sm text-green-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                                ♻️ Restore
+                                            </button>
+                                        </form>
+
+                                        <form action="{{ route('admin.retailers.forceDelete', $retailer->id) }}" method="POST"
+                                              onsubmit="return confirm('Permanently delete this retailer? This cannot be undone.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                                ❌ Permanent Delete
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
 
                                 {{-- DELETE MODAL --}}
@@ -242,7 +281,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="p-4 text-center text-gray-400">No retailers found.</td>
+                            <td colspan="{{ ($view ?? 'active') !== 'active' ? 10 : 9 }}" class="p-4 text-center text-gray-400">No retailers found.</td>
                         </tr>
                     @endforelse
                     </tbody>
@@ -273,12 +312,16 @@
 function retailersTableComponent(){
     return{
         search:'{{ request('search','') }}',
+        view:'{{ $view ?? 'active' }}',
         debounceTimeout:null,
         updateQuery(){
             clearTimeout(this.debounceTimeout);
             this.debounceTimeout=setTimeout(()=>{
                 const base='{{ route('admin.retailers.index') }}';
-                const q=this.search.trim()?`?search=${encodeURIComponent(this.search)}`:'';
+                const params = new URLSearchParams();
+                if (this.search.trim()) params.set('search', this.search.trim());
+                if (this.view && this.view !== 'active') params.set('view', this.view);
+                const q = params.toString() ? `?${params.toString()}` : '';
                 window.location.href=base+q;
             },500);
         },

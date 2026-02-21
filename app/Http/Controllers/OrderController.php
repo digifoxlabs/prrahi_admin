@@ -6,10 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Product;
-use App\Services\Orders\{
-    CreateOrderService,
-    AddOrderItemsService
-};
+use App\Services\Orders\OrderCalculationService;
 use App\Actions\Orders\{
     SaveOrderAction
 };
@@ -115,46 +112,37 @@ class OrderController extends Controller
 
         $actor = OrderActor::resolve();
 
-        DB::transaction(function () use ($request, $order) {
-
-            // 1️⃣ Update order header
-            $order->update([
-                'distributor_id'  => $request->distributor_id,
-                'order_number'    => $request->order_number,
-                'order_date'      => $request->order_date,
-                'billing_address' => $request->billing_address,
-                'subtotal'        => $request->subtotal,
-                'discount'        => $request->discount_amount ?? 0,
-                'cgst'            => $request->cgst ?? 0,
-                'sgst'            => $request->sgst ?? 0,
-                'igst'            => $request->igst ?? 0,
-                'round_off'       => $request->round_off ?? 0,
-                'total_amount'    => $request->total_amount,
-            ]);
-
-            // 2️⃣ Remove old items
-            $order->items()->delete();
-
-
-            $items = collect($request->items)->map(fn($row) => [
-
-                'order_id' => $order->id,
-                'product_id' => $row['product_id'],
-                'price'   => $row['rate'],
-                'base_unit' => $row['base_unit'],
-                'quantity'  => $row['quantity'],
-                'discount_percent'   => $row['discount_percent'],
-                'total'   => $row['amount'],
-
-            ])->toArray();
-
-
-            AddOrderItemsService::handle($order, $items);
-
-            OrderActivityLogger::log($order, 'updated', 'Order updated');
-        });
+        $order = SaveOrderAction::update($order, [
+            'order_number'    => $request->order_number ?? $order->order_number,
+            'order_date'      => $validated['order_date'],
+            'distributor_id'  => $validated['distributor_id'],
+            'billing_address' => $request->billing_address,
+            'discount'        => $request->discount_amount ?? 0,
+            'items'           => $validated['items'],
+        ]);
 
         return $this->redirectAfterUpdate($order, $actor['role'])->with('success', 'Order updated successfully.');
+    }
+
+    public function preview(Request $request)
+    {
+        $validated = $request->validate([
+            'distributor_id'       => ['required', 'exists:distributors,id'],
+            'discount'             => ['nullable', 'numeric', 'min:0'],
+            'items'                => ['required', 'array', 'min:1'],
+            'items.*.product_id'   => ['required', 'exists:products,id'],
+            'items.*.quantity'     => ['required', 'integer', 'min:1'],
+        ]);
+
+        $calculation = OrderCalculationService::calculateForDistributor(
+            $validated['items'],
+            (int) $validated['distributor_id'],
+            (float) ($validated['discount'] ?? 0)
+        );
+
+        return response()->json([
+            'preview' => $calculation,
+        ]);
     }
 
     /* =====================

@@ -2,7 +2,28 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Tax Invoice - {{ $order->invoice_no }}</title>
+    @php
+        $invoiceSettings = \App\Models\Setting::where('group', 'invoice_template')->pluck('value', 'key');
+
+        $defaultCompanyAddress = collect([
+            config('company.address_line_1') ?? '',
+            config('company.address_line_2') ?? '',
+            'GSTIN/UIN: ' . (config('company.gst') ?? 'N/A'),
+            'State Name: ' . (config('company.state') ?? ''),
+        ])->filter()->implode("\n");
+
+        $invoiceTitle = $invoiceSettings['title'] ?? 'Tax Invoice';
+        $companyName = $invoiceSettings['company_name'] ?? config('app.name');
+        $companyAddress = $invoiceSettings['company_address'] ?? $defaultCompanyAddress;
+        $declarationText = $invoiceSettings['declaration'] ?? 'We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.';
+        $signatureForName = $invoiceSettings['signature_for_name'] ?? config('app.name');
+        $signatureLabel = $invoiceSettings['signature_label'] ?? 'Authorised Signatory';
+        $footerNote = $invoiceSettings['footer_note'] ?? 'This is a Computer Generated Invoice';
+        $customCss = $invoiceSettings['custom_css'] ?? '';
+        $shouldAutoPrint = ($invoiceSettings['auto_print'] ?? '1') === '1';
+    @endphp
+
+    <title>{{ $invoiceTitle }} - {{ $order->invoice_no }}</title>
 
     <style>
         body {
@@ -53,10 +74,12 @@
             margin-top: 50px;
             text-align: right;
         }
+
+        {{ $customCss }}
     </style>
 </head>
 
-<body onload="window.print()">
+<body @if($shouldAutoPrint) onload="window.print()" @endif>
 
 <div class="container">
 
@@ -64,13 +87,10 @@
     <table class="no-border">
         <tr>
             <td>
-                <h2>Tax Invoice</h2>
-                <h3>{{ config('app.name') }}</h3>
+                <h2>{{ $invoiceTitle }}</h2>
+                <h3>{{ $companyName }}</h3>
                 <p class="small">
-                    {{ config('company.address_line_1') ?? '' }}<br>
-                    {{ config('company.address_line_2') ?? '' }}<br>
-                    GSTIN/UIN: {{ config('company.gst') ?? 'N/A' }}<br>
-                    State Name: {{ config('company.state') ?? '' }}
+                    {!! nl2br(e($companyAddress)) !!}
                 </p>
             </td>
 
@@ -187,17 +207,17 @@
     <!-- ================= DECLARATION ================= -->
     <p class="small">
         Declaration:<br>
-        We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.
+        {!! nl2br(e($declarationText)) !!}
     </p>
 
     <!-- ================= SIGNATURE ================= -->
     <div class="signature">
-        <p>for <strong>{{ config('app.name') }}</strong></p>
-        <p>Authorised Signatory</p>
+        <p>for <strong>{{ $signatureForName }}</strong></p>
+        <p>{{ $signatureLabel }}</p>
     </div>
 
     <p class="center small">
-        This is a Computer Generated Invoice
+        {{ $footerNote }}
     </p>
 
 </div>

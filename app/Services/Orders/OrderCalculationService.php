@@ -5,6 +5,7 @@ namespace App\Services\Orders;
 use App\Models\Product;
 use App\Models\Distributor;
 use App\Models\Retailer;
+use Illuminate\Validation\ValidationException;
 
 class OrderCalculationService
 {
@@ -19,10 +20,17 @@ class OrderCalculationService
     ): array {
         
         $distributor = Distributor::findOrFail($distributorId);
+        $state = trim((string) ($distributor->state ?? ''));
+
+        if ($state === '') {
+            throw ValidationException::withMessages([
+                'distributor_id' => 'Selected distributor has no state. Please update distributor state before order calculation.',
+            ]);
+        }
 
         return self::calculate(
             items: $items,
-            state: $distributor->state,
+            state: $state,
             discount: $discount,
             pricing: 'distributor'
         );
@@ -34,10 +42,17 @@ class OrderCalculationService
         float $discount = 0
     ): array {
         $retailer = Retailer::findOrFail($retailerId);
+        $state = trim((string) ($retailer->state ?? ''));
+
+        if ($state === '') {
+            throw ValidationException::withMessages([
+                'retailer_id' => 'Selected retailer has no state. Please update retailer state before order calculation.',
+            ]);
+        }
 
         return self::calculate(
             items: $items,
-            state: $retailer->state,
+            state: $state,
             discount: $discount,
             pricing: 'retailer'
         );
@@ -125,6 +140,7 @@ class OrderCalculationService
 
         return [
             'items'        => $calculatedItems,
+            'is_intra_state' => $isIntraState,
             'subtotal'     => round($subtotal, 2),
             'discount'     => $discount,
             'cgst'         => $cgst,

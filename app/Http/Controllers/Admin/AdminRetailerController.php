@@ -9,6 +9,7 @@ use App\Models\Distributor;
 use App\Models\State;
 use App\Models\District;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 
 class AdminRetailerController extends Controller
 {
@@ -16,13 +17,24 @@ class AdminRetailerController extends Controller
     {
         $title ='Retailer';
         $search = $request->query('search');
+        $view = $request->query('view', 'active');
 
-        $retailers = Retailer::with(['district', 'distributor'])
+        $retailersQuery = Retailer::with(['district', 'distributor']);
+
+        if ($view === 'trashed') {
+            $retailersQuery->onlyTrashed();
+        } elseif ($view === 'all') {
+            $retailersQuery->withTrashed();
+        }
+
+        $retailers = $retailersQuery
             ->when($search, function ($q) use ($search) {
-                $q->where('retailer_name', 'like', "%{$search}%")
-                ->orWhere('contact_person', 'like', "%{$search}%")
-                ->orWhere('contact_number', 'like', "%{$search}%")
-                ->orWhere('town', 'like', "%{$search}%");
+                $q->where(function ($subQuery) use ($search) {
+                    $subQuery->where('retailer_name', 'like', "%{$search}%")
+                        ->orWhere('contact_person', 'like', "%{$search}%")
+                        ->orWhere('contact_number', 'like', "%{$search}%")
+                        ->orWhere('town', 'like', "%{$search}%");
+                });
             })
             ->orderBy('retailer_name')
             ->paginate(15)
@@ -31,6 +43,7 @@ class AdminRetailerController extends Controller
         return view('admin.retailers.index', [
             'retailers' => $retailers,
             'search'    => $search,
+            'view'      => $view,
             'title'     => $title,
         ]);
     }
@@ -150,6 +163,26 @@ class AdminRetailerController extends Controller
         return redirect()
             ->route('admin.retailers.index')
             ->with('success', 'Retailer deleted successfully.');
+    }
+
+    public function restore($id)
+    {
+        $retailer = Retailer::onlyTrashed()->findOrFail($id);
+        $retailer->restore();
+
+        return redirect()->back()->with('success', 'Retailer restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $retailer = Retailer::onlyTrashed()->findOrFail($id);
+
+        try {
+            $retailer->forceDelete();
+            return redirect()->back()->with('success', 'Retailer permanently deleted.');
+        } catch (LogicException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     private function validatedData(Request $request): array

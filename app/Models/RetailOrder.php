@@ -42,12 +42,12 @@ class RetailOrder extends Model
 
     public function distributor()
     {
-        return $this->belongsTo(Distributor::class);
+        return $this->belongsTo(Distributor::class)->withTrashed();
     }
 
     public function retailer()
     {
-        return $this->belongsTo(Retailer::class);
+        return $this->belongsTo(Retailer::class)->withTrashed();
     }
 
     public function items()

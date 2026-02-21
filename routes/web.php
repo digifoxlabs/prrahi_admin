@@ -154,6 +154,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
 
     // Password update
     Route::get('/distributors/export', [AdminDistributorController::class, 'export'])->name('distributors.export');  
+    Route::patch('distributors/{id}/restore', [AdminDistributorController::class, 'restore'])->name('distributors.restore');
+    Route::delete('distributors/{id}/force-delete', [AdminDistributorController::class, 'forceDelete'])->name('distributors.forceDelete');
     Route::resource('distributors', AdminDistributorController::class)->only(['index','create','edit','show','destroy']);
 
 
@@ -173,6 +175,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::get('products/{product}/variants', [ProductController::class, 'variants'])->name('products.variants');
 
     Route::get('/products/export', [ProductController::class, 'export'])->name('products.export');  
+    Route::patch('products/{id}/restore', [ProductController::class, 'restore'])->name('products.restore');
+    Route::delete('products/{id}/force-delete', [ProductController::class, 'forceDelete'])->name('products.forceDelete');
     Route::resource('products', ProductController::class);
 
     Route::get('inventory/export', [InventoryTransactionController::class, 'export'])->name('inventory.export');
@@ -220,6 +224,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::get('/invoices', [AdminInvoiceController::class, 'index'])->name('invoices.index');
 
     //Retailers
+    Route::patch('retailers/{id}/restore', [AdminRetailerController::class, 'restore'])->name('retailers.restore');
+    Route::delete('retailers/{id}/force-delete', [AdminRetailerController::class, 'forceDelete'])->name('retailers.forceDelete');
     Route::resource('retailers', AdminRetailerController::class)->names('retailers')->only(['index','create','edit','show','destroy']);
 
     Route::get('retailers/export', [AdminRetailerController::class, 'export'])->name('retailers.export');
@@ -335,6 +341,7 @@ Route::prefix('admin')
     ->group(function () {
 
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::post('orders/preview', [OrderController::class, 'preview'])->name('orders.preview');
         Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
         Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
         Route::get('/orders/{order}/invoice/print', [OrderController::class, 'printInvoice'])->name('orders.invoice.print');
@@ -346,6 +353,7 @@ Route::prefix('admin')
         ->group(function () {   
 
             Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+            Route::post('orders/preview', [OrderController::class, 'preview'])->name('orders.preview');
 
             // Route::get('orders/{order}/edit', [OrderController::class, 'edit'])
             //     ->name('orders.edit');
@@ -364,6 +372,7 @@ Route::prefix('admin')
         ->group(function () {   
 
             Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+            Route::post('orders/preview', [OrderController::class, 'preview'])->name('orders.preview');
 
             Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 
@@ -432,6 +441,7 @@ Route::prefix('admin')
             Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function (){
 
                 Route::post('sales/orders', [RetailOrderController::class, 'store'])->name('retail.orders.store');
+                Route::post('sales/orders/preview', [RetailOrderController::class, 'preview'])->name('retail.orders.preview');
 
                 Route::put('sales/orders/{order}', [RetailOrderController::class, 'update'])->name('retail.orders.update');
 
@@ -440,6 +450,7 @@ Route::prefix('admin')
             Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function (){
 
                 Route::post('sales/orders', [RetailOrderController::class, 'store'])->name('retail.orders.store');
+                Route::post('sales/orders/preview', [RetailOrderController::class, 'preview'])->name('retail.orders.preview');
 
                 Route::put('sales/orders/{order}', [RetailOrderController::class, 'update'])->name('retail.orders.update');
 
@@ -449,6 +460,7 @@ Route::prefix('admin')
             Route::prefix('distributor')->name('distributor.')->middleware('auth:distributor')->group(function (){
 
                 Route::post('sales/orders', [RetailOrderController::class, 'store'])->name('retail.orders.store');
+                Route::post('sales/orders/preview', [RetailOrderController::class, 'preview'])->name('retail.orders.preview');
 
                 Route::put('sales/orders/{order}', [RetailOrderController::class, 'update'])->name('retail.orders.update');
 

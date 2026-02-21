@@ -42,7 +42,7 @@ class Order extends Model
 
     public function distributor()
     {
-        return $this->belongsTo(Distributor::class);
+        return $this->belongsTo(Distributor::class)->withTrashed();
     }
 
     public function items()

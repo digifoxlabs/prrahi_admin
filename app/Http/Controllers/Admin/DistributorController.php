@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\DistributorsExport;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 
 class DistributorController extends Controller
 {
@@ -25,7 +26,7 @@ class DistributorController extends Controller
         $this->middleware('permission:view_distributors')->only(['index', 'show']);
         $this->middleware('permission:create_distributors')->only(['create', 'store']);
         $this->middleware('permission:edit_distributors')->only(['edit', 'update']);
-        $this->middleware('permission:delete_distributors')->only(['destroy']);
+        $this->middleware('permission:delete_distributors')->only(['destroy', 'restore', 'forceDelete']);
     }
 
 
@@ -39,19 +40,30 @@ class DistributorController extends Controller
         $title ='Distributors';  
    
         $search = $request->query('search');
+        $view = $request->query('view', 'active');
 
-        $distributors = Distributor::query()
+        $distributorsQuery = Distributor::query();
+
+        if ($view === 'trashed') {
+            $distributorsQuery->onlyTrashed();
+        } elseif ($view === 'all') {
+            $distributorsQuery->withTrashed();
+        }
+
+        $distributors = $distributorsQuery
             ->when($search, function ($query, $search) {
-                $query->where('firm_name', 'like', '%' . $search . '%')
-                ->orWhere('contact_person', 'like', "%$search%")
-                ->orWhere('email', 'like', "%$search%");
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('firm_name', 'like', '%' . $search . '%')
+                        ->orWhere('contact_person', 'like', "%$search%")
+                        ->orWhere('email', 'like', "%$search%");
+                });
             })
             ->orderBy('id', 'desc')
             ->paginate(10)
             ->onEachSide(1)
             ->withQueryString(); // Preserve search on pagination
 
-        return view('admin.distributors.index', compact('distributors', 'search','title'));
+        return view('admin.distributors.index', compact('distributors', 'search', 'title', 'view'));
 
 
         
@@ -431,6 +443,26 @@ public function show(Distributor $distributor)
 
         $distributor->delete();
         return redirect()->route('admin.distributors.index')->with('success', 'Distributor deleted.');
+    }
+
+    public function restore($id)
+    {
+        $distributor = Distributor::onlyTrashed()->findOrFail($id);
+        $distributor->restore();
+
+        return redirect()->back()->with('success', 'Distributor restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $distributor = Distributor::onlyTrashed()->findOrFail($id);
+
+        try {
+            $distributor->forceDelete();
+            return redirect()->back()->with('success', 'Distributor permanently deleted.');
+        } catch (LogicException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
 

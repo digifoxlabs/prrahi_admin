@@ -18,141 +18,233 @@
 </script>
 
 <script>
-    function posOrder(){
+function posOrder(){
+    return {
+        products: @json($products),
+        retailers: @json($retailers),
+        previewUrl: @json(route($routePrefix.'.retail.orders.preview')),
+        csrfToken: @json(csrf_token()),
 
-        return {
-            products: @json($products),
-            distributors: @json($distributors),
-            retailers: @json($retailers),
+        selectedRetailerId: @json($order->retailer_id),
+        billingAddress: @json($order->billing_address),
+        search: '',
 
-           selectedDistributorId: @json($order->distributor_id),
+        cart: @json($cartItems),
+        showProductPopup: false,
+        isIntraState: {{ $order->igst > 0 ? 'false' : 'true' }},
+        subtotal: {{ $order->subtotal }},
+        orderDiscount: {{ $order->discount }},
+        cgst: {{ $order->cgst }},
+        sgst: {{ $order->sgst }},
+        igst: {{ $order->igst }},
+        roundOff: {{ $order->round_off }},
+        total: {{ $order->total_amount }},
 
+        previewLoading: false,
+        previewError: '',
+        previewDebounceTimer: null,
+        previewRequestId: 0,
 
-            selectedRetailerId: @json($order->retailer_id),
+        toNumber(value){
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : 0;
+        },
 
-            billingAddress: @json($order->billing_address),
-            search: '',
+        firstErrorMessage(data){
+            const errors = data?.errors;
+            if (!errors || typeof errors !== 'object') return '';
 
-            cart: @json($cartItems),
-            showProductPopup: false,
-            isIntraState: true,
-            subtotal: {{ $order->subtotal }},
-            orderDiscount: {{ $order->discount }},
-            cgst: {{ $order->cgst }},
-            sgst: {{ $order->sgst }},
-            igst: {{ $order->igst }},
-            roundOff: {{ $order->round_off }},
-            total: {{ $order->total_amount }},
-     
-            fillAddress(){
-            
-                let d = this.retailers.find(x => x.id == this.selectedRetailerId);
-              
-                if(!d) return;
-                this.billingAddress =
-                    `${d.retailer_name}\n` +
-                    `${d.address_line_1 ?? ''} ${d.address_line_2 ?? ''}\n` +
-                    `${d.town ?? ''}, ${d.district ?? ''}\n` +
-                    `State: ${d.state ?? ''} - ${d.pincode ?? ''}`;
+            const firstFieldErrors = Object.values(errors).find(
+                (fieldErrors) => Array.isArray(fieldErrors) && fieldErrors.length > 0
+            );
 
-                // ✅ GST LOGIC
-                this.isIntraState = (d.state || '').toLowerCase() === 'assam';
+            return firstFieldErrors ? String(firstFieldErrors[0]) : '';
+        },
 
-                // reset taxes
-                this.recalculate();
+        resolveCsrfToken(){
+            return this.csrfToken
+                || document.querySelector('meta[name="csrf-token"]')?.content
+                || document.querySelector('input[name="_token"]')?.value
+                || '';
+        },
 
+        fillAddress(){
+            const retailer = this.retailers.find(x => x.id == this.selectedRetailerId);
+            if (!retailer) return;
 
-            },
+            this.billingAddress =
+                `${retailer.retailer_name}\n` +
+                `${retailer.address_line_1 ?? ''} ${retailer.address_line_2 ?? ''}\n` +
+                `${retailer.town ?? ''}, ${retailer.district ?? ''}\n` +
+                `State: ${retailer.state || '-'} - ${retailer.pincode || '-'}\n` +
+                `GST: ${retailer.gst || '-'}`;
 
-            filteredProducts(){
-                return this.products.filter(p =>
-                    p.name.toLowerCase().includes(this.search.toLowerCase())
-                );
-            },
+            this.schedulePreview();
+        },
 
-            addProduct(product){
-                let item = this.cart.find(i => i.id === product.id);
-                if(item){
-                    item.qty++;
-                } else {
+        filteredProducts(){
+            return this.products.filter(p =>
+                p.name.toLowerCase().includes(this.search.toLowerCase())
+            );
+        },
 
-                    let label = product.attributes
-                    ? product.parent.name
+        addProduct(product){
+            const existing = this.cart.find(i => i.id === product.id);
+            if (existing) {
+                existing.qty = this.toNumber(existing.qty) + 1;
+            } else {
+                let label = product.attributes
+                    ? (product.parent?.name || product.name)
                     : product.name;
 
-                    if(product.attributes){
-                        label += ' - ' + (product.attributes.fragrance ?? '');
-                        if(product.attributes.size){
-                            label += ' (' + product.attributes.size + ')';
-                        }
+                if (product.attributes) {
+                    label += ' - ' + (product.attributes.fragrance ?? '');
+                    if (product.attributes.size) {
+                        label += ' (' + product.attributes.size + ')';
                     }
-                    this.cart.push({
-                        id: product.id,
-                        name: label,
-                        code: product.code,
-                        qty: 1,
-                        rate: Number(product.ptr_per_dozen) || 0,
-                        discount: Number(product.retailer_discount_percent) || 0,
-                        base_unit: product.attributes
-                                    ? product.parent.base_unit
-                                    : product.base_unit,
-                        amount: 0
-                    });
                 }
-                this.recalculate();
-            },
 
-            removeItem(index){
-                this.cart.splice(index,1);
-                this.recalculate();
-            },
-
-            recalculate(){
-                this.subtotal = 0;
-                this.cart.forEach(item => {
-                    let gross = item.qty * item.rate;
-                    let disc = gross * (item.discount / 100);
-                    item.amount = gross - disc;
-                    this.subtotal += item.amount;
+                this.cart.push({
+                    id: product.id,
+                    name: label,
+                    code: product.code,
+                    qty: 1,
+                    rate: this.toNumber(product.ptr_per_dozen),
+                    discount: this.toNumber(product.retailer_discount_percent),
+                    base_unit: product.attributes
+                        ? (product.parent?.base_unit ?? product.base_unit)
+                        : product.base_unit,
+                    amount: 0
                 });
+            }
 
-                let taxable = this.subtotal - this.orderDiscount;
-                // this.cgst = taxable * 0.025;
-                // this.sgst = taxable * 0.025;
+            this.schedulePreview();
+        },
 
-                // let rawTotal = taxable + this.cgst + this.sgst;
+        removeItem(index){
+            this.cart.splice(index, 1);
+            this.schedulePreview();
+        },
 
-                // RESET TAXES
-                this.cgst = 0;
-                this.sgst = 0;
-                this.igst = 0;
+        recalculate(){
+            this.schedulePreview();
+        },
 
-                if (this.isIntraState) {
-                    // Assam → CGST + SGST
-                    this.cgst = taxable * 0.025;
-                    this.sgst = taxable * 0.025;
-                } else {
-                    // Inter-state → IGST
-                    this.igst = taxable * 0.05;
+        schedulePreview(){
+            clearTimeout(this.previewDebounceTimer);
+            this.previewDebounceTimer = setTimeout(() => this.fetchPreview(), 250);
+        },
+
+        resetPreviewTotals(){
+            this.subtotal = 0;
+            this.cgst = 0;
+            this.sgst = 0;
+            this.igst = 0;
+            this.roundOff = 0;
+            this.total = 0;
+            this.isIntraState = true;
+            this.cart = this.cart.map(item => ({ ...item, amount: 0 }));
+        },
+
+        async fetchPreview(){
+            this.previewError = '';
+
+            if (!this.selectedRetailerId || this.cart.length === 0) {
+                this.resetPreviewTotals();
+                return;
+            }
+
+            const payload = {
+                _token: this.resolveCsrfToken(),
+                retailer_id: this.selectedRetailerId,
+                discount: this.toNumber(this.orderDiscount),
+                items: this.cart.map(item => ({
+                    product_id: item.id,
+                    quantity: Math.max(1, parseInt(item.qty, 10) || 1),
+                })),
+            };
+
+            const currentRequestId = ++this.previewRequestId;
+            this.previewLoading = true;
+
+            try {
+                const response = await fetch(this.previewUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': this.resolveCsrfToken(),
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const raw = await response.text();
+                let data = {};
+
+                try {
+                    data = raw ? JSON.parse(raw) : {};
+                } catch (e) {
+                    data = {
+                        message: response.status === 419
+                            ? 'CSRF token mismatch. Refresh the page and try again.'
+                            : 'Preview failed',
+                    };
                 }
 
-                let rawTotal = taxable + this.cgst + this.sgst + this.igst;
+                if (!response.ok) {
+                    const errorMessage =
+                        this.firstErrorMessage(data)
+                        || data?.message
+                        || `Preview failed (${response.status})`;
 
-                let decimal = rawTotal % 1;
-                this.roundOff = decimal < 0.5 ? -decimal : (1 - decimal);
+                    throw new Error(errorMessage);
+                }
 
-                this.roundOff = parseFloat(this.roundOff.toFixed(2));
-                this.total = parseFloat((rawTotal + this.roundOff).toFixed(2));
-            },
-
-            applyRoundOff(){
-                let base = (this.subtotal - this.orderDiscount) + this.cgst + this.sgst;
-                this.roundOff = parseFloat(this.roundOff.toFixed(2));
-                this.total = parseFloat((base + this.roundOff).toFixed(2));
+                if (currentRequestId !== this.previewRequestId) return;
+                this.applyPreview(data.preview || {});
+            } catch (error) {
+                if (currentRequestId !== this.previewRequestId) return;
+                this.previewError = error.message || 'Preview failed';
+                this.resetPreviewTotals();
+            } finally {
+                if (currentRequestId === this.previewRequestId) {
+                    this.previewLoading = false;
+                }
             }
-        }
-    }
-    </script>
+        },
+
+        applyPreview(preview){
+            const previewItemsByProductId = new Map(
+                (preview.items || []).map(item => [String(item.product_id), item])
+            );
+
+            this.cart = this.cart.map(item => {
+                const previewItem = previewItemsByProductId.get(String(item.id));
+                if (!previewItem) return item;
+
+                return {
+                    ...item,
+                    qty: this.toNumber(previewItem.quantity),
+                    rate: this.toNumber(previewItem.price),
+                    discount: this.toNumber(previewItem.discount_percent),
+                    base_unit: previewItem.base_unit ?? item.base_unit,
+                    amount: this.toNumber(previewItem.total),
+                };
+            });
+
+            this.isIntraState = Boolean(preview.is_intra_state);
+            this.subtotal = this.toNumber(preview.subtotal);
+            this.orderDiscount = this.toNumber(preview.discount);
+            this.cgst = this.toNumber(preview.cgst);
+            this.sgst = this.toNumber(preview.sgst);
+            this.igst = this.toNumber(preview.igst);
+            this.roundOff = this.toNumber(preview.round_off);
+            this.total = this.toNumber(preview.total_amount);
+        },
+    };
+}
+</script>
 
 
 @endpush

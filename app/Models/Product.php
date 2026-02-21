@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'parent_id', 'name','code','hsn','type', 'category_id', 'sub_category_id',
@@ -24,7 +26,7 @@ class Product extends Model
     protected $appends = ['total_stock'];
 
     public function parent() {
-        return $this->belongsTo(Product::class, 'parent_id');
+        return $this->belongsTo(Product::class, 'parent_id')->withTrashed();
     }
 
     public function variants() {
@@ -47,6 +49,26 @@ class Product extends Model
 {
     return $this->hasMany(Product::class, 'parent_id');
 }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (self $product): void {
+            if (! $product->isForceDeleting()) {
+                return;
+            }
+
+            $id = $product->getKey();
+            $isReferenced = DB::table('order_items')->where('product_id', $id)->exists()
+                || DB::table('retail_order_items')->where('product_id', $id)->exists()
+                || DB::table('inventory_transactions')->where('product_id', $id)->exists()
+                || DB::table('products')->where('parent_id', $id)->exists()
+                || DB::table('distributor_products')->where('product_id', $id)->exists();
+
+            if ($isReferenced) {
+                throw new LogicException('Product is referenced in other records and cannot be permanently deleted.');
+            }
+        });
+    }
 
     public function getAvailableStock()
         {

@@ -8,6 +8,7 @@ use App\Models\Category;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductsExport;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 
 class ProductController extends Controller
 {
@@ -18,7 +19,7 @@ class ProductController extends Controller
         $this->middleware('permission:view_products')->only(['index', 'show']);
         $this->middleware('permission:create_products')->only(['create', 'store']);
         $this->middleware('permission:edit_products')->only(['edit', 'update']);
-        $this->middleware('permission:delete_products')->only(['destroy']);
+        $this->middleware('permission:delete_products')->only(['destroy', 'restore', 'forceDelete']);
     }
 
 
@@ -94,11 +95,15 @@ class ProductController extends Controller
     {
         $title = 'Products';
         $search = $request->query('search');
+        $view = $request->query('view', 'active');
 
         $productsQuery = Product::with([
                 'category',
                 'subCategory',
-                'variants' => function ($q) {
+                'variants' => function ($q) use ($view) {
+                    if ($view !== 'active') {
+                        $q->withTrashed();
+                    }
                     $q->orderBy('id', 'asc'); // order variants if you like
                 },
                 'variants.category',
@@ -106,13 +111,22 @@ class ProductController extends Controller
             ])
             ->whereNull('parent_id');
 
+        if ($view === 'trashed') {
+            $productsQuery->onlyTrashed();
+        } elseif ($view === 'all') {
+            $productsQuery->withTrashed();
+        }
+
         if ($search) {
             $productsQuery->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('code', 'like', "%{$search}%")
                   ->orWhereHas('category', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
                   ->orWhereHas('subCategory', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('variants', function ($q3) use ($search) {
+                  ->orWhereHas('variants', function ($q3) use ($search, $view) {
+                      if ($view !== 'active') {
+                          $q3->withTrashed();
+                      }
                       $q3->where('name', 'like', "%{$search}%")
                          ->orWhere('code', 'like', "%{$search}%")
                          ->orWhereHas('category', fn($q4) => $q4->where('name', 'like', "%{$search}%"))
@@ -123,7 +137,7 @@ class ProductController extends Controller
 
         $products = $productsQuery->orderByDesc('id')->paginate(20)->withQueryString();
 
-        return view('admin.products.index', compact('title', 'products', 'search'));
+        return view('admin.products.index', compact('title', 'products', 'search', 'view'));
     }
 
 
@@ -421,6 +435,37 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()->route('admin.products.index')->with('success', 'Product deleted.');
+    }
+
+    public function restore($id)
+    {
+        $product = Product::onlyTrashed()->findOrFail($id);
+        $product->restore();
+
+        if ($product->type === 'variable') {
+            Product::onlyTrashed()->where('parent_id', $product->id)->restore();
+        }
+
+        return redirect()->back()->with('success', 'Product restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $product = Product::onlyTrashed()->findOrFail($id);
+
+        try {
+            if ($product->type === 'variable') {
+                $variants = Product::onlyTrashed()->where('parent_id', $product->id)->get();
+                foreach ($variants as $variant) {
+                    $variant->forceDelete();
+                }
+            }
+
+            $product->forceDelete();
+            return redirect()->back()->with('success', 'Product permanently deleted.');
+        } catch (LogicException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     //Export Permissions

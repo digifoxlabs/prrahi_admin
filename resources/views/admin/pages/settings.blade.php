@@ -155,18 +155,84 @@
                     </div>
                 </div>
 
-                {{-- Empty Card 2 (Placeholder for additional settings) --}}
-                <div class="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden dark:border-gray-800 dark:bg-gray-900/50">
+                {{-- Invoice Template Settings --}}
+                <div class="col-span-2 bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden dark:border-gray-800 dark:bg-gray-900/50">
                     <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 dark:bg-gray-800/50 dark:border-gray-800">
                         <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
                             <svg class="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M8 6h8a2 2 0 012 2v12l-3-2-3 2-3-2-3 2V8a2 2 0 012-2z"></path>
                             </svg>
-                            Security Settings
+                            Invoice Template Settings
                         </h2>
                     </div>
-                    <div class="p-6">
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Security settings can be added here</p>
+                    <div class="p-6 space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Invoice Title</label>
+                                <input type="text" name="settings[invoice_template][title]"
+                                    value="{{ $invoiceSettings['title'] ?? 'Tax Invoice' }}"
+                                    class="block w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company Name</label>
+                                <input type="text" name="settings[invoice_template][company_name]"
+                                    value="{{ $invoiceSettings['company_name'] ?? config('app.name') }}"
+                                    class="block w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            </div>
+
+                            <div class="space-y-1 md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company Address Block (multiline)</label>
+                                <textarea name="settings[invoice_template][company_address]" rows="3"
+                                    class="block w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">{{ $invoiceSettings['company_address'] ?? '' }}</textarea>
+                            </div>
+
+                            <div class="space-y-1 md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Declaration Text</label>
+                                <textarea name="settings[invoice_template][declaration]" rows="3"
+                                    class="block w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">{{ $invoiceSettings['declaration'] ?? 'We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.' }}</textarea>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Signature Company Text</label>
+                                <input type="text" name="settings[invoice_template][signature_for_name]"
+                                    value="{{ $invoiceSettings['signature_for_name'] ?? config('app.name') }}"
+                                    class="block w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Signature Label</label>
+                                <input type="text" name="settings[invoice_template][signature_label]"
+                                    value="{{ $invoiceSettings['signature_label'] ?? 'Authorised Signatory' }}"
+                                    class="block w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            </div>
+
+                            <div class="space-y-1 md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Footer Note</label>
+                                <input type="text" name="settings[invoice_template][footer_note]"
+                                    value="{{ $invoiceSettings['footer_note'] ?? 'This is a Computer Generated Invoice' }}"
+                                    class="block w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            </div>
+
+                            <div class="space-y-1 md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Custom Invoice CSS (optional)</label>
+                                <textarea name="settings[invoice_template][custom_css]" rows="4"
+                                    class="block w-full rounded-md border border-gray-300 py-2 px-3 text-sm font-mono focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">{{ $invoiceSettings['custom_css'] ?? '' }}</textarea>
+                            </div>
+
+                            <div class="flex items-start md:col-span-2">
+                                <div class="flex items-center h-5">
+                                    <input type="hidden" name="settings[invoice_template][auto_print]" value="0">
+                                    <input id="invoice-auto-print" type="checkbox" name="settings[invoice_template][auto_print]" value="1"
+                                        @checked(($invoiceSettings['auto_print'] ?? '1') == '1')
+                                        class="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600 dark:checked:border-blue-600 dark:focus:ring-blue-600">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="invoice-auto-print" class="font-medium text-gray-700 dark:text-gray-300">Auto print on load</label>
+                                    <p class="text-gray-500 dark:text-gray-400">When enabled, print dialog opens automatically after opening invoice page.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

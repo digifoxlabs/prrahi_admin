@@ -5,17 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Models\RetailOrder;
-use App\Models\Product;
 use App\Models\Retailer;
 use Illuminate\Support\Str;
 use App\Support\OrderActor;
-use Illuminate\Support\Facades\DB;
-use App\Services\RetailOrders\{
-    CreateRetailOrderService,
-    AddOrderItemsService
-};
-use App\Services\OrderActivityLogger;
-use App\Services\RetailOrderActivityLogger;
+use App\Actions\RetailOrders\SaveRetailOrderAction;
+use App\Services\Orders\OrderCalculationService;
 
 class RetailOrderController extends Controller
 {
@@ -24,7 +18,7 @@ class RetailOrderController extends Controller
     public function store(Request $request)
     {
 
-         $validated = $this->validatedData($request);
+        $validated = $this->validatedData($request);
 
         /** Detect actor */
        // [$actorType, $actorId] = $this->resolveActor();
@@ -40,44 +34,15 @@ class RetailOrderController extends Controller
 
 
 
-        $order = CreateRetailOrderService::create([
+        $order = SaveRetailOrderAction::create([
             'order_number'     => $orderNumber,
-            'order_date'      => $request->order_date,
-            'distributor_id'  => $distributorId,
-            'retailer_id'      => $request->retailer_id,
-            'billing_address' => $request->billing_address,
-
-            'subtotal'        => $request->subtotal,
-            'discount'        => $request->discount_amount ?? 0,
-            'cgst'            => $request->cgst,
-            'sgst'            => $request->sgst,
-            'igst'            => $request->igst ?? 0,
-            'round_off'       => $request->round_off ?? 0,
-            'total_amount'    => $request->total_amount,
-
-            'status'          => 'pending',
-            'created_by_type'  => $actor['type'],
-            'created_by_id'    => $actor['id'],
-
+            'order_date'       => $validated['order_date'],
+            'distributor_id'   => $distributorId,
+            'retailer_id'      => $validated['retailer_id'],
+            'billing_address'  => $request->billing_address,
+            'discount'         => $request->discount_amount ?? 0,
+            'items'            => $validated['items'],
         ]);
-
-        // $items = collect($validated['items'])->map(fn ($row) => [
-        $items = collect($request->items)->map(fn ($row) => [
-            
-                'retail_order_id' => $order->id,
-                'product_id' => $row['product_id'],
-                'price'   => $row['rate'],
-                'base_unit' => $row['base_unit'],
-                'quantity'  => $row['quantity'],
-                'discount_percent'   => $row['discount_percent'],
-                'total'   => $row['amount'],
-
-        ])->toArray();
-
-     
-        AddOrderItemsService::handle($order, $items);
-
-        RetailOrderActivityLogger::log($order, 'created', 'Order created');
 
         return $this->redirectAfterSave($order, $actor['role'])
         ->with('success', 'Order created successfully.');
@@ -100,51 +65,41 @@ class RetailOrderController extends Controller
         $distributorId = Retailer::where('id', $retailerId)->value('distributor_id'); // returns null if not found
 
 
-        //Pass variables into transaction
-        DB::transaction(function () use ($request, $order, $retailerId, $distributorId) {
-
-        // 1️⃣ Update order header
-        $order->update([
+        $order = SaveRetailOrderAction::update($order, [
+            'order_number'    => $request->order_number ?? $order->order_number,
+            'order_date'      => $validated['order_date'],
             'retailer_id'     => $retailerId,
             'distributor_id'  => $distributorId,
-            'order_number'    => $request->order_number,
-            'order_date'      => $request->order_date,
             'billing_address' => $request->billing_address,
-            'subtotal'        => $request->subtotal,
             'discount'        => $request->discount_amount ?? 0,
-            'cgst'            => $request->cgst ?? 0,
-            'sgst'            => $request->sgst ?? 0,
-            'igst'            => $request->igst ?? 0,
-            'round_off'       => $request->round_off ?? 0,
-            'total_amount'    => $request->total_amount,
+            'items'           => $validated['items'],
         ]);
-
-        // 2️⃣ Remove old items
-        $order->items()->delete();
-
-            $items = collect($request->items)->map(fn ($row) => [
-                
-                'retail_order_id' => $order->id,
-                'product_id' => $row['product_id'],
-                'price'   => $row['rate'],
-                'base_unit' => $row['base_unit'],
-                'quantity'  => $row['quantity'],
-                'discount_percent'   => $row['discount_percent'],
-                'total'   => $row['amount'],
-
-            ])->toArray();
-
-
-         AddOrderItemsService::handle($order, $items);
-
-        RetailOrderActivityLogger::log($order, 'updated', 'Order updated');
-
-        });
 
         return $this->redirectAfterUpdate($order, $actor['role'])
          ->with('success', 'Order Updated successfully.');
 
 
+    }
+
+    public function preview(Request $request)
+    {
+        $validated = $request->validate([
+            'retailer_id'         => ['required', 'exists:retailers,id'],
+            'discount'            => ['nullable', 'numeric', 'min:0'],
+            'items'               => ['required', 'array', 'min:1'],
+            'items.*.product_id'  => ['required', 'exists:products,id'],
+            'items.*.quantity'    => ['required', 'integer', 'min:1'],
+        ]);
+
+        $calculation = OrderCalculationService::calculateForRetailer(
+            $validated['items'],
+            (int) $validated['retailer_id'],
+            (float) ($validated['discount'] ?? 0)
+        );
+
+        return response()->json([
+            'preview' => $calculation,
+        ]);
     }
 
     
@@ -155,7 +110,7 @@ class RetailOrderController extends Controller
 
             'retailer_id' => ['required', 'exists:retailers,id'],
             'order_date'     => ['required', 'date'],
-            'order_number'   => ['nullable', 'max:50', Rule::unique('orders', 'order_number')->ignore($order?->id)],
+            'order_number'   => ['nullable', 'max:50', Rule::unique('retail_orders', 'order_number')->ignore($order?->id)],
             'items'          => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity'   => ['required', 'integer', 'min:1'],

@@ -46,14 +46,16 @@
 
 
                         <!-- Retailer -->
-                        <div    x-data
-                                x-init="
-                                    selectedRetailerId = '{{ old('retailer_id', $order->retailer_id ?? '') }}';
-                                    fillAddress();
-                                ">
+                        <div>
                             <label class="block font-medium mb-1">Retailers</label>
 
-                            <select name="retailer_id" x-model="selectedRetailerId"  @change="fillAddress()"
+                            <select name="retailer_id"
+                                x-model="selectedRetailerId"
+                                x-init="
+                                    selectedRetailerId = @js(old('retailer_id', $order->retailer_id ?? ''));
+                                    fillAddress();
+                                "
+                                @change="fillAddress()"
                                 class="w-full border rounded-lg p-2 text-sm" 
                                 required>
 
@@ -105,8 +107,9 @@
                     <div class="col-span-12 lg:col-span-6">
                         <textarea name="billing_address"
                                   x-model="billingAddress"
+                                  readonly
                                   rows="5"
-                                  class="w-full h-full border rounded-lg p-2 text-sm resize-none"></textarea>
+                                  class="w-full h-full border rounded-lg p-2 text-sm resize-none bg-gray-50"></textarea>
                     </div>
                 </div>
 
