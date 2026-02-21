@@ -23,8 +23,8 @@ class SalesTypeController extends Controller
 
         $salesTypes = $salesTypesQuery
             ->latest()
-            ->paginate(20)
-            ->withQueryString();
+            ->paginate(20);
+        $salesTypes->appends($request->query());
 
         return view('admin.sales-types.index', compact('salesTypes', 'title', 'view'));
     }
