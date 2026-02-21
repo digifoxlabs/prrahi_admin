@@ -149,7 +149,7 @@
             </p>
         @else
             <form method="POST"
-                  action="{{ route('sales.retail.orders.assign-distributor', $order) }}">
+                  action="{{ route('admin.retail.orders.assign-distributor', $order) }}">
                 @csrf
 
                 <div class="mb-4">
@@ -457,8 +457,8 @@
 
         <form method="POST"
               :action="action === 'confirm'
-                        ? '{{ route('sales.retail.orders.confirm', $order) }}'
-                        : '{{ route('sales.retail.orders.cancel', $order) }}'">
+                        ? '{{ route('admin.retail.orders.confirm', $order) }}'
+                        : '{{ route('admin.retail.orders.cancel', $order) }}'">
 
             @csrf
 

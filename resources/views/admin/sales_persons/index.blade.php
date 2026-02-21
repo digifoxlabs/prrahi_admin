@@ -50,6 +50,21 @@
                         </div>
 
 
+                        <div class="flex items-center gap-2 sm:gap-3 sm:ml-4 shrink-0 whitespace-nowrap">
+                            <a href="{{ route('admin.sales-persons.index', ['view' => 'active', 'search' => $search]) }}"
+                                class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'active' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                                Active
+                            </a>
+                            <a href="{{ route('admin.sales-persons.index', ['view' => 'trashed', 'search' => $search]) }}"
+                                class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'trashed' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                                Trashed
+                            </a>
+                            <a href="{{ route('admin.sales-persons.index', ['view' => 'all', 'search' => $search]) }}"
+                                class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                                All
+                            </a>
+                        </div>
+
                         <!-- Actions (right) -->
                         <div class="flex items-center gap-2 sm:gap-3 sm:ml-4 shrink-0 whitespace-nowrap">
 
@@ -117,6 +132,9 @@
                 <th class="p-2">District</th>
                 <th class="p-2">Town</th>
                 <th class="p-2">Zone</th>
+                @if (($view ?? 'active') !== 'active')
+                    <th class="p-2">Deleted At</th>
+                @endif
                 <th class="p-2">Actions</th>
             </tr>
         </thead>
@@ -131,6 +149,9 @@
                     <td class="p-2">{{ $sp->district ?? '-' }}</td>
                     <td class="p-2">{{ $sp->town ?? '-' }}</td>
                     <td class="p-2">{{ $sp->zone ?? '-' }}</td>
+                    @if (($view ?? 'active') !== 'active')
+                        <td class="p-2">{{ optional($sp->deleted_at)->format('d M Y h:i A') ?? '-' }}</td>
+                    @endif
 
 
                     <td class="p-2 relative" x-data="{
@@ -186,23 +207,44 @@
                         <div x-cloak x-show="open" x-transition @click.away="open = false" :style="dropdownStyle"
                             class="fixed rounded-md shadow-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 z-[100]">
 
-                            @if (Auth::guard('admin')->user()->hasPermission('view_sales'))
-                            <a href="{{ route('admin.sales-persons.show', $sp) }}"
-                                class="block px-3 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-blue-500 transition">👁️
-                                View</a>
-                            @endif
+                            @if (! $sp->trashed())
+                                @if (Auth::guard('admin')->user()->hasPermission('view_sales'))
+                                <a href="{{ route('admin.sales-persons.show', $sp) }}"
+                                    class="block px-3 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-blue-500 transition">👁️
+                                    View</a>
+                                @endif
 
-                            @if (Auth::guard('admin')->user()->hasPermission('edit_sales'))
-                            <a href="{{ route('admin.sales-persons.edit', $sp) }}"
-                                class="block px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-green-400 transition">✏️
-                                Edit</a>
-                            @endif
+                                @if (Auth::guard('admin')->user()->hasPermission('edit_sales'))
+                                <a href="{{ route('admin.sales-persons.edit', $sp) }}"
+                                    class="block px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-green-400 transition">✏️
+                                    Edit</a>
+                                @endif
 
-                            @if (Auth::guard('admin')->user()->hasPermission('delete_sales'))
-                            <button
-                                @click.prevent="showModal = true; deleteUrl = '{{ route('admin.sales-persons.destroy', $sp) }}'; open = false;"
-                                class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-red-500 transition">🗑️
-                                Delete</button>
+                                @if (Auth::guard('admin')->user()->hasPermission('delete_sales'))
+                                <button
+                                    @click.prevent="showModal = true; deleteUrl = '{{ route('admin.sales-persons.destroy', $sp) }}'; open = false;"
+                                    class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-red-500 transition">🗑️
+                                    Delete</button>
+                                @endif
+                            @else
+                                <form action="{{ route('admin.sales-persons.restore', $sp->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit"
+                                        class="w-full text-left px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                        ♻️ Restore
+                                    </button>
+                                </form>
+
+                                <form action="{{ route('admin.sales-persons.forceDelete', $sp->id) }}" method="POST"
+                                    onsubmit="return confirm('Permanently delete this sales person? This cannot be undone.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                        ❌ Permanent Delete
+                                    </button>
+                                </form>
                             @endif
                         </div>
 
@@ -241,7 +283,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" class="p-4 text-gray-400 dark:text-gray-500">No Sales Persons found.</td>
+                    <td colspan="{{ ($view ?? 'active') !== 'active' ? 10 : 9 }}" class="p-4 text-gray-400 dark:text-gray-500">No Sales Persons found.</td>
                 </tr>
             @endforelse
         </tbody>
@@ -272,12 +314,16 @@
         function salesTableComponent() {
             return {
                 search: '{{ $search ?? '' }}',
+                view: '{{ $view ?? 'active' }}',
                 debounceTimeout: null,
                 updateQuery() {
                     clearTimeout(this.debounceTimeout);
                     this.debounceTimeout = setTimeout(() => {
                         const base = '{{ route('admin.sales-persons.index') }}';
-                        const query = this.search.trim() ? '?search=' + encodeURIComponent(this.search.trim()) : '';
+                        const params = new URLSearchParams();
+                        if (this.search.trim()) params.set('search', this.search.trim());
+                        if (this.view && this.view !== 'active') params.set('view', this.view);
+                        const query = params.toString() ? '?' + params.toString() : '';
                         window.location.href = base + query;
                     }, 500);
                 },

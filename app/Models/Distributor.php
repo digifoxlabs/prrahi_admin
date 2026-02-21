@@ -57,7 +57,7 @@ class Distributor extends Authenticatable
 
     public function salesPerson()
     {
-        return $this->belongsTo(SalesPerson::class, 'sales_persons_id');
+        return $this->belongsTo(SalesPerson::class, 'sales_persons_id')->withTrashed();
     }
 
 

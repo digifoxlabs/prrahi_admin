@@ -196,6 +196,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::post('/sales-persons/{salesPerson}/profile/upload', [SalesPersonController::class, 'uploadProfile'])->name('sales-persons.profile.upload');
     // Password update
     Route::post('/sales-persons/update-password', [SalesPersonController::class, 'updatePassword'])->name('sales-persons.updatePassword');
+    Route::patch('/sales-persons/{id}/restore', [SalesPersonController::class, 'restore'])->name('sales-persons.restore');
+    Route::delete('/sales-persons/{id}/force-delete', [SalesPersonController::class, 'forceDelete'])->name('sales-persons.forceDelete');
     Route::resource('sales-persons', SalesPersonController::class);
 
 

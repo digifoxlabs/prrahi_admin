@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SalesPersonExport;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use LogicException;
 
 
 class SalesPersonController extends Controller
@@ -24,7 +25,7 @@ class SalesPersonController extends Controller
         $this->middleware('permission:view_sales')->only(['index', 'show']);
         $this->middleware('permission:create_sales')->only(['create', 'store']);
         $this->middleware('permission:edit_sales')->only(['edit', 'update']);
-        $this->middleware('permission:delete_sales')->only(['destroy']);
+        $this->middleware('permission:delete_sales')->only(['destroy', 'restore', 'forceDelete']);
     }
 
 
@@ -34,22 +35,33 @@ class SalesPersonController extends Controller
      */
     public function index(Request $request)
     {
-         $title ='Sales-Persons'; 
-       $search = $request->query('search');
+        $title ='Sales-Persons'; 
+        $search = $request->query('search');
+        $view = $request->query('view', 'active');
 
-        $salesPersons = SalesPerson::query()
+        $salesPersonsQuery = SalesPerson::query();
+
+        if ($view === 'trashed') {
+            $salesPersonsQuery->onlyTrashed();
+        } elseif ($view === 'all') {
+            $salesPersonsQuery->withTrashed();
+        }
+
+        $salesPersons = $salesPersonsQuery
             ->when($search, function ($query, $search) {
-                $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('headquarter', 'like', "%$search%")
-                ->orWhere('town', 'like', "%$search%")
-                ->orWhere('town_covered', 'like', "%$search%");
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('headquarter', 'like', "%$search%")
+                        ->orWhere('town', 'like', "%$search%")
+                        ->orWhere('town_covered', 'like', "%$search%");
+                });
             })
             ->orderBy('id', 'desc')
             ->paginate(10)
             ->onEachSide(1)
             ->withQueryString(); // Preserve search on pagination
 
-        return view('admin.sales_persons.index', compact('salesPersons','title','search'));
+        return view('admin.sales_persons.index', compact('salesPersons','title','search', 'view'));
     }
 
     /**
@@ -179,11 +191,31 @@ public function store(Request $request)
     /**
      * Remove the specified resource from storage.
      */
- public function destroy(SalesPerson $salesPerson)
+public function destroy(SalesPerson $salesPerson)
 {
     $salesPerson->delete();
 
     return redirect()->route('admin.sales-persons.index')->with('success', 'Sales Person deleted successfully.');
+}
+
+public function restore($id)
+{
+    $salesPerson = SalesPerson::onlyTrashed()->findOrFail($id);
+    $salesPerson->restore();
+
+    return redirect()->back()->with('success', 'Sales Person restored successfully.');
+}
+
+public function forceDelete($id)
+{
+    $salesPerson = SalesPerson::onlyTrashed()->findOrFail($id);
+
+    try {
+        $salesPerson->forceDelete();
+        return redirect()->back()->with('success', 'Sales Person permanently deleted.');
+    } catch (LogicException $e) {
+        return redirect()->back()->with('error', $e->getMessage());
+    }
 }
 
     // AJAX District Fetcher

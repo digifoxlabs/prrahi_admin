@@ -259,4 +259,38 @@ class AdminRetailOrderController extends Controller
 
         return back()->with('success', 'Order cancelled successfully.');
     }
+
+
+
+    public function assignDistributor(Request $request, RetailOrder $order){
+        
+        abort_if($order->status !== 'pending', 403);
+
+        $request->validate([
+            'distributor_id' => ['required', 'exists:distributors,id'],
+        ]);
+
+        // Ensure distributor belongs to retailer
+        if (
+            !$order->retailer ||
+            $order->retailer->distributor_id != $request->distributor_id
+        ) {
+            abort(403, 'Invalid distributor selection');
+        }
+
+        $order->update([
+            'distributor_id' => $request->distributor_id,
+        ]);
+
+        return back()->with('success', 'Distributor assigned successfully.');
+
+           
+
+    }
+
+
+
+
+
+
 }
