@@ -163,6 +163,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     return \App\Models\Category::where('parent_id', $id)->get(['id', 'name']);
     })->name('categories.children');
     
+    Route::patch('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+    Route::delete('categories/{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('categories.forceDelete');
 
     Route::resource('categories', CategoryController::class);
 
@@ -240,6 +242,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::post('/retail-orders/{order}/assign-distributor', [AdminRetailOrderController::class, 'assignDistributor'])->name('retail.orders.assign-distributor');
 
     //Sales Type Controller
+    Route::patch('sales-types/{id}/restore', [SalesTypeController::class, 'restore'])->name('sales-type.restore');
+    Route::delete('sales-types/{id}/force-delete', [SalesTypeController::class, 'forceDelete'])->name('sales-type.forceDelete');
     Route::resource('sales-types', SalesTypeController::class)->names('sales-type');
     Route::put('orders/{order}/sales-type', [AdminOrderController::class, 'updateSalesType'])->name('orders.updateSalesType');
 

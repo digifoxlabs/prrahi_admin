@@ -5,22 +5,22 @@
 
         @if (session('success'))
             <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
-                class="bg-green-100 text-green-800 p-3 rounded mb-4">
+                class="mb-4 rounded bg-green-100 p-3 text-green-800">
                 {{ session('success') }}
             </div>
         @endif
 
         @if (session('error'))
             <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
-                class="bg-yellow-100 text-red-800 p-3 rounded mb-4">
+                class="mb-4 rounded bg-yellow-100 p-3 text-red-800">
                 {{ session('error') }}
             </div>
         @endif
 
         @if ($errors->any())
-            <div class="bg-red-100 text-red-800 p-3 rounded mb-4">
+            <div class="mb-4 rounded bg-red-100 p-3 text-red-800">
                 <strong>Please fix the following:</strong>
-                <ul class="list-disc pl-5 mt-2 space-y-1">
+                <ul class="mt-2 list-disc space-y-1 pl-5">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -44,40 +44,88 @@
                     </button>
                 </div>
 
+                <div class="mb-4 flex flex-wrap items-center gap-2">
+                    <a href="{{ route('admin.sales-type.index', ['view' => 'active']) }}"
+                        class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'active' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                        Active
+                    </a>
+                    <a href="{{ route('admin.sales-type.index', ['view' => 'trashed']) }}"
+                        class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'trashed' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                        Trashed
+                    </a>
+                    <a href="{{ route('admin.sales-type.index', ['view' => 'all']) }}"
+                        class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                        All
+                    </a>
+                </div>
+
                 <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
                     <table class="min-w-full table-auto text-sm">
-                        <thead class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white">
+                        <thead class="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-white">
                             <tr>
-                                <th class="px-4 py-3 text-left w-20">#</th>
+                                <th class="w-20 px-4 py-3 text-left">#</th>
                                 <th class="px-4 py-3 text-left">Sales Type</th>
-                                <th class="px-4 py-3 text-right w-48">Actions</th>
+                                @if (($view ?? 'active') !== 'active')
+                                    <th class="w-52 px-4 py-3 text-left">Deleted At</th>
+                                @endif
+                                <th class="w-64 px-4 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            @forelse($salesTypes as $type)
+                            @forelse($salesTypes as $index => $type)
                                 <tr class="bg-white dark:bg-transparent">
-                                    <td class="px-4 py-3">{{ $loop->iteration }}</td>
+                                    <td class="px-4 py-3">
+                                        {{ method_exists($salesTypes, 'firstItem') ? $salesTypes->firstItem() + $index : $loop->iteration }}
+                                    </td>
                                     <td class="px-4 py-3 font-medium">{{ $type->sales_type }}</td>
+                                    @if (($view ?? 'active') !== 'active')
+                                        <td class="px-4 py-3">{{ optional($type->deleted_at)->format('d M Y h:i A') ?? '-' }}</td>
+                                    @endif
                                     <td class="px-4 py-3 text-right space-x-2">
-                                        <button @click='openEdit({{ $type->id }}, @json($type->sales_type))'
-                                            class="inline-flex items-center rounded-md border border-blue-200 px-3 py-1.5 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950/40">
-                                            Edit
-                                        </button>
-
-                                        <form method="POST" action="{{ route('admin.sales-type.destroy', $type) }}"
-                                            class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button onclick="return confirm('Delete this sales type?')"
-                                                class="inline-flex items-center rounded-md border border-red-200 px-3 py-1.5 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/40">
-                                                Delete
+                                        @if (! $type->trashed())
+                                            <button @click='openEdit({{ $type->id }}, @json($type->sales_type))'
+                                                class="inline-flex items-center rounded-md border border-blue-200 px-3 py-1.5 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950/40">
+                                                Edit
                                             </button>
-                                        </form>
+
+                                            <form method="POST" action="{{ route('admin.sales-type.destroy', $type) }}"
+                                                class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button onclick="return confirm('Move this sales type to trash?')"
+                                                    class="inline-flex items-center rounded-md border border-red-200 px-3 py-1.5 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/40">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        @else
+                                            <form method="POST" action="{{ route('admin.sales-type.restore', $type->id) }}"
+                                                class="inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit"
+                                                    class="inline-flex items-center rounded-md border border-green-200 px-3 py-1.5 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-950/40">
+                                                    Restore
+                                                </button>
+                                            </form>
+
+                                            <form method="POST"
+                                                action="{{ route('admin.sales-type.forceDelete', $type->id) }}"
+                                                class="inline"
+                                                onsubmit="return confirm('Permanently delete this sales type? This cannot be undone.')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="inline-flex items-center rounded-md border border-red-200 px-3 py-1.5 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/40">
+                                                    Permanent Delete
+                                                </button>
+                                            </form>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                                    <td colspan="{{ ($view ?? 'active') !== 'active' ? 4 : 3 }}"
+                                        class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
                                         No sales types found.
                                     </td>
                                 </tr>
@@ -86,12 +134,18 @@
                     </table>
                 </div>
 
+                @if (method_exists($salesTypes, 'hasPages') && $salesTypes->hasPages())
+                    <div class="mt-4">
+                        {{ $salesTypes->withQueryString()->links('vendor.pagination.tailwind') }}
+                    </div>
+                @endif
+
                 <div x-show="showModal" x-transition
                     class="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4" style="display:none">
                     <div @click.outside="close()"
                         class="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-gray-900">
 
-                        <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white"
+                        <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
                             x-text="mode === 'create' ? 'Add Sales Type' : 'Edit Sales Type'"></h2>
 
                         <form method="POST" :action="formAction">
@@ -101,7 +155,8 @@
                             </template>
 
                             <div>
-                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sales Type</label>
+                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sales
+                                    Type</label>
                                 <input type="text" name="sales_type" x-model="salesType" required
                                     class="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-transparent dark:text-white/90">
                             </div>

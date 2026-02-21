@@ -4,112 +4,164 @@
 
         @include('admin.categories._breadcrump')
 
-
         @if (session('success'))
             <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
-                class="bg-green-100 text-green-800 p-3 rounded mb-4">
+                class="mb-4 rounded bg-green-100 p-3 text-green-800">
                 {{ session('success') }}
             </div>
         @endif
 
         @if (session('error'))
             <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
-                class="bg-yellow-100 text-red-800 p-3 rounded mb-4">
+                class="mb-4 rounded bg-yellow-100 p-3 text-red-800">
                 {{ session('error') }}
             </div>
         @endif
 
         <div
-            class="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
+            class="rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
             <div class="mx-auto w-full max-w-6xl">
+                <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white/90">Categories</h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Manage segments and sub-categories used in
+                            products.</p>
+                    </div>
+                    <a href="{{ route('admin.categories.create') }}"
+                        class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700">
+                        + Add Category
+                    </a>
+                </div>
 
+                <div class="mb-4 flex flex-wrap items-center gap-2">
+                    <a href="{{ route('admin.categories.index', ['view' => 'active', 'search' => $search]) }}"
+                        class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'active' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                        Active
+                    </a>
+                    <a href="{{ route('admin.categories.index', ['view' => 'trashed', 'search' => $search]) }}"
+                        class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'trashed' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                        Trashed
+                    </a>
+                    <a href="{{ route('admin.categories.index', ['view' => 'all', 'search' => $search]) }}"
+                        class="rounded-lg px-3 py-2 text-sm {{ ($view ?? 'active') === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700' }}">
+                        All
+                    </a>
+                </div>
 
-<div class="p-4">
-    <a href="{{ route('admin.categories.create') }}" class="bg-green-500 text-white px-4 py-2 rounded">+ Add
-        Category</a>
-    <table class="mt-4 w-full table-auto border text-center">
-        <thead class="bg-gray-100">
-            <tr>
-                <th class="p-2">#</th>
-                <th class="p-2">Name</th>
-                <th class="p-2">Parent</th>
-                <th class="p-2">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($categories as $cat)
-                <tr class="border-t" x-data="{ showModal: false, deleteUrl: '', open: false }">
-                    <td class="p-2">{{ $loop->iteration }}</td>
-                    <td class="p-2">{{ $cat->name }}</td>
-                    <td class="p-2">{{ $cat->parent?->name }}</td>
-                    <td class="p-2 whitespace-nowrap text-center relative">
-                        <!-- Actions Dropdown -->
-                        <button @click="open = !open"
-                            class="bg-gray-200 text-sm px-3 py-1 rounded hover:bg-gray-300 focus:outline-none">
-                            Actions ▾
-                        </button>
-
-                        <div x-show="open" @click.away="open = false" x-transition
-                            class="absolute right-0 z-20 mt-1 w-32 bg-white border border-gray-200 rounded shadow-md text-left">
-
-                           
-                            <!-- Edit -->
-                            <a href="{{ route('admin.categories.edit', $cat) }}"
-                                class="block px-3 py-2 text-sm text-blue-600 hover:bg-gray-100 hover:text-blue-800">
-                                ✏️ Edit
+                <form method="GET" action="{{ route('admin.categories.index') }}" class="mb-5">
+                    <input type="hidden" name="view" value="{{ $view ?? 'active' }}">
+                    <div class="relative w-full sm:max-w-md">
+                        <input type="text" name="search" value="{{ $search ?? '' }}"
+                            placeholder="Search category or parent..."
+                            class="w-full rounded-lg border border-gray-300 py-2.5 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-transparent dark:text-white/90" />
+                        @if (!empty($search))
+                            <a href="{{ route('admin.categories.index', ['view' => $view ?? 'active']) }}"
+                                class="absolute inset-y-0 right-3 inline-flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                Clear
                             </a>
+                        @endif
+                    </div>
+                </form>
 
-                            <!-- Delete triggers modal -->
-                            <button type="button" @click.prevent="showModal = true; deleteUrl = '{{ route('admin.categories.destroy', $cat) }}'; open = false;"
-                                class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 hover:text-red-700">
-                                🗑️ Delete
-                            </button>
-                        </div>
+                <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                    <table class="min-w-full table-auto text-sm">
+                        <thead class="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-white">
+                            <tr>
+                                <th class="w-20 px-4 py-3 text-left">#</th>
+                                <th class="px-4 py-3 text-left">Category</th>
+                                <th class="w-44 px-4 py-3 text-left">Type</th>
+                                <th class="px-4 py-3 text-left">Parent Segment</th>
+                                @if (($view ?? 'active') !== 'active')
+                                    <th class="w-48 px-4 py-3 text-left">Deleted At</th>
+                                @endif
+                                <th class="w-56 px-4 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            @forelse ($categories as $index => $cat)
+                                <tr class="bg-white dark:bg-transparent">
+                                    <td class="px-4 py-3">
+                                        {{ method_exists($categories, 'firstItem') ? $categories->firstItem() + $index : $loop->iteration }}
+                                    </td>
+                                    <td class="px-4 py-3 font-medium text-gray-900 dark:text-white/90">{{ $cat->name }}</td>
+                                    <td class="px-4 py-3">
+                                        @if ($cat->parent_id)
+                                            <span
+                                                class="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                                                Sub Category
+                                            </span>
+                                        @else
+                                            <span
+                                                class="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                                                Segment
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ $cat->parent?->name ?? '-' }}</td>
+                                    @if (($view ?? 'active') !== 'active')
+                                        <td class="px-4 py-3 text-gray-600 dark:text-gray-300">
+                                            {{ optional($cat->deleted_at)->format('d M Y h:i A') ?? '-' }}
+                                        </td>
+                                    @endif
+                                    <td class="px-4 py-3 text-right">
+                                        <div class="inline-flex items-center gap-2">
+                                            @if (! $cat->trashed())
+                                                <a href="{{ route('admin.categories.edit', $cat) }}"
+                                                    class="inline-flex items-center rounded-md border border-blue-200 px-3 py-1.5 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/40">
+                                                    Edit
+                                                </a>
+                                                <form method="POST" action="{{ route('admin.categories.destroy', $cat) }}"
+                                                    class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        onclick="return confirm('Move this category to trash?')"
+                                                        class="inline-flex items-center rounded-md border border-red-200 px-3 py-1.5 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form method="POST" action="{{ route('admin.categories.restore', $cat->id) }}"
+                                                    class="inline">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                        class="inline-flex items-center rounded-md border border-green-200 px-3 py-1.5 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-300 dark:hover:bg-green-950/40">
+                                                        Restore
+                                                    </button>
+                                                </form>
+                                                <form method="POST"
+                                                    action="{{ route('admin.categories.forceDelete', $cat->id) }}"
+                                                    class="inline"
+                                                    onsubmit="return confirm('Permanently delete this category? This cannot be undone.')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="inline-flex items-center rounded-md border border-red-200 px-3 py-1.5 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">
+                                                        Permanent Delete
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="{{ ($view ?? 'active') !== 'active' ? 6 : 5 }}"
+                                        class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                        No categories found.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
 
-                        <!-- Delete Confirmation Modal -->
-                        <template x-if="showModal">
-                            <div x-show="showModal" x-transition
-                                class="fixed inset-0 z-[100] flex items-center justify-center"
-                                style="height: 100vh; width: 100vw;">
-                                <div class="absolute inset-0 bg-gray-700/60 backdrop-blur-sm"
-                                    @click="showModal = false"></div>
-                                <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md p-6 z-[101]"
-                                    @click.stop>
-                                    <h2 class="text-lg font-semibold mb-4 text-red-600">Confirm Deletion</h2>
-                                    <p class="mb-6">
-                                        Are you sure you want to delete the Category:
-                                        <strong>{{ $cat->name }}</strong>?
-                                    </p>
-                                    <div class="flex justify-end space-x-3">
-                                        <button @click="showModal = false"
-                                            class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
-                                            Cancel
-                                        </button>
-                                        <form :action="deleteUrl" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                                                Yes, Delete
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="4" class="px-4 py-3 text-center text-gray-400">No Categories found.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
-
-
-
+                @if (method_exists($categories, 'hasPages') && $categories->hasPages())
+                    <div class="mt-4">
+                        {{ $categories->withQueryString()->links('vendor.pagination.tailwind') }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>

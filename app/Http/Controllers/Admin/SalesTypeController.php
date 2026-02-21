@@ -5,18 +5,28 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\SalesType;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class SalesTypeController extends Controller
 {
-        public function index()
+    public function index(Request $request)
     {
+        $title = 'SalesType';
+        $view = $request->query('view', 'active');
 
-    $title = 'SalesType';
-        $salesTypes = SalesType::latest()->get();
-        return view('admin.sales-types.index', compact('salesTypes','title'));
+        $salesTypesQuery = SalesType::query();
+        if ($view === 'trashed') {
+            $salesTypesQuery->onlyTrashed();
+        } elseif ($view === 'all') {
+            $salesTypesQuery->withTrashed();
+        }
+
+        $salesTypes = $salesTypesQuery
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.sales-types.index', compact('salesTypes', 'title', 'view'));
     }
 
     public function store(Request $request)
@@ -50,7 +60,22 @@ class SalesTypeController extends Controller
     {
         $salesType->delete();
         return back()->with('success', 'Sales type deleted.');
-    } 
+    }
 
- }
+    public function restore($id)
+    {
+        $salesType = SalesType::onlyTrashed()->findOrFail($id);
+        $salesType->restore();
 
+        return back()->with('success', 'Sales type restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $salesType = SalesType::onlyTrashed()->findOrFail($id);
+        $salesType->forceDelete();
+
+        return back()->with('success', 'Sales type permanently deleted.');
+    }
+
+}
