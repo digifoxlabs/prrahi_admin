@@ -100,7 +100,7 @@ class AdminRetailOrderController extends Controller
             'routePrefix' => 'admin',               // or distributor / sales
             'products'    => $products,
             'distributors' => Distributor::orderBy('firm_name')->get(),
-            'retailers' => Retailer::orderBy('retailer_name')->where('distributor_id', $distributor_id)->get(),
+            'retailers' => Retailer::orderBy('retailer_name')->get(),
             'title' => $title,
         ]);
     }
@@ -189,7 +189,7 @@ class AdminRetailOrderController extends Controller
             'products'     => $products,
             'order'        => $order,
             'distributors' => Distributor::orderBy('firm_name')->get(),
-            'retailers' => Retailer::orderBy('retailer_name')->get(),
+            'retailers' => Retailer::withTrashed()->orderBy('retailer_name')->get(),
             'cartItems'    => $cartItems,
             'title' => $title,
         ]);

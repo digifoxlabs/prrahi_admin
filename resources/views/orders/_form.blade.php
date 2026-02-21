@@ -61,22 +61,36 @@
                         <!-- Distributor -->
                         <div>
                             <label class="block font-medium mb-1">Distributor</label>
+                            @php
+                                $selectedDistributor = old('distributor_id', $order->distributor_id ?? auth('distributor')->id() ?? '');
+                            @endphp
 
                             <select name="distributor_id"
                                 x-model="selectedDistributorId"
                                 x-init="
-                                    selectedDistributorId = @js(old('distributor_id', $order->distributor_id ?? auth('distributor')->id() ?? ''));
+                                    selectedDistributorId = @js($selectedDistributor);
                                     fillAddress();
+                                    $nextTick(() => {
+                                        if ($el.disabled || !window.TomSelect || $el.tomselect) return;
+                                        const tomSelect = new TomSelect($el, {
+                                            create: false,
+                                            allowEmptyOption: true,
+                                            placeholder: 'Select Distributor',
+                                        });
+                                        if (selectedDistributorId) {
+                                            tomSelect.setValue(String(selectedDistributorId), true);
+                                        }
+                                    });
                                 "
                                 @change="fillAddress()"
                                 class="w-full border rounded-lg p-2 text-sm" @if(auth('distributor')->check()) disabled
                                 @endif
                                 required>
 
-                                <option value="">Select Distributor</option>
+                                <option value="">-- Select Distributor --</option>
 
                                 @foreach($distributors as $d)
-                                <option value="{{ $d->id }}">
+                                <option value="{{ $d->id }}" @selected((string) $selectedDistributor === (string) $d->id)>
                                     {{ $d->firm_name }}
                                 </option>
                                 @endforeach

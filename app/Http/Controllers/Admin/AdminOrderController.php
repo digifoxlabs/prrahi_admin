@@ -178,7 +178,7 @@ class AdminOrderController extends Controller
             'routePrefix' => 'admin',               // or distributor / sales
             'products'     => $products,
             'order'        => $order,
-            'distributors' => Distributor::orderBy('firm_name')->get(),
+            'distributors' => Distributor::withTrashed()->orderBy('firm_name')->get(),
             'cartItems'    => $cartItems,
             'title' => $title,
         ]);

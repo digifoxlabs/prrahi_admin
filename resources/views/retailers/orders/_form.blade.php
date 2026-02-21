@@ -48,21 +48,35 @@
                         <!-- Retailer -->
                         <div>
                             <label class="block font-medium mb-1">Retailers</label>
+                            @php
+                                $selectedRetailer = old('retailer_id', $order->retailer_id ?? '');
+                            @endphp
 
                             <select name="retailer_id"
                                 x-model="selectedRetailerId"
                                 x-init="
-                                    selectedRetailerId = @js(old('retailer_id', $order->retailer_id ?? ''));
+                                    selectedRetailerId = @js($selectedRetailer);
                                     fillAddress();
+                                    $nextTick(() => {
+                                        if (!window.TomSelect || $el.tomselect) return;
+                                        const tomSelect = new TomSelect($el, {
+                                            create: false,
+                                            allowEmptyOption: true,
+                                            placeholder: 'Select Retailer',
+                                        });
+                                        if (selectedRetailerId) {
+                                            tomSelect.setValue(String(selectedRetailerId), true);
+                                        }
+                                    });
                                 "
                                 @change="fillAddress()"
                                 class="w-full border rounded-lg p-2 text-sm" 
                                 required>
 
-                                <option value="">Select Retailer</option>
+                                <option value="">-- Select Retailer --</option>
 
                                 @foreach($retailers as $d)
-                                <option value="{{ $d->id }}">
+                                <option value="{{ $d->id }}" @selected((string) $selectedRetailer === (string) $d->id)>
                                     {{ $d->retailer_name }}
                                 </option>
                                 @endforeach
