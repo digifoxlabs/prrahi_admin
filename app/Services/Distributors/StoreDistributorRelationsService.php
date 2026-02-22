@@ -33,4 +33,5 @@ class StoreDistributorRelationsService
             $distributor->vehicles()->create($vehicle);
         }
     }
+
 }

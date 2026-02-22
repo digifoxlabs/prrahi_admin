@@ -19,63 +19,36 @@ class InventoryTransactionController extends Controller
     public function index(Request $request)
     {
 
-        //  $title ='Inventory';   
-        // $transactions = InventoryTransaction::with(['product', 'variant'])
-        // ->latest()
-        // ->paginate(15);
+        $title = 'Inventory';
 
-        //  return view('admin.inventory.index', compact('transactions','title'));
+        // Only simple products and variants (with parent loaded for variants)
+        $products = Product::whereIn('type', ['simple', 'variant'])
+            ->with('parent')
+            ->get();
 
+        $productId = $request->query('product_id');
+        $productName = null;
 
-    // $title ='Inventory';   
-    // $products = Product::with('variants')->get();
-    // $productId = $request->query('product_id');
-
-    // $transactions = InventoryTransaction::with(['product', 'variant'])
-    //     ->when($productId, function ($query) use ($productId) {
-    //         $query->where('product_id', $productId);
-    //     })
-    //     ->orderByDesc('date')
-    //     ->paginate(10)
-    //     ->withQueryString();
-
-    // return view('admin.inventory.index', compact('transactions', 'products', 'productId','title'));
-
-
-
-    $title = 'Inventory';
-
-    // Only simple products and variants (with parent loaded for variants)
-    $products = Product::whereIn('type', ['simple', 'variant'])
-        ->with('parent')
-        ->get();
-
-    $productId = $request->query('product_id');
-    $productName = null;
-
-    if ($productId) {
-        $product = Product::with('parent')->find($productId);
-        if ($product) {
-            if ($product->type === 'variant') {
-                $productName = ($product->parent->name ?? '') . ' - ' . ($product->attributes['fragrance'] ?? '');
-            } else {
-                $productName = $product->name;
+        if ($productId) {
+            $product = Product::with('parent')->find($productId);
+            if ($product) {
+                if ($product->type === 'variant') {
+                    $productName = ($product->parent->name ?? '') . ' - ' . ($product->attributes['fragrance'] ?? '');
+                } else {
+                    $productName = $product->name;
+                }
             }
         }
-    }
 
-    $transactions = InventoryTransaction::with(['product.parent'])
-        ->when($productId, function ($query) use ($productId) {
-            $query->where('product_id', $productId);
-        })
-        ->orderByDesc('date')
-        ->paginate(10)
-        ->withQueryString();
+        $transactions = InventoryTransaction::with(['product.parent'])
+            ->when($productId, function ($query) use ($productId) {
+                $query->where('product_id', $productId);
+            })
+            ->orderByDesc('date')
+            ->paginate(10)
+            ->withQueryString();
 
-    return view('admin.inventory.index', compact('transactions', 'products', 'productId','productName', 'title'));
-
-
-
+        return view('admin.inventory.index', compact('transactions', 'products', 'productId', 'productName', 'title'));
     }
 
     /**
@@ -83,50 +56,49 @@ class InventoryTransactionController extends Controller
      */
     public function create(Request $request)
     {
-           $title = 'Add Inventory Transaction';
+        $title = 'Add Inventory Transaction';
 
-            // Get only simple products and variants (with parent relationship for variants)
-            $products = Product::with('parent')
-                ->whereIn('type', ['simple', 'variant'])
-                ->get();
-
-
-
-                $productId = $request->query('product_id');
-
-                $transaction = new InventoryTransaction([
-                'product_id' => $productId,
-                'date' => now()->format('Y-m-d'),
-                ]);
+        // Get only simple products and variants (with parent relationship for variants)
+        $products = Product::with('parent')
+            ->whereIn('type', ['simple', 'variant'])
+            ->get();
 
 
-            return view('admin.inventory.create', compact('title', 'products','transaction'));
 
+        $productId = $request->query('product_id');
+
+        $transaction = new InventoryTransaction([
+            'product_id' => $productId,
+            'date' => now()->format('Y-m-d'),
+        ]);
+
+
+        return view('admin.inventory.create', compact('title', 'products', 'transaction'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-  public function store(Request $request)
+    public function store(Request $request)
     {
 
-    $validated = $request->validate([
-        'product_id' => 'required|exists:products,id',
-        'type' => 'required|in:in,out,adjustment',
-        'quantity' => 'required|integer|min:1',
-        'remarks' => 'nullable|string',
-        'date' => 'required|date',
-    ]);
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'type' => 'required|in:in,out,adjustment',
+            'quantity' => 'required|integer|min:1',
+            'remarks' => 'nullable|string',
+            'date' => 'required|date',
+        ]);
 
 
 
-    InventoryTransaction::create([
-        'product_id' => $validated['product_id'],
-        'type' => $validated['type'],
-        'quantity' => $validated['quantity'],
-        'remarks' => $validated['remarks'],
-        'date' => $validated['date'],
-    ]);
+        InventoryTransaction::create([
+            'product_id' => $validated['product_id'],
+            'type' => $validated['type'],
+            'quantity' => $validated['quantity'],
+            'remarks' => $validated['remarks'],
+            'date' => $validated['date'],
+        ]);
 
         return redirect()->route('admin.inventory.index')->with('success', 'Inventory transaction added.');
     }
@@ -144,52 +116,46 @@ class InventoryTransactionController extends Controller
      */
     public function edit(InventoryTransaction $inventory)
     {
-        $title ='Inventory'; 
-        // $products = Product::with('variants')->get();
-        // return view('admin.inventory.edit', compact('inventory', 'products','title'));
+        $title = 'Inventory';
 
+        // Get only simple products and variants (with parent relationship for variants)
+        $products = Product::with('parent')
+            ->whereIn('type', ['simple', 'variant'])
+            ->get();
 
-
-
-    // Get only simple products and variants (with parent relationship for variants)
-    $products = Product::with('parent')
-        ->whereIn('type', ['simple', 'variant'])
-        ->get();
-
-    return view('admin.inventory.edit', compact('title', 'inventory', 'products'));
-
+        return view('admin.inventory.edit', compact('title', 'inventory', 'products'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-public function update(Request $request, InventoryTransaction $inventory)
-{
+    public function update(Request $request, InventoryTransaction $inventory)
+    {
 
-    $request->validate([
-        'product_id' => 'required|exists:products,id',
-        'type' => 'required|in:in,out,adjustment',
-        'quantity' => 'required|integer|min:1',
-        'remarks' => 'nullable|string',
-        'date' => 'required|date',
-    ]);
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'type' => 'required|in:in,out,adjustment',
+            'quantity' => 'required|integer|min:1',
+            'remarks' => 'nullable|string',
+            'date' => 'required|date',
+        ]);
 
-    $inventory->update([
-        'product_id' => $request->product_id,
-        'type' => $request->type,
-        'quantity' => $request->quantity,
-        'remarks' => $request->remarks,
-        'date' => $request->date,
-    ]);
+        $inventory->update([
+            'product_id' => $request->product_id,
+            'type' => $request->type,
+            'quantity' => $request->quantity,
+            'remarks' => $request->remarks,
+            'date' => $request->date,
+        ]);
 
 
 
-    return redirect()->route('admin.inventory.index')->with('success', 'Inventory transaction updated.');
-}
+        return redirect()->route('admin.inventory.index')->with('success', 'Inventory transaction updated.');
+    }
     /**
      * Remove the specified resource from storage.
      */
-     public function destroy(InventoryTransaction $inventory)
+    public function destroy(InventoryTransaction $inventory)
     {
         $inventory->delete();
         return redirect()->route('admin.inventory.index')->with('success', 'Inventory entry deleted.');
@@ -234,9 +200,4 @@ public function update(Request $request, InventoryTransaction $inventory)
 
         return Excel::download(new InventoryExport($productId), 'inventory-export.xlsx');
     }
-
-
-
-
-
 }

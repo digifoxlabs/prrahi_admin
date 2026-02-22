@@ -70,6 +70,7 @@ class Retailer extends Model
             $isReferenced = DB::table('orders')->where('retailer_id', $id)->exists()
                 || DB::table('retailer_sales')->where('retailer_id', $id)->exists()
                 || DB::table('retail_orders')->where('retailer_id', $id)->exists()
+                || DB::table('visit_notes')->where('entity_type', 'retailer')->where('entity_id', $id)->exists()
                 || DB::table('orders')->where('created_by_type', self::class)->where('created_by_id', $id)->exists()
                 || DB::table('retail_orders')->where('created_by_type', self::class)->where('created_by_id', $id)->exists()
                 || DB::table('order_activities')->where('performed_by_type', self::class)->where('performed_by_id', $id)->exists()

@@ -160,6 +160,7 @@
     ]],
     ['title'=>'Banks','key'=>'banks','fields'=>[
     ['label'=>'Bank Name','name'=>'bank_name'],
+    ['label'=>'Account No','name'=>'current_ac'],
     ['label'=>'Branch','name'=>'branch_name'],
     ['label'=>'IFSC','name'=>'ifsc'],
     ]],

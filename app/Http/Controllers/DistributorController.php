@@ -129,9 +129,9 @@ class DistributorController extends Controller
         ]);
 
         //Handle password Change
-        if (!empty($validated['password'])) {
+        if (!empty($data['password'])) {
             $distributor->update([
-                'password' => Hash::make($validated['password'])
+                'password' => Hash::make($data['password'])
             ]);
         }
 

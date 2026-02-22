@@ -28,8 +28,6 @@ class SalesPersonController extends Controller
         $this->middleware('permission:delete_sales')->only(['destroy', 'restore', 'forceDelete']);
     }
 
-
-
     /**
      * Display a listing of the resource.
      */

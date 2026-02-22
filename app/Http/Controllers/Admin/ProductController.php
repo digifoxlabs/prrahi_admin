@@ -23,39 +23,6 @@ class ProductController extends Controller
     }
 
 
-// public function index(Request $request)
-// {
-//     $title = 'Products';
-//     $search = $request->query('search');
-
-//     // Fetch only top-level products (parent_id IS NULL) so variables (with variants) and simple products appear.
-//     // Eager load variants and categories
-//     $products = Product::with(['category', 'subCategory', 'variants', 'variants.category', 'variants.subCategory'])
-//         ->whereNull('parent_id')
-//         ->when($search, function ($query, $search) {
-//             $query->where(function ($q) use ($search) {
-//                 // Match on parent (top-level) name/code OR any variant attributes (via variants relation)
-//                 $q->where('name', 'like', "%{$search}%")
-//                   ->orWhere('code', 'like', "%{$search}%")
-//                   ->orWhereHas('category', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-//                   ->orWhereHas('subCategory', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-//                   ->orWhereHas('variants', function ($q3) use ($search) {
-//                       $q3->where('name', 'like', "%{$search}%")
-//                          ->orWhere('code', 'like', "%{$search}%")
-//                          ->orWhereHas('category', fn($q4) => $q4->where('name', 'like', "%{$search}%"))
-//                          ->orWhereHas('subCategory', fn($q4) => $q4->where('name', 'like', "%{$search}%"));
-//                   });
-//             });
-//         })
-//         ->orderByDesc('id')
-//         ->paginate(20)
-//         ->withQueryString();
-
-//     return view('admin.products.index', compact('title', 'products', 'search'));
-// }
-
-
-
     // Index: return only top-level products (parent_id IS NULL)
     public function index(Request $request)
     {

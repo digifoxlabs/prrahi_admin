@@ -88,6 +88,7 @@ class Distributor extends Authenticatable
                 || DB::table('distributor_manpowers')->where('distributor_id', $id)->exists()
                 || DB::table('distributor_vehicles')->where('distributor_id', $id)->exists()
                 || DB::table('distributor_investments')->where('distributor_id', $id)->exists()
+                || DB::table('visit_notes')->where('entity_type', 'distributor')->where('entity_id', $id)->exists()
                 || DB::table('retailers')->where('distributor_id', $id)->exists()
                 || DB::table('orders')->where('distributor_id', $id)->exists()
                 || DB::table('retail_orders')->where('distributor_id', $id)->exists()

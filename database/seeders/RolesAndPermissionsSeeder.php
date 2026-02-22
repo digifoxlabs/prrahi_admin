@@ -22,11 +22,12 @@ class RolesAndPermissionsSeeder extends Seeder
                 'view_products','edit_products','create_products','delete_products',
                 'view_categories','edit_categories','create_categories','delete_categories',
                 'view_inventories','edit_inventories', 'create_inventories','delete_inventories',
+                'view_sales_type','edit_sales_type', 'create_sales_type','delete_sales_type',
                 'view_orders','edit_orders','create_orders','delete_orders',
                 'view_distributors','edit_distributors','create_distributors','delete_distributors',
                 'view_sales','edit_sales','create_sales','delete_sales',
                 'view_retailers','edit_retailers','create_retailers','delete_retailers',
-                'view_settings','edit_settings','create_settings','delete_settings'];
+                'view_api_doc','view_settings','edit_settings','create_settings','delete_settings'];
 
                 foreach ($permissions as $perm) {
                     Permission::firstOrCreate(['name' => $perm]);
