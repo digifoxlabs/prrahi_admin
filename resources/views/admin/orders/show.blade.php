@@ -192,6 +192,20 @@
                             </span>
                         @endif
 
+                        @if($order->status === 'pending')
+                            @php
+                                $availableStock = (int) $item->product->inventoryTransactions
+                                    ->where('type', 'in')
+                                    ->sum('quantity')
+                                    - (int) $item->product->inventoryTransactions
+                                        ->whereIn('type', ['out', 'reserved'])
+                                        ->sum('quantity');
+                            @endphp
+
+                            <p class="text-xs mt-1 {{ $availableStock < $item->quantity ? 'text-red-600' : 'text-green-600' }}">
+                                Available Stock: {{ $availableStock }}
+                            </p>
+                        @endif
 
                         @if(isset($stockErrors[$item->id]))
                             <p class="text-xs text-red-600 mt-1">
@@ -584,4 +598,3 @@
     </script>
     
 @endpush
-

@@ -18,6 +18,11 @@ use App\Http\Controllers\Api\Sales\DistributorVehicleController;
 use App\Http\Controllers\Api\Sales\RetailerController;
 use App\Http\Controllers\Api\Sales\VisitController;
 use App\Http\Controllers\Api\Distributor\DistOrderController;
+use App\Http\Controllers\Api\Distributor\DistRetailerController;
+use App\Http\Controllers\Api\Distributor\DistRetailOrderController;
+use App\Http\Controllers\Api\Distributor\RetailSaleController;
+use App\Http\Controllers\Api\Distributor\DistributorInventoryController;
+use App\Http\Controllers\Api\Distributor\DistributorStockController;
 
 /*
 |--------------------------------------------------------------------------
@@ -199,11 +204,59 @@ Route::middleware(['auth:distributor_api'])
     ->prefix('distributor')
     ->group(function () {
 
+        // Distributor Inventory Ledger
+        Route::get('/inventory/ledger', [DistributorInventoryController::class, 'index']);
+
+        // Distributor Inventory
+        Route::get('/stock', [DistributorStockController::class, 'index']);
+
+        // Retailer Sales
+        Route::get('/retail-sales', [RetailSaleController::class, 'index']);
+        Route::get('/retail-sales/create', [RetailSaleController::class, 'create']);
+        Route::post('/retail-sales', [RetailSaleController::class, 'store']);
+        Route::get('/retail-sales/{id}', [RetailSaleController::class, 'show']);
+        Route::delete('/retail-sales/{id}', [RetailSaleController::class, 'destroy']);
+
         Route::get('/orders', [DistOrderController::class, 'index']);
         Route::get('/orders/create', [DistOrderController::class, 'create']);
         Route::post('/orders', [DistOrderController::class, 'store']);
         Route::get('/orders/{order}', [DistOrderController::class, 'show']);
         Route::put('/orders/{order}', [DistOrderController::class, 'update']);
         Route::post('/orders/preview', [DistOrderController::class, 'preview']);
+        Route::put('/orders/deliver/{order}', [DistOrderController::class,'deliver']);
+
+
+        //Retailer Orders
+        Route::get('/retail-orders', [DistRetailOrderController::class, 'index']);
+        Route::get('/retail-orders/create', [DistRetailOrderController::class, 'create']);
+        Route::post('/retail-orders', [DistRetailOrderController::class, 'store']);
+        Route::get('/retail-orders/{id}', [DistRetailOrderController::class, 'show']);
+        Route::put('/retail-orders/{id}', [DistRetailOrderController::class, 'update']);
+        Route::post('/retail-orders/preview', [DistRetailOrderController::class, 'preview']);
+
+
+        // Retailers
+        Route::get('/retailers', [DistRetailerController::class, 'index']);
+        Route::post('/retailers', [DistRetailerController::class, 'store']);
+        Route::get('/retailers/{retailer}', [DistRetailerController::class, 'show']);
+        Route::put('/retailers/{retailer}', [DistRetailerController::class, 'update']);
+        Route::delete('/retailers/{retailer}', [DistRetailerController::class, 'destroy']);
+
+        // States & Districts
+        Route::get('/states', fn () =>
+            \App\Models\State::select('name')->orderBy('name')->get()
+        );
+
+        Route::get('/states/{state}/districts', function ($state) {
+            return \App\Models\District::whereHas('state', function ($q) use ($state) {
+                $q->where('name', $state);
+            })
+            ->select('name')
+            ->orderBy('name')
+            ->get();
+        });
+
+
+
 
     });

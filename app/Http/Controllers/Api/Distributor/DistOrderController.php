@@ -11,6 +11,8 @@ use App\Models\Distributor;
 use App\Services\Orders\OrderCalculationService;
 use App\Models\Product;
 use Illuminate\Support\Str;
+use App\Services\OrderActivityLogger;
+use App\Services\OrderDeliveryService;
 
 class DistOrderController extends Controller
 {
@@ -80,6 +82,8 @@ class DistOrderController extends Controller
                 'igst'          => $order->igst,
                 'round_off'     => $order->round_off,
                 'total_amount'  => $order->total_amount,
+                'invoice_status'  => $order->invoice_status,
+                'dispatch_status'  => $order->dispatch_status,
                 'distributor'   => [
                     'id'        => $order->distributor->id,
                     'firm_name' => $order->distributor->firm_name,
@@ -173,6 +177,51 @@ class DistOrderController extends Controller
 
 
 
+    //Mark Order Delivery
+    public function deliver(Request $request, $id)
+    {
+
+        $distributor = auth('distributor_api')->user();
+
+        $order = Order::where('id', $id)
+            ->where('distributor_id', $distributor->id)
+            ->firstOrFail();
+
+        abort_if($order->status === 'pending' || $order->dispatch_status === 'pending' || $order->dispatch_status === 'delivered', 403, 'Order cannot be edited.');
+
+
+        // // Guard: must be dispatched
+        // if ($order->dispatch_status !== 'dispatched') {
+        //     return back()->with('error', 'Order must be dispatched before delivery.');
+        // }
+
+        // // Guard: already delivered
+        // if ($order->dispatch_status === 'delivered') {
+        //     return back()->with('error', 'Order is already delivered.');
+        // }
+
+        DB::transaction(function () use ($order) {
+
+            // Update order
+            $order->update([
+                'dispatch_status' => 'delivered',
+            ]);
+
+            // Log activity
+            OrderActivityLogger::log(
+                $order,
+                'delivered',
+                'Order delivered'
+            );
+
+            //Order Delivery Service to Update in Distributor Inventory
+            OrderDeliveryService::handle($order);
+    
+
+        });
+
+        return back()->with('success', 'Order marked as delivered.');
+    }
 
 
 
@@ -257,4 +306,15 @@ class DistOrderController extends Controller
             'preview' => $calculation,
         ]);
     }
+
+
+
+
+
+
+
+
+
+
+
 }

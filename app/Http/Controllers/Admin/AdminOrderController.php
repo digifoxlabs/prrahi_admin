@@ -95,7 +95,11 @@ class AdminOrderController extends Controller
     {
         $title = 'Orders';
         $salesType = SalesType::all();
-        $order->load('items.product', 'distributor');
+        $order->load([
+            'items.product.parent',
+            'items.product.inventoryTransactions',
+            'distributor',
+        ]);
         return view('admin.orders.show', compact('order', 'title', 'salesType'));
     }
 

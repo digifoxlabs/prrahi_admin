@@ -23,40 +23,6 @@ class ProductController extends Controller
     }
 
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function indexX(Request $request)
-    {
-    
-    $title = 'Products';
-    $search = $request->query('search');
-
-     $products = Product::with(['category', 'subCategory', 'parent.category', 'parent.subCategory'])
-        ->whereIn('type', ['simple', 'variant'])  // ✅ Only simple and variant products
-        ->when($search, function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhereHas('parent', fn ($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('category', fn ($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('subCategory', fn ($q2) => $q2->where('name', 'like', "%{$search}%"));
-            });
-        })
-        ->orderByDesc('id')
-        ->paginate(20)
-        ->withQueryString();
-
-    return view('admin.products.index', compact('title', 'products', 'search'));
-
-    }
-
-
-
-
-
-
-
 // public function index(Request $request)
 // {
 //     $title = 'Products';
@@ -118,7 +84,7 @@ class ProductController extends Controller
         }
 
         if ($search) {
-            $productsQuery->where(function ($q) use ($search) {
+            $productsQuery->where(function ($q) use ($search, $view) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('code', 'like', "%{$search}%")
                   ->orWhereHas('category', fn($q2) => $q2->where('name', 'like', "%{$search}%"))

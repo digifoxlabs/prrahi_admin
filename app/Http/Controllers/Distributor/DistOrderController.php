@@ -97,7 +97,7 @@ class DistOrderController extends Controller
         });
 
         return back()->with('success', 'Order marked as delivered.');
-}
+    }
 
 
     //Create Order 
