@@ -27,10 +27,12 @@
                         <p class="text-sm text-gray-500 dark:text-gray-400">Manage segments and sub-categories used in
                             products.</p>
                     </div>
-                    <a href="{{ route('admin.categories.create') }}"
-                        class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700">
-                        + Add Category
-                    </a>
+                    @if (Auth::guard('admin')->user()->hasPermission('create_categories'))
+                        <a href="{{ route('admin.categories.create') }}"
+                            class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700">
+                            + Add Category
+                        </a>
+                    @endif
                 </div>
 
                 <div class="mb-4 flex flex-wrap items-center gap-2">
@@ -106,41 +108,47 @@
                                     <td class="px-4 py-3 text-right">
                                         <div class="inline-flex items-center gap-2">
                                             @if (! $cat->trashed())
-                                                <a href="{{ route('admin.categories.edit', $cat) }}"
-                                                    class="inline-flex items-center rounded-md border border-blue-200 px-3 py-1.5 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/40">
-                                                    Edit
-                                                </a>
-                                                <form method="POST" action="{{ route('admin.categories.destroy', $cat) }}"
-                                                    class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
-                                                        onclick="return confirm('Move this category to trash?')"
-                                                        class="inline-flex items-center rounded-md border border-red-200 px-3 py-1.5 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">
-                                                        Delete
-                                                    </button>
-                                                </form>
+                                                @if (Auth::guard('admin')->user()->hasPermission('edit_categories'))
+                                                    <a href="{{ route('admin.categories.edit', $cat) }}"
+                                                        class="inline-flex items-center rounded-md border border-blue-200 px-3 py-1.5 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/40">
+                                                        Edit
+                                                    </a>
+                                                @endif
+                                                @if (Auth::guard('admin')->user()->hasPermission('delete_categories'))
+                                                    <form method="POST" action="{{ route('admin.categories.destroy', $cat) }}"
+                                                        class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                            onclick="return confirm('Move this category to trash?')"
+                                                            class="inline-flex items-center rounded-md border border-red-200 px-3 py-1.5 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">
+                                                            Delete
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             @else
-                                                <form method="POST" action="{{ route('admin.categories.restore', $cat->id) }}"
-                                                    class="inline">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit"
-                                                        class="inline-flex items-center rounded-md border border-green-200 px-3 py-1.5 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-300 dark:hover:bg-green-950/40">
-                                                        Restore
-                                                    </button>
-                                                </form>
-                                                <form method="POST"
-                                                    action="{{ route('admin.categories.forceDelete', $cat->id) }}"
-                                                    class="inline"
-                                                    onsubmit="return confirm('Permanently delete this category? This cannot be undone.')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
-                                                        class="inline-flex items-center rounded-md border border-red-200 px-3 py-1.5 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">
-                                                        Permanent Delete
-                                                    </button>
-                                                </form>
+                                                @if (Auth::guard('admin')->user()->hasPermission('delete_categories'))
+                                                    <form method="POST" action="{{ route('admin.categories.restore', $cat->id) }}"
+                                                        class="inline">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit"
+                                                            class="inline-flex items-center rounded-md border border-green-200 px-3 py-1.5 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-300 dark:hover:bg-green-950/40">
+                                                            Restore
+                                                        </button>
+                                                    </form>
+                                                    <form method="POST"
+                                                        action="{{ route('admin.categories.forceDelete', $cat->id) }}"
+                                                        class="inline"
+                                                        onsubmit="return confirm('Permanently delete this category? This cannot be undone.')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                            class="inline-flex items-center rounded-md border border-red-200 px-3 py-1.5 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">
+                                                            Permanent Delete
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             @endif
                                         </div>
                                     </td>

@@ -1,6 +1,10 @@
 @php
     $isEdit = isset($category);
     $selectedParentId = old('parent_id', $category->parent_id ?? '');
+    $adminUser = Auth::guard('admin')->user();
+    $canSubmit = $isEdit
+        ? ($adminUser && $adminUser->hasPermission('edit_categories'))
+        : ($adminUser && $adminUser->hasPermission('create_categories'));
 @endphp
 
 <form method="POST" action="{{ $isEdit ? route('admin.categories.update', $category) : route('admin.categories.store') }}"
@@ -39,10 +43,12 @@
     </div>
 
     <div class="flex items-center gap-3 pt-2">
-        <button type="submit"
-            class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700">
-            {{ $isEdit ? 'Update Category' : 'Create Category' }}
-        </button>
+        @if ($canSubmit)
+            <button type="submit"
+                class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700">
+                {{ $isEdit ? 'Update Category' : 'Create Category' }}
+            </button>
+        @endif
 
         <a href="{{ route('admin.categories.index') }}"
             class="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">

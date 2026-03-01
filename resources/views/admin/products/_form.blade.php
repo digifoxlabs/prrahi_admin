@@ -17,6 +17,10 @@ $selectedCategory = old('category_id', $product->category_id ?? '');
 $selectedSubCategory = old('sub_category_id', $product->sub_category_id ?? '');
 $variants = [];
 $variant = null;
+$adminUser = Auth::guard('admin')->user();
+$canSubmit = $isEdit
+    ? ($adminUser && $adminUser->hasPermission('edit_products'))
+    : ($adminUser && $adminUser->hasPermission('create_products'));
 
 if ($isEdit && $type === 'variant' && $product->parent) {
     $parent = $product->parent;
@@ -582,7 +586,9 @@ if ($isEdit && $type === 'variant' && $product->parent) {
 
 
     <div @class(['mt-6', 'flex', 'gap-4'])>
+        @if ($canSubmit)
         <button @class(['bg-blue-600', 'text-white', 'px-4', 'py-2', 'rounded'])>{{ $isEdit ? 'Update' : 'Create' }}</button>
+        @endif
         <a href="{{ route('admin.products.index') }}" @class(['border', 'px-4', 'py-2', 'rounded', 'hover:bg-gray-100'])>Cancel</a>
     </div>
 </div>

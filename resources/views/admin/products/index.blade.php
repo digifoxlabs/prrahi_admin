@@ -19,11 +19,15 @@
             {{ session('error') }}
         </div>
     @endif
+    @php
+        $adminUser = Auth::guard('admin')->user();
+    @endphp
 
     <div class="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
 
         <!-- Grid container root -->
         <div class="mx-auto w-full max-w-6xl">
+            @if ($adminUser && $adminUser->hasPermission('view_products'))
 
             {{-- Action Bar (search + create + export) --}}
             <div x-data="{
@@ -94,7 +98,7 @@
                             </div>
                         </div>
 
-                        @if (Auth::guard('admin')->user()->hasPermission('create_products'))
+                        @if ($adminUser->hasPermission('create_products'))
                             <a href="{{ route('admin.products.create') }}"
                                 class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm text-white">+ Create</a>
                         @endif
@@ -158,11 +162,15 @@
 
                                 @if ($product->type === 'variable' && ! $product->trashed())
                                     <div class="mt-3 flex gap-2">
+                                        @if ($adminUser->hasPermission('create_products'))
                                         <a href="{{ route('admin.products.add-variant', $product->id) }}?redirect_to={{ urlencode(url()->current()) }}" class="text-xs px-2 py-1 border rounded">+ Add Variant</a>
+                                        @endif
 
                                         <!-- Open new page to view variants -->
+                                        @if ($adminUser->hasPermission('view_products'))
                                         <a href="{{ route('admin.products.variants', $product->id) }}"
                                             class="text-xs px-2 py-1 border rounded">View Variants ({{ $product->variants->count() }})</a>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -186,6 +194,11 @@
             <div class="mt-6">
                 {{ $products->withQueryString()->links('vendor.pagination.tailwind') }}
             </div>
+            @else
+                <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+                    You do not have permission to view products.
+                </div>
+            @endif
 
         </div>
     </div>

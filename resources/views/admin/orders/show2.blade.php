@@ -48,16 +48,20 @@
             </div>
 
             <div class="flex gap-2">
+                @if (Auth::guard('admin')->user()->hasPermission('view_orders'))
                 <a href="{{ route('admin.orders.invoice.print', $order) }}"
                    target="_blank"
                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">
                     Download / Print Invoice
                 </a>
+                @endif
 
+                @if (Auth::guard('admin')->user()->hasPermission('edit_orders'))
                 <button @click="showInvoiceRemove=true"
                         class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm">
                     Remove Invoice
                 </button>
+                @endif
             </div>
         </div>
     @endif
@@ -124,6 +128,7 @@
         <a href="{{ route('admin.orders.index') }}"
            class="px-4 py-2 border rounded-lg">Back</a>
 
+        @if (Auth::guard('admin')->user()->hasPermission('edit_orders'))
         @if($order->status === 'pending')
             <a href="{{ route('admin.orders.edit',$order) }}"
                class="px-4 py-2 bg-indigo-600 text-white rounded-lg">
@@ -134,8 +139,10 @@
                 Edit Locked
             </span>
         @endif
+        @endif
     </div>
 
+    @if (Auth::guard('admin')->user()->hasPermission('edit_orders'))
     <!-- ================= REMOVE INVOICE MODAL ================= -->
     <div x-show="showInvoiceRemove" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="absolute inset-0 bg-black/50" @click="showInvoiceRemove=false"></div>
@@ -157,6 +164,7 @@
             </form>
         </div>
     </div>
+    @endif
 
 </div>
 @endsection
@@ -171,3 +179,4 @@
     </script>
     
 @endpush
+

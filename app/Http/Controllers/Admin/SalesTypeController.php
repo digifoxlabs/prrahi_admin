@@ -9,6 +9,14 @@ use Illuminate\Validation\Rule;
 
 class SalesTypeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view_sales_type')->only(['index']);
+        $this->middleware('permission:create_sales_type')->only(['store']);
+        $this->middleware('permission:edit_sales_type')->only(['update']);
+        $this->middleware('permission:delete_sales_type')->only(['destroy', 'restore', 'forceDelete']);
+    }
+
     public function index(Request $request)
     {
         $title = 'SalesType';

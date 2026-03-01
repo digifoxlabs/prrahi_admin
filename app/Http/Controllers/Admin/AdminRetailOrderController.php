@@ -14,6 +14,13 @@ use App\Services\RetailOrderActivityLogger;
 
 class AdminRetailOrderController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view_orders')->only(['index', 'show']);
+        $this->middleware('permission:create_orders')->only(['create']);
+        $this->middleware('permission:edit_orders')->only(['edit', 'confirm', 'cancel', 'assignDistributor']);
+        $this->middleware('permission:delete_orders')->only(['destroy']);
+    }
 
     public function index(Request $request)
     {

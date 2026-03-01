@@ -16,6 +16,22 @@ use App\Services\OrderDeliveryService;
 
 class AdminOrderController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view_orders')->only(['index', 'show', 'printInvoice']);
+        $this->middleware('permission:create_orders')->only(['create']);
+        $this->middleware('permission:edit_orders')->only([
+            'edit',
+            'confirm',
+            'cancel',
+            'dispatch',
+            'deliver',
+            'markInvoiceGenerated',
+            'removeInvoice',
+            'updateSalesType',
+        ]);
+        $this->middleware('permission:delete_orders')->only(['destroy']);
+    }
 
     /*****************************
      * Lists all Distributor Orders

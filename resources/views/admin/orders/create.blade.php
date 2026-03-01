@@ -382,9 +382,13 @@
                             <input type="hidden" name="round_off" :value="roundOff">
                             <input type="hidden" name="total_amount" :value="total">
 
+                            @if (Auth::guard('admin')->user()->hasPermission('create_orders'))
                             <button class="mt-3 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                                 Save Order
                             </button>
+                            @else
+                            <p class="mt-3 text-sm text-gray-500">You do not have permission to create orders.</p>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -503,3 +507,4 @@
     }
     </script>
 @endpush
+

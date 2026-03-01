@@ -13,7 +13,17 @@
 
                 <div class="max-w-xl mx-auto p-4 bg-white rounded shadow mt-10">
                     <h2 class="text-xl font-bold mb-4">Create Permission</h2>
-                    @include('admin.permissions._form')
+                    @php
+                        $adminUser = Auth::guard('admin')->user();
+                    @endphp
+
+                    @if ($adminUser && $adminUser->hasPermission('create_permissions'))
+                        @include('admin.permissions._form')
+                    @else
+                        <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+                            You do not have permission to create permissions.
+                        </div>
+                    @endif
                 </div>
 
             </div>

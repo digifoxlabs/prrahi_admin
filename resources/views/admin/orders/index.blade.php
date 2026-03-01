@@ -3,7 +3,15 @@
 @section('page-content')
 <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
 
-    <h1 class="text-2xl font-semibold mb-4">{{ $title }}</h1>
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-semibold">{{ $title }}</h1>
+        @if (Auth::guard('admin')->user()->hasPermission('create_orders'))
+        <a href="{{ route('admin.orders.create') }}"
+           class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
+            Create Order
+        </a>
+        @endif
+    </div>
 
 
     @include('partials.flash')
@@ -136,6 +144,7 @@
 
                 <td class="p-3 text-right">
                     <div class="flex items-center justify-end space-x-2">
+                        @if (Auth::guard('admin')->user()->hasPermission('view_orders'))
                         <!-- View Button -->
                         <a href="{{ route('admin.orders.show', $order) }}"
                         class="inline-flex items-center px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-md hover:bg-indigo-100 hover:shadow-sm transition-colors duration-150 text-sm font-medium">
@@ -145,10 +154,12 @@
                             </svg>
                             View
                         </a>
+                        @endif
 
                         {{-- ACTIONS AFTER INVOICE --}}
                         @if($order->status === 'confirmed' && $order->invoice_status === 'generated')
                             @if($order->dispatch_status === 'pending')
+                                @if (Auth::guard('admin')->user()->hasPermission('edit_orders'))
                                 <!-- Dispatch Button -->
                                 <button type="button" 
                                         onclick="showConfirmation('dispatch', '{{ route('admin.orders.dispatch', $order) }}', '{{ $order->order_number }}')"
@@ -158,7 +169,9 @@
                                     </svg>
                                     Dispatch
                                 </button>
+                                @endif
                             @elseif($order->dispatch_status === 'dispatched')
+                                @if (Auth::guard('admin')->user()->hasPermission('edit_orders'))
                                 <!-- Deliver Button -->
                                 <button type="button" 
                                         onclick="showConfirmation('deliver', '{{ route('admin.orders.deliver', $order) }}', '{{ $order->order_number }}')"
@@ -169,7 +182,9 @@
                                     </svg>
                                     Deliver
                                 </button>
+                                @endif
 
+                                @if (Auth::guard('admin')->user()->hasPermission('delete_orders'))
                                 <!-- Cancel Button -->
                                 <button type="button" 
                                         onclick="showConfirmation('cancel', '{{ route('admin.orders.cancel', $order) }}', '{{ $order->order_number }}')"
@@ -179,6 +194,7 @@
                                     </svg>
                                     Cancel
                                 </button>
+                                @endif
                             @endif
                         @endif
                     </div>
@@ -311,8 +327,5 @@ function showConfirmation(action, url, orderNumber) {
 
 
 @endpush
-
-
-
 
 

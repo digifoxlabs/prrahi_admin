@@ -22,12 +22,17 @@
             </div>
         @endif
 
+        @php
+            $adminUser = Auth::guard('admin')->user();
+        @endphp
+
 
         <div
             class="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
             <div class="mx-auto w-full max-w-6xl text-center">
 
 
+                @if ($adminUser && $adminUser->hasPermission('view_permissions'))
                 <div class="p-6 bg-white shadow rounded-lg" x-data="permissionTableComponent()">
 
                     <div class="grid grid-cols-3 gap-4">
@@ -89,10 +94,12 @@
                                 </div>
                             </div>
 
-                            <a href="{{ route('admin.permissions.create') }}"
-                                class="inline-block px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-150 ease-in-out">
-                                + Create
-                            </a>
+                            @if ($adminUser->hasPermission('create_permissions'))
+                                <a href="{{ route('admin.permissions.create') }}"
+                                    class="inline-block px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-150 ease-in-out">
+                                    + Create
+                                </a>
+                            @endif
 
 
                         </div>
@@ -115,62 +122,62 @@
                                         <td class="px-4 py-3 text-right">
 
                                             <!-- Edit -->
-                                            <a href="{{ route('admin.permissions.edit', $permission) }}"
-                                                class="text-blue-500 hover:underline mr-2">
-                                                Edit
-                                            </a>
+                                            @if ($adminUser->hasPermission('edit_permissions'))
+                                                <a href="{{ route('admin.permissions.edit', $permission) }}"
+                                                    class="text-blue-500 hover:underline mr-2">
+                                                    Edit
+                                                </a>
+                                            @endif
 
                                             <!-- Delete Button (triggers modal) -->
-                                            <button
-                                                @click.prevent="showModal = true; deleteUrl = '{{ route('admin.permissions.destroy', $permission) }}';"
-                                                class="text-red-500 hover:underline">
-                                                Delete
-                                            </button>
+                                            @if ($adminUser->hasPermission('delete_permissions'))
+                                                <button
+                                                    @click.prevent="showModal = true; deleteUrl = '{{ route('admin.permissions.destroy', $permission) }}';"
+                                                    class="text-red-500 hover:underline">
+                                                    Delete
+                                                </button>
 
-                                            <!-- Modal -->
-                                            <template x-if="showModal">
+                                                <!-- Modal -->
+                                                <template x-if="showModal">
 
-                                                <!-- Delete Confirmation Modal -->
-                                                <div x-show="showModal" x-transition
-                                                    class="fixed inset-0 z-[100] flex items-center justify-center"
-                                                    style="height: 100vh; width: 100vw;">
+                                                    <!-- Delete Confirmation Modal -->
+                                                    <div x-show="showModal" x-transition
+                                                        class="fixed inset-0 z-[100] flex items-center justify-center"
+                                                        style="height: 100vh; width: 100vw;">
 
-                                                    <!-- Overlay (covers entire screen) -->
-                                                    <div class="absolute inset-0 bg-gray-700/60 backdrop-blur-sm"
-                                                        @click="showModal = false"></div>
+                                                        <!-- Overlay (covers entire screen) -->
+                                                        <div class="absolute inset-0 bg-gray-700/60 backdrop-blur-sm"
+                                                            @click="showModal = false"></div>
 
-                                                    <!-- Modal Box -->
-                                                    <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md p-6 z-[101]"
-                                                        @click.stop>
-                                                        <h2 class="text-lg font-semibold mb-4 text-red-600">Confirm
-                                                            Deletion</h2>
-                                                        <p class="mb-6">
-                                                            Are you sure you want to delete the Permission:
-                                                            <strong>{{ $permission->name }}</strong>?
-                                                        </p>
+                                                        <!-- Modal Box -->
+                                                        <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md p-6 z-[101]"
+                                                            @click.stop>
+                                                            <h2 class="text-lg font-semibold mb-4 text-red-600">Confirm
+                                                                Deletion</h2>
+                                                            <p class="mb-6">
+                                                                Are you sure you want to delete the Permission:
+                                                                <strong>{{ $permission->name }}</strong>?
+                                                            </p>
 
-                                                        <div class="flex justify-end space-x-3">
-                                                            <button @click="showModal = false"
-                                                                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
-                                                                Cancel
-                                                            </button>
-
-                                                            <form :action="deleteUrl" method="POST">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit"
-                                                                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                                                                    Yes, Delete
+                                                            <div class="flex justify-end space-x-3">
+                                                                <button @click="showModal = false"
+                                                                    class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+                                                                    Cancel
                                                                 </button>
-                                                            </form>
+
+                                                                <form :action="deleteUrl" method="POST">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button type="submit"
+                                                                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                                                        Yes, Delete
+                                                                    </button>
+                                                                </form>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-
-
-
-
-                                            </template>
+                                                </template>
+                                            @endif
 
                                         </td>
                                     </tr>
@@ -193,6 +200,11 @@
                         {{ $permissions->withQueryString()->links('vendor.pagination.tailwind') }}
                     </div>
                 </div>
+                @else
+                    <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+                        You do not have permission to view permissions.
+                    </div>
+                @endif
 
             </div>
         </div>

@@ -10,6 +10,14 @@ use LogicException;
 
 class CategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view_categories')->only(['index', 'show']);
+        $this->middleware('permission:create_categories')->only(['create', 'store']);
+        $this->middleware('permission:edit_categories')->only(['edit', 'update']);
+        $this->middleware('permission:delete_categories')->only(['destroy', 'restore', 'forceDelete']);
+    }
+
     /**
      * Display a listing of the resource.
      */

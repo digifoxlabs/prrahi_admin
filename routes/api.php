@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Sales\DistributorManpowerController;
 use App\Http\Controllers\Api\Sales\DistributorVehicleController;
 use App\Http\Controllers\Api\Sales\RetailerController;
 use App\Http\Controllers\Api\Sales\VisitController;
+use App\Http\Controllers\Api\Sales\AttendanceController;
 use App\Http\Controllers\Api\Distributor\DistOrderController;
 use App\Http\Controllers\Api\Distributor\DistRetailerController;
 use App\Http\Controllers\Api\Distributor\DistRetailOrderController;
@@ -147,6 +148,10 @@ Route::middleware('auth:sales_api')->prefix('sales')->group(function () {
     Route::get('/visits', [VisitController::class, 'visitNotes']);
     Route::post('/visits', [VisitController::class, 'store']);
     Route::get('/visit-parties', [VisitController::class, 'visitParties']);
+
+    // Attendance
+    Route::get('/attendance/today', [AttendanceController::class, 'today']);
+    Route::post('/attendance/mark', [AttendanceController::class, 'mark']);
 
 });
 

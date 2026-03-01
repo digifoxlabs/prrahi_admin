@@ -2,6 +2,14 @@
 @section('page-content')
 <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
 
+    @php
+        $adminUser = Auth::guard('admin')->user();
+        $canViewInventories = $adminUser && $adminUser->hasPermission('view_inventories');
+        $canCreateInventories = $adminUser && $adminUser->hasPermission('create_inventories');
+        $canEditInventories = $adminUser && $adminUser->hasPermission('edit_inventories');
+        $canDeleteInventories = $adminUser && $adminUser->hasPermission('delete_inventories');
+    @endphp
+
     @include('admin.inventory._breadcrump')
 
     {{-- Success & Error messages --}}
@@ -61,17 +69,21 @@
                            class="text-sm text-gray-600 underline ml-1">Clear</a>
                     @endif
 
-                    <a href="{{ route('admin.inventory.export', ['product_id' => request('product_id')]) }}"
-                       class="bg-gray-600 text-white px-4 py-1 rounded hover:bg-gray-700">
-                        ⬇️ Export
-                    </a>
+                    @if ($canViewInventories)
+                        <a href="{{ route('admin.inventory.export', ['product_id' => request('product_id')]) }}"
+                           class="bg-gray-600 text-white px-4 py-1 rounded hover:bg-gray-700">
+                            ⬇️ Export
+                        </a>
+                    @endif
                 </form>
 
                 {{-- Add Inventory --}}
-                <a href="{{ route('admin.inventory.create') }}"
-                   class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-center">
-                    + Add Inventory Transaction
-                </a>
+                @if ($canCreateInventories)
+                    <a href="{{ route('admin.inventory.create') }}"
+                       class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-center">
+                        + Add Inventory Transaction
+                    </a>
+                @endif
             </div>
 
             {{-- Responsive Table --}}
@@ -111,26 +123,34 @@
                                 <td class="p-2">{{ $tx->quantity }}</td>
                                 <td class="p-2">{{ $tx->remarks }}</td>
                                 <td class="p-2 whitespace-nowrap text-center relative" x-data="{ open: false }">
-                                    <button @click="open = !open"
-                                        class="bg-gray-200 text-sm px-3 py-1 rounded hover:bg-gray-300 focus:outline-none">
-                                        Actions ▾
-                                    </button>
-                                    <div x-show="open" @click.away="open = false" x-transition
-                                        class="absolute right-0 z-20 mt-1 w-32 bg-white border border-gray-200 rounded shadow-md text-left">
-                                        <a href="{{ route('admin.inventory.edit', $tx->id) }}"
-                                           class="block px-3 py-2 text-sm text-blue-600 hover:bg-gray-100 hover:text-blue-800">
-                                            ✏️ Edit
-                                        </a>
-                                        <form action="{{ route('admin.inventory.destroy', $tx->id) }}" method="POST"
-                                              onsubmit="return confirm('Delete this entry?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 hover:text-red-700">
-                                                🗑️ Delete
-                                            </button>
-                                        </form>
-                                    </div>
+                                    @if ($canEditInventories || $canDeleteInventories)
+                                        <button @click="open = !open"
+                                            class="bg-gray-200 text-sm px-3 py-1 rounded hover:bg-gray-300 focus:outline-none">
+                                            Actions ▾
+                                        </button>
+                                        <div x-show="open" @click.away="open = false" x-transition
+                                            class="absolute right-0 z-20 mt-1 w-32 bg-white border border-gray-200 rounded shadow-md text-left">
+                                            @if ($canEditInventories)
+                                                <a href="{{ route('admin.inventory.edit', $tx->id) }}"
+                                                   class="block px-3 py-2 text-sm text-blue-600 hover:bg-gray-100 hover:text-blue-800">
+                                                    ✏️ Edit
+                                                </a>
+                                            @endif
+                                            @if ($canDeleteInventories)
+                                                <form action="{{ route('admin.inventory.destroy', $tx->id) }}" method="POST"
+                                                      onsubmit="return confirm('Delete this entry?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 hover:text-red-700">
+                                                        🗑️ Delete
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-gray-400">—</span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

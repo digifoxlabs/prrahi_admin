@@ -2,6 +2,7 @@
     $isVariant = $product->parent_id !== null;
     $isVariable = $product->type === 'variable' && $product->parent_id === null;
     $isSimple = $product->type === 'simple';
+    $adminUser = Auth::guard('admin')->user();
 @endphp
 
 
@@ -16,6 +17,7 @@
         class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-50 text-left"
     > --}}
         @if ($product->trashed())
+            @if ($adminUser && $adminUser->hasPermission('delete_products'))
             <form action="{{ route('admin.products.restore', $product->id) }}" method="POST">
                 @csrf
                 @method('PATCH')
@@ -34,22 +36,25 @@
                     ❌ Permanent Delete
                 </button>
             </form>
+            @endif
         @else
             {{-- Inventory (for both simple products and variants) --}}
+            @if ($adminUser && $adminUser->hasPermission('view_products'))
             <a href="{{ route('admin.inventory.index') }}?product_id={{ $product->id }}"
                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600 border-b">
                 📦 Inventory
             </a>
+            @endif
 
             {{-- Edit Buttons --}}
-            @if ($isSimple || $isVariable)
+            @if (($isSimple || $isVariable) && $adminUser && $adminUser->hasPermission('edit_products'))
                 <a href="{{ route('admin.products.edit', $product) }}"
                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600 border-b">
                     ✏️ Edit Product
                 </a>
             @endif
 
-             @if ($isVariable)
+             @if ($isVariable && $adminUser && $adminUser->hasPermission('create_products'))
                 <a href="{{ route('admin.products.add-variant', $product->id) }}"
                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600 border-b">
                     ✏️ Add Variant
@@ -57,7 +62,7 @@
 
              @endif
 
-            @if ($isVariant)
+            @if ($isVariant && $adminUser && $adminUser->hasPermission('edit_products'))
                 <a href="{{ route('admin.products.edit', $product) }}"
                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600 border-b">
                     ✏️ Edit Variant
@@ -67,15 +72,17 @@
                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600 border-b">
                     ✏️ Edit Parent Product
                 </a>
+            @endif
 
+            @if ($isVariant && $adminUser && $adminUser->hasPermission('create_products'))
                 <a href="{{ route('admin.products.add-variant', $product->parent_id) }}"
                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600 border-b">
                     ✏️ Add Variant
                 </a>          
-
             @endif
 
             {{-- Delete --}}
+            @if ($adminUser && $adminUser->hasPermission('delete_products'))
             <form action="{{ route('admin.products.destroy', $product) }}" method="POST"
                   onsubmit="return confirm('Are you sure you want to delete this product?')">
                 @csrf
@@ -85,5 +92,6 @@
                     🗑️ Delete
                 </button>
             </form>
+            @endif
         @endif
     {{-- </div> --}}

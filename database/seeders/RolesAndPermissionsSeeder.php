@@ -27,7 +27,8 @@ class RolesAndPermissionsSeeder extends Seeder
                 'view_distributors','edit_distributors','create_distributors','delete_distributors',
                 'view_sales','edit_sales','create_sales','delete_sales',
                 'view_retailers','edit_retailers','create_retailers','delete_retailers',
-                'view_api_doc','view_settings','edit_settings','create_settings','delete_settings'];
+                'view_api_doc','view_settings','edit_settings','create_settings','delete_settings',
+                'view_attendance','create_attendance','edit_attendance','delete_attendance'];
 
                 foreach ($permissions as $perm) {
                     Permission::firstOrCreate(['name' => $perm]);

@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\AdminRetailerController;
 use App\Http\Controllers\Admin\AdminRetailOrderController;
 use App\Http\Controllers\Admin\SalesTypeController;
 use App\Http\Controllers\Admin\VisitController;
+use App\Http\Controllers\Admin\AttendanceRegisterController;
 use App\Http\Controllers\Distributor\DashboardController as DistributorDashboardController;
 use App\Http\Controllers\Distributor\DistRetailerController;
 use App\Http\Controllers\Distributor\DistributorStockController;
@@ -121,6 +122,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
 
     //Dashboard
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::post('/dashboard/attendance/mark', [DashboardController::class, 'markMyAttendance'])->name('dashboard.attendance.mark');
     //Profile
      Route::get('/profile', [DashboardController::class, 'profile'])->name('profile');
      //Upload Profile
@@ -258,6 +260,21 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::get('/visits/load-more', [VisitController::class, 'loadMore'])
         ->name('visits.loadMore');
 
+    // Attendance Registers
+    Route::post('attendance-registers/{attendance_register}/mark', [AttendanceRegisterController::class, 'mark'])
+        ->name('attendance-registers.mark');
+    Route::post('attendance-registers/{attendance_register}/overrides', [AttendanceRegisterController::class, 'saveOverride'])
+        ->name('attendance-registers.overrides.save');
+    Route::get('attendance-registers/{attendance_register}/month/{year}/{month}', [AttendanceRegisterController::class, 'month'])
+        ->whereNumber('year')
+        ->whereNumber('month')
+        ->name('attendance-registers.month');
+    Route::get('attendance-registers/{attendance_register}/month/{year}/{month}/export', [AttendanceRegisterController::class, 'exportMonth'])
+        ->whereNumber('year')
+        ->whereNumber('month')
+        ->name('attendance-registers.month.export');
+    Route::resource('attendance-registers', AttendanceRegisterController::class);
+
    
 });
 
@@ -295,6 +312,7 @@ Route::prefix('sales')->name('sales.')->middleware('auth:sales')->group(function
 
     //Dashboard
     Route::get('/dashboard', [SalesDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::post('/dashboard/attendance/mark', [SalesDashboardController::class, 'markMyAttendance'])->name('dashboard.attendance.mark');
 
 
     /* Retailers CRUD by Sales Pesons

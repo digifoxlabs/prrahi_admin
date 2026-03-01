@@ -12,7 +12,17 @@
 
                 <div class="max-w-xl mx-auto p-4 bg-white rounded shadow mt-10">
                     <h2 class="text-xl font-bold mb-4">Edit Permission</h2>
-                    @include('admin.permissions._form', ['permission' => $permission])
+                    @php
+                        $adminUser = Auth::guard('admin')->user();
+                    @endphp
+
+                    @if ($adminUser && $adminUser->hasPermission('edit_permissions'))
+                        @include('admin.permissions._form', ['permission' => $permission])
+                    @else
+                        <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+                            You do not have permission to edit permissions.
+                        </div>
+                    @endif
                 </div>
 
             </div>

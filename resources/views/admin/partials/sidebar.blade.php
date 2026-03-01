@@ -97,7 +97,7 @@
             </a>
           </li>
  
-         
+            @if (Auth::guard('admin')->user()->hasPermission('view_distributors'))
           <li>
             <a
               href="{{ route('admin.distributors.index')}}"
@@ -130,8 +130,9 @@
               </span>
             </a>
           </li>  
+          @endif
 
-
+          @if (Auth::guard('admin')->user()->hasPermission('view_retailers'))
           <li>
             <a
               href="{{ route('admin.retailers.index')}}"
@@ -185,43 +186,11 @@
               </span>
             </a>
           </li>  
+          @endif
                  
-          {{-- <li>
-            <a
-              href="{{ route('admin.sales-persons.index')}}"
-              @click="selected = (selected === 'Sales-Persons' ? '':'Sales-Persons')"   
-              class="menu-item group"
-              :class=" (selected === 'Sales-Persons') || (page === 'sales-persons') ? 'menu-item-active' : 'menu-item-inactive'"
-            >
-              <svg
-                :class="(selected === 'Sales-Persons') || (page === 'sales-persons') ? 'menu-item-icon-active'  :'menu-item-icon-inactive'"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
-                  fill="none"
-                />
-              </svg>
-
-              <span
-                class="menu-item-text"
-                :class="sidebarToggle ? 'lg:hidden' : ''"
-              >
-                Sales Person
-              </span>
-            </a>
-          </li> --}}
-
-
 
            <!-- Menu Item Pages -->
+           @if (Auth::guard('admin')->user()->hasPermission('view_sales'))
           <li>
             <a
               href="#"          
@@ -312,10 +281,10 @@
           </li>
           <!-- Menu Item Pages -->
 
-
+          @endif
       
          
-
+          @if (Auth::guard('admin')->user()->hasPermission('view_orders'))
           <!-- Menu Item Pages -->
           <li>
             <a
@@ -419,12 +388,12 @@
             <!-- Dropdown Menu End -->
           </li>
           <!-- Menu Item Pages -->
+          @endif
 
 
 
 
-
-
+          @if (Auth::guard('admin')->user()->hasPermission('view_orders'))
           <li>
             <a
               href="{{ route('admin.retail.orders.index')}}"
@@ -461,18 +430,7 @@
             </a>
           </li>
 
-
-
-
-
-
-          
-
-
-
-
-
-
+          @endif      
 
 
         </ul>
@@ -512,6 +470,8 @@
 
       <ul class="flex flex-col gap-4 mb-6">
 
+
+        @if (Auth::guard('admin')->user()->hasPermission('view_products'))
           <li>
             <a
               href="{{ route('admin.products.index') }}"
@@ -544,6 +504,10 @@
             </a>
           </li>
 
+          @endif
+
+          
+          @if (Auth::guard('admin')->user()->hasPermission('view_categories'))
           <li>
             <a
               href="{{ route('admin.categories.index')}}"
@@ -575,7 +539,9 @@
               </span>
             </a>
           </li>
+          @endif
 
+          @if (Auth::guard('admin')->user()->hasPermission('view_inventories'))
           <li>
             <a
               href="{{ route('admin.inventory.index')}}"
@@ -607,7 +573,9 @@
               </span>
             </a>
           </li>
+          @endif
 
+             @if (Auth::guard('admin')->user()->hasPermission('view_sales_type'))
           <li>
             <a
               href="{{ route('admin.sales-type.index')}}"
@@ -639,6 +607,7 @@
               </span>
             </a>
           </li>
+          @endif
 
                  
 
@@ -674,6 +643,7 @@
 
       <ul class="flex flex-col gap-4 mb-6">
 
+           @if (Auth::guard('admin')->user()->hasPermission('view_users'))
           <li>
             <a
               href="{{ route('admin.users.index')}}"
@@ -704,7 +674,42 @@
               </span>
             </a>
           </li>
+        @endif
 
+          @if (Auth::guard('admin')->user()->hasPermission('view_attendance'))
+          <li>
+            <a
+              href="{{ route('admin.attendance-registers.index')}}"
+              @click="selected = (selected === 'Attendance' ? '':'Attendance')" 
+              class="menu-item group"
+              :class="(selected === 'Attendance') ||  (page === 'attendance-registers') ? 'menu-item-active' : 'menu-item-inactive'">
+
+          <svg 
+              :class="(selected === 'Attendance') || (page === 'attendance-registers') ? 'menu-item-icon-active'  :'menu-item-icon-inactive'"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              xmlns="http://www.w3.org/2000/svg" >
+            <path 
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M7.5 2.75A.75.75 0 0 1 8.25 3.5v1h7.5v-1a.75.75 0 0 1 1.5 0v1h.75A2.75 2.75 0 0 1 20.75 7.25v11A2.75 2.75 0 0 1 18 21H6a2.75 2.75 0 0 1-2.75-2.75v-11A2.75 2.75 0 0 1 6 4.5h.75v-1a.75.75 0 0 1 .75-.75Zm11.75 7.5H4.75v8a1.25 1.25 0 0 0 1.25 1.25h12a1.25 1.25 0 0 0 1.25-1.25v-8Zm-12.5 2.5a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5H8.25a.75.75 0 0 1-.75-.75Zm4.5 0a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 0 1.5H12a.75.75 0 0 1-.75-.75Zm-4.5 3.5a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 0 1.5H8.25a.75.75 0 0 1-.75-.75Z"
+                fill="none"
+               />
+            </svg>              
+            
+              <span
+                class="menu-item-text"
+                :class="sidebarToggle ? 'lg:hidden' : ''">
+                Attendance
+              </span>
+            </a>
+          </li>
+          @endif
+
+             @if (Auth::guard('admin')->user()->hasPermission('view_roles'))
           <li>
             <a
               href="{{ route('admin.roles.index')}}"
@@ -735,7 +740,9 @@
               </span>
             </a>
           </li>
+          @endif
 
+             @if (Auth::guard('admin')->user()->hasPermission('view_permissions'))
           <li>
             <a
               href="{{ route('admin.permissions.index')}}"
@@ -766,6 +773,7 @@
               </span>
             </a>
           </li>
+          @endif
 
 
         </ul> 

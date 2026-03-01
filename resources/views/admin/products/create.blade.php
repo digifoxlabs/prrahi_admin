@@ -26,11 +26,20 @@
 
             <div class="max-w-5xl mx-auto p-6">
                 <h2 class="text-xl font-semibold mb-4">Create Product</h2>
-               
-                <form action="{{ route('admin.products.store') }}" method="POST">
-                @csrf
-                @include('admin.products._form')
-                </form>
+                @php
+                    $adminUser = Auth::guard('admin')->user();
+                @endphp
+
+                @if ($adminUser && $adminUser->hasPermission('create_products'))
+                    <form action="{{ route('admin.products.store') }}" method="POST">
+                    @csrf
+                    @include('admin.products._form')
+                    </form>
+                @else
+                    <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+                        You do not have permission to create products.
+                    </div>
+                @endif
             </div>
     
 

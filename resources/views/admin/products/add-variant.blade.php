@@ -1,6 +1,9 @@
 @extends('admin.admin-layout')
 @section('page-content')
 <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
+    @php
+        $adminUser = Auth::guard('admin')->user();
+    @endphp
 
     @include('admin.products._breadcrump')
 
@@ -33,9 +36,9 @@
     <div
         class="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div class="mx-auto w-full max-w-4xl">
-
-            <form method="POST" action="{{ route('admin.products.store-variant', $product) }}">
-                @csrf
+            @if ($adminUser && $adminUser->hasPermission('create_products'))
+                <form method="POST" action="{{ route('admin.products.store-variant', $product) }}">
+                    @csrf
 
          
 
@@ -230,7 +233,12 @@
                         </a>
                     </div>
               
-            </form>
+                </form>
+            @else
+                <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+                    You do not have permission to create products.
+                </div>
+            @endif
 
             <script>
                 function variantForm() {

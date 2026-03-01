@@ -4,22 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
 use App\Models\Distributor;
 use App\Models\SalesPerson;
-use App\Models\DistributorDocument;
-use App\Models\DistributorCompany;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\DistributorsExport;
-use Illuminate\Support\Facades\DB;
 use LogicException;
 
 class DistributorController extends Controller
 {
-
 
     public function __construct()
     {
@@ -37,8 +32,8 @@ class DistributorController extends Controller
     public function index(Request $request)
     {
 
-        $title ='Distributors';  
-   
+        $title = 'Distributors';
+
         $search = $request->query('search');
         $view = $request->query('view', 'active');
 
@@ -64,11 +59,6 @@ class DistributorController extends Controller
             ->withQueryString(); // Preserve search on pagination
 
         return view('admin.distributors.index', compact('distributors', 'search', 'title', 'view'));
-
-
-        
-
-
     }
 
     /**
@@ -76,19 +66,8 @@ class DistributorController extends Controller
      */
     public function create()
     {
-       
 
-        
-
-            // return view('admin.distributors.create', [
-            //     'distributor' => null, // No distributor data for create form
-            //     'salesPersons' => $salesPersons,
-            //     'action' => route('admin.distributors.store'),
-            //     'method' => 'POST',
-            //     'title' => $title,
-            // ]);
-
-        $title ='Create Distributor';  
+        $title = 'Create Distributor';
 
         // Fetch Sales Persons for dropdown
         $salesPersons = SalesPerson::select('id', 'name')->orderBy('name')->get();
@@ -98,194 +77,36 @@ class DistributorController extends Controller
             'routePrefix' => 'admin',               // or distributor / sales
             'salesPersons' => $salesPersons,
             'distributor' => null, // No distributor data for create form
-            'returnURL' =>'admin.distributors.index',
+            'returnURL' => 'admin.distributors.index',
             'title' => $title,
         ]);
-
-
     }
 
-   
-    // public function store(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //     'sales_persons_id' => 'nullable|exists:sales_persons,id',
-    //     'appointment_date' => 'required|date',
-    //     'firm_name' => 'required|string',
-    //     'nature_of_firm' => 'required|string',
-    //     'address_line_1' => 'nullable|string',
-    //     'address_line_2' => 'nullable|string',
-    //     'town' => 'nullable|string',
-    //     'district' => 'nullable|string',
-    //     'state' => 'nullable|string',
-    //     'pincode' => 'nullable|string',
-    //     'landmark' => 'nullable|string',
-    //     'contact_person' => 'nullable|string',
-    //     'designation_contact' => 'nullable|string',
-    //     'contact_number' => 'nullable|string',
-    //     'email' => 'nullable|email|unique:distributors,email',
-    //     'gst' => 'nullable|string',
-    //     'date_of_birth' => 'nullable|date',
-    //     'date_of_anniversary' => 'nullable|date',
-    //     'latitude' => 'nullable|numeric',
-    //     'longitude' => 'nullable|numeric',
-    //     'login_id' => 'required|string|unique:distributors,login_id',
-    //     'password' => 'required|string|min:6',
-    //     ]);
 
+    public function show(Distributor $distributor)
+    {
 
-    //     // Detect who is creating the distributor
-    //     $appointedBy = null;
+        $title = 'Distributors';
+        // Eager load relationships to avoid N+1 queries
+        $distributor->load([
+            'salesPerson',
+            'companies',
+            'banks',
+            'godowns',
+            'manpowers',
+            'vehicles'
+        ]);
 
-    //     if (auth('admin')->check()) {
-    //         $appointedBy = auth('admin')->user();              // App\Models\User
-    //     } elseif (auth('sales')->check()) {
-    //         $appointedBy = auth('sales')->user();              // App\Models\SalesPerson
-    //     } elseif (auth('distributor')->check()) {
-    //         $appointedBy = auth('distributor')->user();        // App\Models\Distributor
-    //     }
-
-
-    //     DB::beginTransaction();
-
-    //     try {
-    //         $distributor = Distributor::create([
-    //             'sales_persons_id' => $validated['sales_persons_id'],
-    //             'appointment_date' => $validated['appointment_date'],
-    //             'firm_name' => $validated['firm_name'],
-    //             'nature_of_firm' => $validated['nature_of_firm'],
-    //             'address_line_1' => $validated['address_line_1'],
-    //             'address_line_2' => $validated['address_line_2'],
-    //             'town' => $validated['town'],
-    //             'district' => $validated['district'],
-    //             'state' => $validated['state'],
-    //             'pincode' => $validated['pincode'],
-    //             'landmark' => $validated['landmark'],
-    //             'contact_person' => $validated['contact_person'],
-    //             'designation_contact' => $validated['designation_contact'],
-    //             'contact_number' => $validated['contact_number'],
-    //             'email' => $validated['email'],
-    //             'gst' => $validated['gst'],
-    //             'date_of_birth' => $validated['date_of_birth'],
-    //             'date_of_anniversary' => $validated['date_of_anniversary'],
-    //             'latitude' => $validated['latitude'],
-    //             'longitude' => $validated['longitude'],
-    //             'login_id' => $validated['login_id'],
-    //             'password' => Hash::make($validated['password']),
-    //         ]);
-
-
-    //         /**
-    //          * ---------------------------------------------------------
-    //          * Attach appointed_by polymorphic relation
-    //          * ---------------------------------------------------------
-    //          */
-    //         if ($appointedBy) {
-    //             $distributor->appointedBy()->associate($appointedBy);
-    //             $distributor->save();
-    //         }
-
-
-
-    //         foreach ($request->input('companies', []) as $company) {
-    //             if (!empty($company['company_name'])) {
-    //                 $distributor->companies()->create([
-    //                     'company_name' => $company['company_name'],
-    //                     'segment' => $company['segment'] ?? null,
-    //                     'brand_name' => $company['brand_name'] ?? null,
-    //                     'products' => $company['products'] ?? null,
-    //                     'working_as' => $company['working_as'] ?? null,
-    //                     'margin' => $company['margin'] ?? null,
-    //                     'payment_terms' => $company['payment_terms'] ?? null,
-    //                     'working_since' => $company['working_since'] ?? null,
-    //                     'area_operation' => $company['area_operation'] ?? null,
-    //                     'monthly_to' => $company['monthly_to'] ?? null,
-    //                     'dsr_no' => $company['dsr_no'] ?? null,
-    //                     'details' => $company['details'] ?? null,
-    //                 ]);
-    //             }
-    //         }
-
-    //         foreach ($request->input('banks', []) as $bank) {
-    //             if (!empty($bank['bank_name'])) {
-    //                 $distributor->banks()->create($bank);
-    //             }
-    //         }
-
-    //         foreach ($request->input('godowns', []) as $godown) {
-    //             if (!empty($godown['no_godown'])) {
-    //                 $distributor->godowns()->create($godown);
-    //             }
-    //         }
-
-    //         foreach ($request->input('manpowers', []) as $manpower) {
-    //             $distributor->manpowers()->create($manpower);
-    //         }
-
-    //         foreach ($request->input('vehicles', []) as $vehicle) {
-    //             $distributor->vehicles()->create($vehicle);
-    //         }
-
-    //         DB::commit();
-
-    //         return redirect()->route('admin.distributors.index')->with('success', 'Distributor created successfully.');
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         return back()->withErrors(['error' => $e->getMessage()])->withInput();
-    //     }
-    // }
-
-
-public function show(Distributor $distributor)
-{
-
-    $title ='Distributors';  
-    // Eager load relationships to avoid N+1 queries
-    $distributor->load([
-        'salesPerson',
-        'companies',
-        'banks',
-        'godowns',
-        'manpowers',
-        'vehicles'
-    ]);
-
-    return view('admin.distributors.show', compact('distributor','title'));
-}
+        return view('admin.distributors.show', compact('distributor', 'title'));
+    }
 
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(Distributor $distributor)
     {
-        // $title ='Distributors';  
 
-        // $salesPersons = SalesPerson::all();
-        // $distributor->load(['companies', 'banks', 'godowns', 'manpowers', 'vehicles']);
-        // $returnURL = 'admin.distributors.index';
-
-        // return view('admin.distributors.edit', compact('distributor', 'salesPersons','title','returnURL'));
-
-
-
-
-
-
-
-        // return view('retailers.edit', [
-        //     'layout'      => 'admin.admin-layout', // or distributor.layout / sales.layout
-        //     'routePrefix' => 'admin',               // or distributor / sales
-        //     'states'     => State::orderBy('name')->get(),
-        //     'retailer'=> $retailer,
-        //     'distributors'=> Distributor::orderBy('firm_name')->get(),
-        //     'districts' => District::where('state_id', $retailer->state_id)->get(),
-        //     'returnURL' =>'admin.retailers.index',
-        //     'title' => $title,
-        // ]);
-
-
-
-        $title ='Edit Distributor';  
+        $title = 'Edit Distributor';
 
         // Fetch Sales Persons for dropdown
         $salesPersons = SalesPerson::select('id', 'name')->orderBy('name')->get();
@@ -297,136 +118,10 @@ public function show(Distributor $distributor)
             'routePrefix' => 'admin',               // or distributor / sales
             'salesPersons' => $salesPersons,
             'distributor' => $distributor,
-            'returnURL' =>'admin.distributors.index',
+            'returnURL' => 'admin.distributors.index',
             'title' => $title,
         ]);
-
-
-
-
-
     }
-
-    
-
-// public function update(Request $request, Distributor $distributor)
-// {
-//     $validated = $request->validate([
-//         'sales_persons_id' => 'nullable|exists:sales_persons,id',
-//         'appointment_date' => 'required|date',
-//         'firm_name' => 'required|string',
-//         'nature_of_firm' => 'required|string',
-//         'address_line_1' => 'nullable|string',
-//         'address_line_2' => 'nullable|string',
-//         'town' => 'nullable|string',
-//         'district' => 'nullable|string',
-//         'state' => 'nullable|string',
-//         'pincode' => 'nullable|string',
-//         'landmark' => 'nullable|string',
-//         'contact_person' => 'nullable|string',
-//         'designation_contact' => 'nullable|string',
-//         'contact_number' => 'nullable|string',
-//         'email' => 'nullable|email',
-//         'gst' => 'nullable|string',
-//         'date_of_birth' => 'nullable|date',
-//         'date_of_anniversary' => 'nullable|date',
-//         'latitude' => 'nullable|numeric',
-//         'longitude' => 'nullable|numeric',
-//         'login_id' => 'required|string',
-//         'password' => 'nullable|string',
-//     ]);
-
-//     DB::beginTransaction();
-
-//     try {
-//         $distributor->update([
-//             'sales_persons_id' => $validated['sales_persons_id'],
-//             'appointment_date' => $validated['appointment_date'],
-//             'firm_name' => $validated['firm_name'],
-//             'nature_of_firm' => $validated['nature_of_firm'],
-//             'address_line_1' => $validated['address_line_1'],
-//             'address_line_2' => $validated['address_line_2'],
-//             'town' => $validated['town'],
-//             'district' => $validated['district'],
-//             'state' => $validated['state'],
-//             'pincode' => $validated['pincode'],
-//             'landmark' => $validated['landmark'],
-//             'contact_person' => $validated['contact_person'],
-//             'designation_contact' => $validated['designation_contact'],
-//             'contact_number' => $validated['contact_number'],
-//             'email' => $validated['email'],
-//             'gst' => $validated['gst'],
-//             'date_of_birth' => $validated['date_of_birth'],
-//             'date_of_anniversary' => $validated['date_of_anniversary'],
-//             'latitude' => $validated['latitude'],
-//             'longitude' => $validated['longitude'],
-//             'login_id' => $validated['login_id'],
-//         ]);
-
-//         if (!empty($validated['password'])) {
-//             $distributor->update([
-//                 'password' => Hash::make($validated['password'])
-//             ]);
-//         }
-
-//         // Companies
-//         $distributor->companies()->delete();
-//         foreach ($request->input('companies', []) as $company) {
-//             if (!empty($company['company_name'])) {
-//                 $distributor->companies()->create([
-//                     'company_name' => $company['company_name'],
-//                     'segment' => $company['segment'] ?? null,
-//                     'brand_name' => $company['brand_name'] ?? null,
-//                     'products' => $company['products'] ?? null,
-//                     'working_as' => $company['working_as'] ?? null,
-//                     'margin' => $company['margin'] ?? null,
-//                     'payment_terms' => $company['payment_terms'] ?? null,
-//                     'working_since' => $company['working_since'] ?? null,
-//                     'area_operation' => $company['area_operation'] ?? null,
-//                     'monthly_to' => $company['monthly_to'] ?? null,
-//                     'dsr_no' => $company['dsr_no'] ?? null,
-//                     'details' => $company['details'] ?? null,
-//                 ]);
-//             }
-//         }
-
-//         // Banks
-//         $distributor->banks()->delete();
-//         foreach ($request->input('banks', []) as $bank) {
-//             if (!empty($bank['bank_name'])) {
-//                 $distributor->banks()->create($bank);
-//             }
-//         }
-
-//         // Godowns
-//         $distributor->godowns()->delete();
-//         foreach ($request->input('godowns', []) as $godown) {
-//             if (!empty($godown['no_godown'])) {
-//                 $distributor->godowns()->create($godown);
-//             }
-//         }
-
-//         // Manpower
-//         $distributor->manpowers()->delete();
-//         foreach ($request->input('manpowers', []) as $manpower) {
-//             $distributor->manpowers()->create($manpower);
-//         }
-
-//         // Vehicles
-//         $distributor->vehicles()->delete();
-//         foreach ($request->input('vehicles', []) as $vehicle) {
-//             $distributor->vehicles()->create($vehicle);
-//         }
-
-//         DB::commit();
-
-//         return redirect()->route('admin.distributors.index')->with('success', 'Distributor updated successfully.');
-//     } catch (\Throwable $e) {
-//         DB::rollBack();
-//         return back()->withErrors(['error' => $e->getMessage()])->withInput();
-//     }
-// }
-
 
 
     /**
@@ -468,7 +163,7 @@ public function show(Distributor $distributor)
 
     //Export Distributors 
     public function export(Request $request)
-    {       
+    {
         $search = $request->query('search');
         return Excel::download(new DistributorsExport($search), 'distributors.xlsx');
     }
@@ -520,28 +215,25 @@ public function show(Distributor $distributor)
 
 
 
-public function uploadProfile(Request $request, Distributor $distributor)
-{
-    $request->validate([
-        'image' => 'required|image|max:2048', // max 2MB image
-    ]);
+    public function uploadProfile(Request $request, Distributor $distributor)
+    {
+        $request->validate([
+            'image' => 'required|image|max:2048', // max 2MB image
+        ]);
 
-    // Delete old image if exists
-    if ($distributor->profile_photo) {
-        Storage::disk('public')->delete($distributor->profile_photo);
+        // Delete old image if exists
+        if ($distributor->profile_photo) {
+            Storage::disk('public')->delete($distributor->profile_photo);
+        }
+
+        // Store new image
+        $path = $request->file('image')->store('distributor', 'public');
+        $distributor->profile_photo = $path;
+        $distributor->save();
+
+        return response()->json([
+            'success' => true,
+            'image_url' => asset('storage/' . $path),
+        ]);
     }
-
-    // Store new image
-    $path = $request->file('image')->store('distributor', 'public');
-    $distributor->profile_photo = $path;
-    $distributor->save();
-
-    return response()->json([
-        'success' => true,
-        'image_url' => asset('storage/' . $path),
-    ]);
-}
-
-
-
 }

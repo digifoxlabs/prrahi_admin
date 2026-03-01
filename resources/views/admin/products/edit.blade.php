@@ -26,12 +26,21 @@
 
                     <div class="p-6">
                 <h2 class="text-2xl font-semibold mb-4">Edit Product</h2>
+                @php
+                    $adminUser = Auth::guard('admin')->user();
+                @endphp
 
-                <form action="{{ route('admin.products.update', $product) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    @include('admin.products._form')
-                </form>
+                @if ($adminUser && $adminUser->hasPermission('edit_products'))
+                    <form action="{{ route('admin.products.update', $product) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        @include('admin.products._form')
+                    </form>
+                @else
+                    <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+                        You do not have permission to edit products.
+                    </div>
+                @endif
             </div>
 
     

@@ -13,6 +13,14 @@ use Illuminate\Support\Facades\DB;
 
 class InventoryTransactionController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view_inventories')->only(['index', 'show', 'export']);
+        $this->middleware('permission:create_inventories')->only(['create', 'store']);
+        $this->middleware('permission:edit_inventories')->only(['edit', 'update']);
+        $this->middleware('permission:delete_inventories')->only(['destroy']);
+    }
+
     /**
      * Display a listing of the resource.
      */

@@ -1,5 +1,13 @@
 @props(['distributor', 'action', 'method', 'salesPersons', 'returnURL'])
 
+@php
+    $isEdit = strtoupper((string) $method) === 'PUT';
+    $adminUser = Auth::guard('admin')->user();
+    $canSubmit = $isEdit
+        ? ($adminUser && $adminUser->hasPermission('edit_distributors'))
+        : ($adminUser && $adminUser->hasPermission('create_distributors'));
+@endphp
+
 <form action="{{ $action }}" method="POST" enctype="multipart/form-data" class="space-y-10 p-8 text-left">
     @csrf
     @if ($method === 'PUT') @method('PUT') @endif
@@ -237,13 +245,15 @@ shadow-sm transition
 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
             Cancel
         </a>
-        <button type="submit" class="px-6 py-3 rounded-lg 
+        @if ($canSubmit)
+            <button type="submit" class="px-6 py-3 rounded-lg 
 bg-blue-600 text-white hover:bg-blue-700 
 dark:hover:bg-blue-500 
 shadow-sm transition
 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            Save Distributor
-        </button>
+                Save Distributor
+            </button>
+        @endif
     </div>
 
 </form>

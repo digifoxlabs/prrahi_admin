@@ -11,6 +11,10 @@
 
 @php
 $isEdit = isset($inventory);
+$adminUser = Auth::guard('admin')->user();
+$canSubmit = $isEdit
+    ? ($adminUser && $adminUser->hasPermission('edit_inventories'))
+    : ($adminUser && $adminUser->hasPermission('create_inventories'));
 @endphp
 
 <div class="space-y-4">
@@ -68,9 +72,11 @@ $isEdit = isset($inventory);
 
     {{-- Submit --}}
     <div class="pt-4 flex gap-4">
-        <button class="bg-blue-600 text-white px-4 py-2 rounded">
-            {{ $isEdit ? 'Update Transaction' : 'Create Transaction' }}
-        </button>
+        @if ($canSubmit)
+            <button class="bg-blue-600 text-white px-4 py-2 rounded">
+                {{ $isEdit ? 'Update Transaction' : 'Create Transaction' }}
+            </button>
+        @endif
         <a href="{{ route('admin.inventory.index') }}" class="border px-4 py-2 rounded hover:bg-gray-100">Cancel</a>
     </div>
 </div>

@@ -192,7 +192,7 @@
                                     <div x-data="{ showDeleteModal: false }">
                                                 <!-- Delete Button (triggers modal) -->
 
-                                                @if (Auth::guard('admin')->user()->hasPermission('delete_sales'))
+                                                @if (Auth::guard('admin')->user()->hasPermission('delete_distributors'))
 
                                                     <button @click="showDeleteModal = true"
                                                         class="rounded-md bg-red-600 px-3 py-2 text-white text-sm hover:bg-red-700 transition flex items-center justify-center gap-2">

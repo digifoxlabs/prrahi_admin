@@ -3,6 +3,9 @@
 
 @section('page-content')
 <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
+    @php
+        $adminUser = Auth::guard('admin')->user();
+    @endphp
 
     {{-- Breadcrumb / header --}}
 <div class="mb-4 flex items-center justify-between gap-4">
@@ -27,15 +30,17 @@
     @endif
 
     {{-- Actions --}}
-    <div class="mb-4 flex items-center gap-2">
-        @if (Auth::guard('admin')->user()->hasPermission('create_products'))
-            <a href="{{ route('admin.products.add-variant', $product->id) }}?redirect_to={{ urlencode(request()->fullUrl()) }}" class="bg-green-600 text-white px-3 py-2 rounded text-xs">+ Add Variant</a>
-        @endif
-       
-    </div>
+    @if ($adminUser && $adminUser->hasPermission('view_products'))
+        <div class="mb-4 flex items-center gap-2">
+            @if ($adminUser->hasPermission('create_products'))
+                <a href="{{ route('admin.products.add-variant', $product->id) }}?redirect_to={{ urlencode(request()->fullUrl()) }}" class="bg-green-600 text-white px-3 py-2 rounded text-xs">+ Add Variant</a>
+            @endif
+        </div>
+    @endif
 
     {{-- Variants grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    @if ($adminUser && $adminUser->hasPermission('view_products'))
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse ($product->variants as $variant)
             <div class="border rounded-xl bg-white p-4 shadow-sm">
                 <div class="flex items-start justify-between">
@@ -81,22 +86,31 @@
                 </div>
 
                 <div class="mt-3 flex gap-2">
-                    <a href="{{ route('admin.products.edit', $variant->id) }}" class="px-2 py-1 border rounded text-xs">Edit</a>
+                    @if ($adminUser->hasPermission('edit_products'))
+                        <a href="{{ route('admin.products.edit', $variant->id) }}" class="px-2 py-1 border rounded text-xs">Edit</a>
+                    @endif
 
-                    <form action="{{ route('admin.products.destroy', $variant->id) }}" method="POST" onsubmit="return confirm('Delete this variant?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="px-2 py-1 border border-red-300 rounded text-xs text-red-700">Delete</button>
-                    </form>
+                    @if ($adminUser->hasPermission('delete_products'))
+                        <form action="{{ route('admin.products.destroy', $variant->id) }}" method="POST" onsubmit="return confirm('Delete this variant?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="px-2 py-1 border border-red-300 rounded text-xs text-red-700">Delete</button>
+                        </form>
+                    @endif
                 </div>
             </div>
         @empty
             <div class="col-span-3 text-sm text-gray-500">No variants found.</div>
         @endforelse
-    </div>
+        </div>
+    @else
+        <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+            You do not have permission to view products.
+        </div>
+    @endif
 
     {{-- Optional: pagination if you load variants as paginated in controller --}}
-    @if(method_exists($product->variants, 'links'))
+    @if(($adminUser && $adminUser->hasPermission('view_products')) && method_exists($product->variants, 'links'))
         <div class="mt-4">
             {{ $product->variants->links('vendor.pagination.tailwind') }}
         </div>

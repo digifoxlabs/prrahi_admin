@@ -8,6 +8,14 @@ use App\Models\Setting;
 
 class SettingsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view_settings')->only(['index']);
+        $this->middleware('permission:edit_settings')->only(['update']);
+        $this->middleware('permission:create_settings')->only(['store']);
+        $this->middleware('permission:delete_settings')->only(['destroy']);
+    }
+
     public function index()
     {
          $title ='Settings';   
