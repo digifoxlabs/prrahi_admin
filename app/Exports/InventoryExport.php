@@ -18,16 +18,28 @@ class InventoryExport implements FromCollection, WithHeadings
 
     public function collection()
     {
-        return InventoryTransaction::with(['product', 'variant'])
+        return InventoryTransaction::with(['product.parent'])
             ->when($this->productId, function ($query) {
                 $query->where('product_id', $this->productId);
             })
-            ->latest()
+            ->orderByDesc('date')
             ->get()
             ->map(function ($inv) {
+                $product = $inv->product;
+                $isVariant = $product && $product->type === 'variant';
+                $productName = $isVariant
+                    ? ($product->parent->name ?? $product->name ?? '')
+                    : ($product->name ?? '');
+                $variantLabel = $isVariant
+                    ? implode(', ', array_filter([
+                        $product->attributes['fragrance'] ?? null,
+                        $product->attributes['size'] ?? null,
+                    ]))
+                    : '';
+
                 return [
-                    'Product'    => $inv->product->name ?? '',
-                    'Variant'    => $inv->variant?->attributes['fragrance'] ?? '',
+                    'Product'    => $productName,
+                    'Variant'    => $variantLabel,
                     'Type'       => ucfirst($inv->type),
                     'Quantity'   => $inv->quantity,
                     'Date'       => Carbon::parse($inv->date)->format('Y-m-d'),

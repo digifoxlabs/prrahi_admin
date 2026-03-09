@@ -123,6 +123,49 @@
                     <p id="employeeSearchInfo" class="text-xs text-gray-500 dark:text-gray-400"></p>
                 </div>
 
+                @php
+                    $dayLocationData = [];
+                    foreach ($days as $day) {
+                        $dateKey = $day->toDateString();
+                        $dayPoints = [];
+
+                        foreach ($participants as $participant) {
+                            $entry = $entries->get($participant->id . '|' . $dateKey);
+                            if (! $entry) {
+                                continue;
+                            }
+
+                            $userType = $participant->employee_type === 'user' ? 'User' : 'Sales Person';
+                            $inTime = $entry->in_time ? substr((string) $entry->in_time, 0, 5) : null;
+                            $outTime = $entry->out_time ? substr((string) $entry->out_time, 0, 5) : null;
+
+                            if (! is_null($entry->in_latitude) && ! is_null($entry->in_longitude)) {
+                                $dayPoints[] = [
+                                    'name' => $participant->display_name,
+                                    'user_type' => $userType,
+                                    'mark_type' => 'IN',
+                                    'time' => $inTime,
+                                    'latitude' => (float) $entry->in_latitude,
+                                    'longitude' => (float) $entry->in_longitude,
+                                ];
+                            }
+
+                            if (! is_null($entry->out_latitude) && ! is_null($entry->out_longitude)) {
+                                $dayPoints[] = [
+                                    'name' => $participant->display_name,
+                                    'user_type' => $userType,
+                                    'mark_type' => 'OUT',
+                                    'time' => $outTime,
+                                    'latitude' => (float) $entry->out_latitude,
+                                    'longitude' => (float) $entry->out_longitude,
+                                ];
+                            }
+                        }
+
+                        $dayLocationData[$dateKey] = $dayPoints;
+                    }
+                @endphp
+
                 <div id="attendanceTableScroll" class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
                     <table class="min-w-max text-xs">
                         <thead class="bg-gray-100 dark:bg-gray-800">
@@ -133,12 +176,20 @@
                                 </th>
                                 @foreach ($days as $day)
                                     @php $dayDate = $day->toDateString(); @endphp
+                                    @php $locationCount = count($dayLocationData[$dayDate] ?? []); @endphp
                                     <th
                                         @if ($dayDate === $today) id="attendanceTodayHeader" @endif
                                         data-date="{{ $dayDate }}"
                                         class="border-r border-gray-200 px-2 py-2 text-center dark:border-gray-700 {{ $dayDate === $today ? 'bg-blue-50 dark:bg-blue-900/40' : '' }}">
                                         <div>{{ $day->format('d') }}</div>
                                         <div class="text-[10px] text-gray-500 dark:text-gray-400">{{ $day->format('D') }}</div>
+                                        <button type="button"
+                                            class="js-open-day-map mt-1 inline-flex items-center justify-center rounded px-1 text-[11px] {{ $locationCount > 0 ? 'text-blue-700 hover:bg-blue-100 hover:text-blue-900 dark:text-blue-300 dark:hover:bg-blue-900/40' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700' }}"
+                                            data-date="{{ $dayDate }}"
+                                            data-date-label="{{ $day->format('d M Y') }}"
+                                            title="View attendance locations for {{ $day->format('d M Y') }}">
+                                            📍
+                                        </button>
                                     </th>
                                 @endforeach
                             </tr>
@@ -325,6 +376,32 @@
             </form>
         </div>
     </div>
+
+    <div id="dayMapModal" class="fixed inset-0 z-[100000] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50" id="dayMapBackdrop"></div>
+        <div id="dayMapDialog" class="relative z-[100001] w-full max-w-5xl rounded-xl bg-white p-4 shadow-xl dark:bg-gray-900 sm:p-5">
+            <div class="mb-3 flex items-start justify-between gap-3">
+                <div>
+                    <h3 id="dayMapTitle" class="text-lg font-semibold text-gray-900 dark:text-white/90">Attendance Location Map</h3>
+                    <p id="dayMapSubTitle" class="text-sm text-gray-500 dark:text-gray-400"></p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="dayMapFullscreen"
+                        class="rounded border border-gray-300 px-2 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+                        Fullscreen
+                    </button>
+                    <button type="button" id="dayMapClose"
+                        class="rounded border border-gray-300 px-2 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+                        Close
+                    </button>
+                </div>
+            </div>
+            <p id="dayMapEmptyState" class="hidden rounded border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm text-yellow-800">
+                No attendance locations found for this date.
+            </p>
+            <div id="dayAttendanceMap" class="mt-3 h-[420px] w-full rounded border border-gray-200 dark:border-gray-700"></div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -357,10 +434,34 @@
             const employeeSearchInput = document.getElementById('employeeSearchInput');
             const employeeSearchClear = document.getElementById('employeeSearchClear');
             const employeeSearchInfo = document.getElementById('employeeSearchInfo');
+            const dayMapModal = document.getElementById('dayMapModal');
+            const dayMapBackdrop = document.getElementById('dayMapBackdrop');
+            const dayMapDialog = document.getElementById('dayMapDialog');
+            const dayMapCloseBtn = document.getElementById('dayMapClose');
+            const dayMapFullscreenBtn = document.getElementById('dayMapFullscreen');
+            const dayMapTitle = document.getElementById('dayMapTitle');
+            const dayMapSubTitle = document.getElementById('dayMapSubTitle');
+            const dayMapEmptyState = document.getElementById('dayMapEmptyState');
+            const dayMapCanvas = document.getElementById('dayAttendanceMap');
+            const dayLocationData = @json($dayLocationData);
+
+            let dayMap = null;
+            let dayMapLayer = null;
+            let dayMapIsFullscreen = false;
 
             const nowHHMM = () => {
                 const now = new Date();
                 return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            };
+
+            const escapeHtml = (value) => {
+                const str = String(value ?? '');
+                return str
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
             };
 
             const scrollToCurrentDateColumn = () => {
@@ -411,6 +512,166 @@
             const closeModal = () => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
+            };
+
+            const applyDayMapFullscreen = (isFullscreen) => {
+                dayMapIsFullscreen = isFullscreen;
+
+                if (isFullscreen) {
+                    dayMapModal.style.padding = '0';
+                    dayMapDialog.style.maxWidth = '100vw';
+                    dayMapDialog.style.width = '100vw';
+                    dayMapDialog.style.height = '100vh';
+                    dayMapDialog.style.borderRadius = '0';
+                    dayMapCanvas.style.height = 'calc(100vh - 140px)';
+                    dayMapFullscreenBtn.textContent = 'Exit Fullscreen';
+                } else {
+                    dayMapModal.style.padding = '';
+                    dayMapDialog.style.maxWidth = '';
+                    dayMapDialog.style.width = '';
+                    dayMapDialog.style.height = '';
+                    dayMapDialog.style.borderRadius = '';
+                    dayMapCanvas.style.height = '';
+                    dayMapFullscreenBtn.textContent = 'Fullscreen';
+                }
+
+                if (dayMap) {
+                    setTimeout(() => dayMap.invalidateSize(), 60);
+                }
+            };
+
+            const openDayMapModal = () => {
+                dayMapModal.classList.remove('hidden');
+                dayMapModal.classList.add('flex');
+            };
+
+            const closeDayMapModal = () => {
+                applyDayMapFullscreen(false);
+                dayMapModal.classList.add('hidden');
+                dayMapModal.classList.remove('flex');
+            };
+
+            const ensureDayMap = () => {
+                if (dayMap) {
+                    return true;
+                }
+
+                if (typeof L === 'undefined') {
+                    dayMapEmptyState.textContent = 'Map library could not be loaded.';
+                    dayMapEmptyState.classList.remove('hidden');
+                    dayMapCanvas.classList.add('hidden');
+                    return false;
+                }
+
+                dayMap = L.map('dayAttendanceMap', {
+                    zoomControl: true,
+                });
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors',
+                }).addTo(dayMap);
+
+                dayMapLayer = L.layerGroup().addTo(dayMap);
+
+                return true;
+            };
+
+            const zoomDayMapToCurrentLocation = () => {
+                if (!dayMap || !navigator.geolocation) {
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = Number(position.coords.latitude);
+                        const lng = Number(position.coords.longitude);
+                        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                            return;
+                        }
+
+                        dayMap.setView([lat, lng], 15, {
+                            animate: true,
+                        });
+                    },
+                    () => {
+                        // keep attendance marker bounds when location is blocked/unavailable
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 8000,
+                        maximumAge: 0,
+                    }
+                );
+            };
+
+            const renderDayMap = (date, dateLabel) => {
+                const points = Array.isArray(dayLocationData[date]) ? dayLocationData[date] : [];
+                dayMapTitle.textContent = `Attendance Location Map - ${dateLabel}`;
+                dayMapSubTitle.textContent = `${points.length} point(s) marked`;
+
+                openDayMapModal();
+
+                if (!ensureDayMap()) {
+                    return;
+                }
+
+                dayMapLayer.clearLayers();
+
+                if (points.length === 0) {
+                    dayMapEmptyState.textContent = 'No attendance locations found for this date.';
+                    dayMapEmptyState.classList.remove('hidden');
+                    dayMapCanvas.classList.add('hidden');
+                    return;
+                }
+
+                dayMapEmptyState.classList.add('hidden');
+                dayMapCanvas.classList.remove('hidden');
+
+                const bounds = L.latLngBounds();
+                let plottedPoints = 0;
+
+                points.forEach((point) => {
+                    const lat = Number(point.latitude);
+                    const lng = Number(point.longitude);
+                    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                        return;
+                    }
+
+                    const markerColor = point.mark_type === 'IN' ? '#16a34a' : '#2563eb';
+                    const marker = L.circleMarker([lat, lng], {
+                        radius: 7,
+                        color: markerColor,
+                        fillColor: markerColor,
+                        fillOpacity: 0.85,
+                        weight: 2,
+                    });
+
+                    marker.bindPopup(
+                        `<div class="text-xs"><div><strong>${escapeHtml(point.name)}</strong></div><div>${escapeHtml(point.user_type)} | ${escapeHtml(point.mark_type)}${point.time ? ` | ${escapeHtml(point.time)}` : ''}</div></div>`
+                    );
+
+                    marker.addTo(dayMapLayer);
+                    bounds.extend([lat, lng]);
+                    plottedPoints += 1;
+                });
+
+                if (plottedPoints === 0) {
+                    dayMapEmptyState.textContent = 'Location data exists, but coordinates are invalid.';
+                    dayMapEmptyState.classList.remove('hidden');
+                    dayMapCanvas.classList.add('hidden');
+                    return;
+                }
+
+                setTimeout(() => {
+                    dayMap.invalidateSize();
+                    if (bounds.isValid()) {
+                        dayMap.fitBounds(bounds.pad(0.25));
+                    } else {
+                        dayMap.setView([20.5937, 78.9629], 4);
+                    }
+                    zoomDayMapToCurrentLocation();
+                }, 50);
             };
 
             const fetchLocation = () => {
@@ -486,12 +747,33 @@
                 });
             });
 
+            document.querySelectorAll('.js-open-day-map').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const date = btn.dataset.date;
+                    const dateLabel = btn.dataset.dateLabel || date;
+                    renderDayMap(date, dateLabel);
+                });
+            });
+
             backdrop.addEventListener('click', closeModal);
             cancelBtn.addEventListener('click', closeModal);
             refreshLocationBtn.addEventListener('click', fetchLocation);
+            dayMapBackdrop.addEventListener('click', closeDayMapModal);
+            dayMapCloseBtn.addEventListener('click', closeDayMapModal);
+            dayMapFullscreenBtn.addEventListener('click', () => {
+                applyDayMapFullscreen(!dayMapIsFullscreen);
+            });
             document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && modal.classList.contains('flex')) {
+                if (event.key !== 'Escape') {
+                    return;
+                }
+
+                if (modal.classList.contains('flex')) {
                     closeModal();
+                }
+
+                if (dayMapModal.classList.contains('flex')) {
+                    closeDayMapModal();
                 }
             });
 
