@@ -126,9 +126,10 @@
                                 <th class="px-4 py-3">Profile</th>
                                 <th class="px-4 py-3">Firm</th>
                                 <th class="px-4 py-3">Contact person</th>
+                                <th class="px-4 py-3">Sales person</th>
                                 <th class="px-4 py-3">Email</th>
                                 <th class="px-4 py-3">Phone</th>
-                                <th class="px-4 py-3">Address</th>
+                                {{-- <th class="px-4 py-3">Address</th> --}}
                                 @if (($view ?? 'active') !== 'active')
                                     <th class="px-4 py-3">Deleted At</th>
                                 @endif
@@ -146,9 +147,10 @@
                                     </td>
                                     <td class="px-4 py-3">{{ $distributor->firm_name }}</td>
                                     <td class="px-4 py-3">{{ $distributor->contact_person }}</td>
+                                    <td class="px-4 py-3">{{ $distributor->salesPerson->name ?? '-' }}</td>
                                     <td class="px-4 py-3">{{ $distributor->email }}</td>
                                     <td class="px-4 py-3">{{ $distributor->contact_number }}</td>
-                                    <td class="px-4 py-3">{{ $distributor->town . '/' . $distributor->state }}</td>
+                                    {{-- <td class="px-4 py-3">{{ $distributor->town . '/' . $distributor->state }}</td> --}}
                                     @if (($view ?? 'active') !== 'active')
                                         <td class="px-4 py-3">{{ optional($distributor->deleted_at)->format('d M Y h:i A') ?? '-' }}</td>
                                     @endif
