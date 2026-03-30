@@ -80,6 +80,19 @@ class OrderCalculationService
             $rate = self::resolveRate($product, $pricing);
             $discountPercent = self::resolveDiscount($product, $pricing);
             $quantity = (int) $row['quantity'];
+            $availableStock = (int) $product->getAvailableStock();
+
+            if ($availableStock <= 0) {
+                throw ValidationException::withMessages([
+                    'items' => "{$product->name} is out of stock.",
+                ]);
+            }
+
+            if ($quantity > $availableStock) {
+                throw ValidationException::withMessages([
+                    'items' => "Only {$availableStock} units available for {$product->name}.",
+                ]);
+            }
 
             $lineGross = round($rate * $quantity, 2);
             $lineDiscount = round($lineGross * ($discountPercent / 100), 2);

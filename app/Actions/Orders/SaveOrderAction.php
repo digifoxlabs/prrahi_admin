@@ -35,6 +35,8 @@ class SaveOrderAction
                 'order_date'       => $data['order_date'],
                 'distributor_id'   => $data['distributor_id'],
                 'billing_address'  => $data['billing_address'] ?? null,
+                'town'             => $data['town'] ?? null,
+                'district'         => $data['district'] ?? null,
 
                 'subtotal'         => $calculation['subtotal'],
                 'discount'         => $data['discount'] ?? 0,
@@ -91,6 +93,8 @@ class SaveOrderAction
                 'order_number'    => $data['order_number'],
                 'order_date'      => $data['order_date'],
                 'billing_address' => $data['billing_address'] ?? null,
+                'town'            => $data['town'] ?? null,
+                'district'        => $data['district'] ?? null,
                 'subtotal'        => $calculation['subtotal'],
                 'discount'        => $data['discount'] ?? 0,
                 'cgst'            => $calculation['cgst'] ?? 0,

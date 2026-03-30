@@ -20,7 +20,8 @@ class CreateRetailerService
 
             'retailer_name' => $data['retailer_name'],
             'address_line_1' => $data['address_line_1'],
-            'address_line_2' => $data['address_line_2'],
+            'beat' => $data['beat'] ?? null,
+            'address_line_2' => $data['address_line_2'] ?? null,
             'town' => $data['town'],
 
             'state' => $data['state'],

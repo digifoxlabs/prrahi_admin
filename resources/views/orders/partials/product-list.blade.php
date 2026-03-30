@@ -19,6 +19,8 @@
                         <!-- SIMPLE -->
                         <template x-if="product.type === 'simple'">
                             <button @click="addProduct(product)"
+                                type="button"
+                                :disabled="!canAddProduct(product)"
                                 class="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-indigo-50 transition-colors group">
                                 <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center font-bold text-lg group-hover:bg-indigo-200 transition-colors"
                                      x-text="product.name.charAt(0).toUpperCase()">
@@ -27,10 +29,17 @@
                                     <p class="font-semibold text-sm" x-text="product.name"></p>
                                     <p class="text-xs text-gray-600" x-text="product.category?.name || 'No Category'"></p>
                                     <p class="text-xs text-gray-500 mt-1" x-text="product.code"></p>
+                                    <p class="text-xs mt-1" :class="productStock(product) > 0 ? 'text-emerald-600' : 'text-red-600'">
+                                        Available Stock: <span x-text="productStock(product)"></span>
+                                    </p>
                                 </div>
                                 <div class="text-right">
                                     <span class="text-xs font-medium text-green-600">
                                         ₹<span x-text="Number(product.ptd_per_dozen || 0).toFixed(2)"></span>
+                                    </span>
+                                    <span class="block text-[11px] mt-1 font-medium"
+                                          :class="productStock(product) > 0 ? 'text-emerald-600' : 'text-red-600'"
+                                          x-text="productStock(product) > 0 ? 'In Stock' : 'Out of Stock'">
                                     </span>
                                 </div>
                             </button>
@@ -80,6 +89,9 @@
                                         <p class="text-xs text-gray-600 leading-snug break-words"
                                             x-text="product.category?.name || 'No Category'">
                                         </p>
+                                        <p class="text-xs mt-1" :class="productStock(product) > 0 ? 'text-emerald-600' : 'text-red-600'">
+                                            Available Stock: <span x-text="productStock(product)"></span>
+                                        </p>
                                     </div>
                                 </div>
 
@@ -108,6 +120,8 @@
                                     <div class="p-3 space-y-2">
                                         <template x-for="variant in product.variants" :key="variant.id">
                                             <button @click="addProduct(variant)"
+                                                type="button"
+                                                :disabled="!canAddProduct(variant)"
                                                 class="w-full text-left px-3 py-2 rounded hover:bg-indigo-50 transition-colors text-sm border flex items-center justify-between">
                                                 <div>
                                                     <span class="text-gray-700">
@@ -117,10 +131,18 @@
                                                         </span>
                                                     </span>
                                                     <span class="text-xs text-gray-500 block mt-1" x-text="variant.code"></span>
+                                                    <span class="text-xs block mt-1"
+                                                          :class="productStock(variant) > 0 ? 'text-emerald-600' : 'text-red-600'">
+                                                        Available Stock: <span x-text="productStock(variant)"></span>
+                                                    </span>
                                                 </div>
                                                 <div class="text-right">
                                                     <span class="text-xs font-medium text-green-600">
                                                         ₹<span x-text="Number(variant.ptd_per_dozen || 0).toFixed(2)"></span>
+                                                    </span>
+                                                    <span class="block text-[11px] mt-1 font-medium"
+                                                          :class="productStock(variant) > 0 ? 'text-emerald-600' : 'text-red-600'"
+                                                          x-text="productStock(variant) > 0 ? 'In Stock' : 'Out of Stock'">
                                                     </span>
                                                 </div>
                                             </button>

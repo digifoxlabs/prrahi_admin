@@ -2,6 +2,22 @@
     @csrf
     @if($method === 'PUT') @method('PUT') @endif
 
+    @php
+        $natureOfOutletOptions = [
+            'Departmental Store',
+            'Agarbatti Shop',
+            'Wholeseller',
+            'General Store',
+            'Pan Shop',
+            'Stationary',
+            'Modern Outlet',
+        ];
+        $currentNatureOfOutlet = old('nature_of_outlet', $retailer->nature_of_outlet ?? '');
+        $isCustomNatureOfOutlet = $currentNatureOfOutlet && !in_array($currentNatureOfOutlet, $natureOfOutletOptions, true);
+        $selectedNatureOfOutlet = $isCustomNatureOfOutlet ? 'Other' : $currentNatureOfOutlet;
+        $customNatureOfOutlet = old('nature_of_outlet_other', $isCustomNatureOfOutlet ? $currentNatureOfOutlet : '');
+    @endphp
+
     {{-- Global Errors --}}
     @if($errors->any())
         <div class="bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 p-3 rounded mb-4 space-y-1">
@@ -38,8 +54,8 @@
 
         <!-- Contact Number -->
         <div>
-            <label class="font-medium mb-1 block text-gray-700 dark:text-white">Contact Number *</label>
-            <input type="numeric" name="contact_number" required
+            <label class="font-medium mb-1 block text-gray-700 dark:text-white">Contact Number</label>
+            <input type="text" name="contact_number"
                     placeholder="10 digit mobile number"
                    value="{{ old('contact_number', $retailer->contact_number ?? '') }}"
                    class="w-full p-2 border rounded border-gray-300 dark:border-gray-700
@@ -68,8 +84,23 @@
         <!-- Nature of Outlet -->
         <div>
             <label class="font-medium mb-1 block text-gray-700 dark:text-white">Nature of Outlet</label>
-            <input type="text" name="nature_of_outlet"
-                   value="{{ old('nature_of_outlet', $retailer->nature_of_outlet ?? '') }}"
+            <select name="nature_of_outlet" id="nature_of_outlet"
+                    class="w-full p-2 border rounded border-gray-300 dark:border-gray-700
+                           bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-400">
+                <option value="">-- Select Outlet Type --</option>
+                @foreach($natureOfOutletOptions as $option)
+                    <option value="{{ $option }}" @selected($selectedNatureOfOutlet === $option)>
+                        {{ $option }}
+                    </option>
+                @endforeach
+                <option value="Other" @selected($selectedNatureOfOutlet === 'Other')>Other</option>
+            </select>
+        </div>
+
+        <div id="nature_of_outlet_other_wrapper" style="{{ $selectedNatureOfOutlet === 'Other' ? '' : 'display:none;' }}">
+            <label class="font-medium mb-1 block text-gray-700 dark:text-white">Custom Outlet Type</label>
+            <input type="text" name="nature_of_outlet_other" id="nature_of_outlet_other"
+                   value="{{ $customNatureOfOutlet }}"
                    class="w-full p-2 border rounded border-gray-300 dark:border-gray-700
                           bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-400">
         </div>
@@ -84,11 +115,11 @@
                           bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-400">
         </div>
 
-        <!-- Address Line 2 -->
+        <!-- Beat -->
         <div>
-            <label class="font-medium mb-1 block text-gray-700 dark:text-white">Address Line 2</label>
-            <input type="text" name="address_line_2"
-                   value="{{ old('address_line2', $retailer->address_line_2 ?? '') }}"
+            <label class="font-medium mb-1 block text-gray-700 dark:text-white">Beat</label>
+            <input type="text" name="beat"
+                   value="{{ old('beat', $retailer->beat ?? $retailer->address_line_2 ?? '') }}"
                    class="w-full p-2 border rounded border-gray-300 dark:border-gray-700
                           bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-400">
         </div>
@@ -321,7 +352,25 @@
 <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 
 <script>
+    function toggleNatureOfOutletOtherField() {
+        const outletSelect = document.getElementById('nature_of_outlet');
+        const outletOtherWrapper = document.getElementById('nature_of_outlet_other_wrapper');
+        const outletOtherInput = document.getElementById('nature_of_outlet_other');
 
+        if (!outletSelect || !outletOtherWrapper || !outletOtherInput) return;
+
+        const shouldShowOtherInput = outletSelect.value === 'Other';
+
+        outletOtherWrapper.style.display = shouldShowOtherInput ? '' : 'none';
+        outletOtherInput.required = shouldShowOtherInput;
+
+        if (!shouldShowOtherInput) {
+            outletOtherInput.value = '';
+        }
+    }
+
+    toggleNatureOfOutletOtherField();
+    document.getElementById('nature_of_outlet')?.addEventListener('change', toggleNatureOfOutletOtherField);
 
     new TomSelect("#state-select", { create: false, sortField: 'text' });
     const districtSelect = new TomSelect("#district-select", { create: false });

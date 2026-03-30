@@ -55,11 +55,33 @@ class AdminOrderController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('district')) {
+            $query->where('district', $request->district);
+        }
+
+        if ($request->filled('town')) {
+            $query->where('town', $request->town);
+        }
+
         $orders = $query
             ->paginate(20)
             ->appends($request->query()); // keep filters during pagination
 
-        return view('admin.orders.index', compact('orders', 'title'));
+        $districts = Order::query()
+            ->whereNotNull('district')
+            ->where('district', '!=', '')
+            ->distinct()
+            ->orderBy('district')
+            ->pluck('district');
+
+        $towns = Order::query()
+            ->whereNotNull('town')
+            ->where('town', '!=', '')
+            ->distinct()
+            ->orderBy('town')
+            ->pluck('town');
+
+        return view('admin.orders.index', compact('orders', 'title', 'districts', 'towns'));
     }
 
 

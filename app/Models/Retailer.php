@@ -15,6 +15,7 @@ class Retailer extends Model
     protected $fillable = [
         'retailer_name',
         'address_line_1',
+        'beat',
         'address_line_2',
         'town',
         'district',

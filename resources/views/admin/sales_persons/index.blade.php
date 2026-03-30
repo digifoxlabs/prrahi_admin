@@ -121,16 +121,17 @@
 
 <div class="overflow-x-auto">
     <table id="salesPersonsTable"
-        class="min-w-full border text-sm table-auto md:table-fixed text-gray-900 dark:text-white/90 border-gray-200 dark:border-gray-700">
+        class="w-full border text-sm text-gray-900 dark:text-white/90 border-gray-200 dark:border-gray-700">
         <thead class="bg-gray-100 dark:bg-gray-800 text-xs uppercase text-gray-700 dark:text-white">
             <tr>
                 <th class="p-2">#</th>
                 <th class="p-2">Name</th>
                 <th class="p-2">Login ID</th>
                 <th class="p-2">Designation</th>
+                <th class="p-2">DOB</th>
                 <th class="p-2">Headquarter</th>
-                <th class="p-2">District</th>
-                <th class="p-2">Town</th>
+                <th class="p-2">District/<br>Town</th>
+                {{-- <th class="p-2">Town</th> --}}
                 <th class="p-2">Zone</th>
                 @if (($view ?? 'active') !== 'active')
                     <th class="p-2">Deleted At</th>
@@ -144,10 +145,14 @@
                     <td class="p-2">{{ $loop->iteration }}</td>
                     <td class="p-2 font-medium">{{ $sp->name }}</td>
                     <td class="p-2">{{ $sp->login_id }}</td>
-                    <td class="p-2">{{ $sp->designation ?? '-' }}</td>
+                    {{-- <td class="p-2">{{ $sp->designation ?? '-' }}</td> --}}
+                    <td class="p-2 max-w-[120px] whitespace-normal">
+                        {{ $sp->designation ?? '-' }}
+                    </td>
+                    <td class="p-2">{{ $sp->date_of_birth ?? '-' }}</td>
                     <td class="p-2">{{ $sp->headquarter ?? '-' }}</td>
-                    <td class="p-2">{{ $sp->district ?? '-' }}</td>
-                    <td class="p-2">{{ $sp->town ?? '-' }}</td>
+                    <td class="p-2">{{ $sp->district ?? '-' }}/<br>{{ $sp->town ?? '-' }}</td>
+                    {{-- <td class="p-2">{{ $sp->town ?? '-' }}</td> --}}
                     <td class="p-2">{{ $sp->zone ?? '-' }}</td>
                     @if (($view ?? 'active') !== 'active')
                         <td class="p-2">{{ optional($sp->deleted_at)->format('d M Y h:i A') ?? '-' }}</td>
@@ -200,7 +205,7 @@
                         <!-- Actions Button -->
                         <button x-ref="actionsBtn" @click="toggleDropdown($refs)" class="bg-gray-200 dark:bg-gray-700 text-sm px-3 py-1 rounded 
                     hover:bg-gray-300 dark:hover:bg-gray-600 dark:hover:text-white transition">
-                            Actions ▾
+                            Actions▾
                         </button>
 
                         <!-- Fixed Dropdown -->

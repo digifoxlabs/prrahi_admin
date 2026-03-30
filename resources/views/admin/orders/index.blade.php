@@ -3,7 +3,7 @@
 @section('page-content')
 <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
 
-    <div class="flex items-center justify-between mb-4">
+    {{-- <div class="flex items-center justify-between mb-4">
         <h1 class="text-2xl font-semibold">{{ $title }}</h1>
         @if (Auth::guard('admin')->user()->hasPermission('create_orders'))
         <a href="{{ route('admin.orders.create') }}"
@@ -11,7 +11,7 @@
             Create Order
         </a>
         @endif
-    </div>
+    </div> --}}
 
 
     @include('partials.flash')
@@ -47,6 +47,30 @@
         </select>
     </div>
 
+    <div class="min-w-[180px]">
+        <select name="district"
+                class="w-full border rounded-lg px-3 py-2 text-sm">
+            <option value="">All Districts</option>
+            @foreach($districts as $district)
+                <option value="{{ $district }}" {{ request('district') === $district ? 'selected' : '' }}>
+                    {{ $district }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="min-w-[180px]">
+        <select name="town"
+                class="w-full border rounded-lg px-3 py-2 text-sm">
+            <option value="">All Towns</option>
+            @foreach($towns as $town)
+                <option value="{{ $town }}" {{ request('town') === $town ? 'selected' : '' }}>
+                    {{ $town }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
     <!-- Buttons -->
     <div class="flex gap-2">
         <button type="submit"
@@ -54,7 +78,7 @@
             Filter
         </button>
 
-        @if(request()->filled('q') || request()->filled('status'))
+        @if(request()->filled('q') || request()->filled('status') || request()->filled('district') || request()->filled('town'))
             <a href="{{ route('admin.orders.index') }}"
                class="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">
                 Clear
@@ -63,15 +87,6 @@
     </div>
 
 </form>
-
-
-
-
-
-
-
-
-
 
     <!-- Confirmation Modal -->
     <div id="confirmationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
@@ -109,6 +124,8 @@
                 <tr>
                     <th class="p-3">Order</th>
                     <th class="p-3">Distributor</th>
+                    <th class="p-3">District</th>
+                    <th class="p-3">Town</th>
                     <th class="p-3">Date</th>
                     <th class="p-3">Amount</th>
                     <th class="p-3">Status</th>
@@ -129,6 +146,8 @@
                 <tr class="border-t hover:bg-gray-50">
                     <td class="p-3 font-medium">{{ $order->order_number }}</td>
                     <td class="p-3">{{ $order->distributor->firm_name ?? '-' }}</td>
+                    <td class="p-3">{{ $order->district ?: '-' }}</td>
+                    <td class="p-3">{{ $order->town ?: '-' }}</td>
                     <td class="p-3">{{ $order->created_at->format('d M Y') }}</td>
                     <td class="p-3 font-semibold">₹ {{ number_format($order->total_amount, 2) }}</td>
 
@@ -204,7 +223,7 @@
 
                 <!-- ================= TIMELINE ROW ================= -->
                 <tr class="bg-gray-50">
-                    <td colspan="6" class="p-4">
+                    <td colspan="8" class="p-4">
 
                         <div class="flex items-center gap-2">
 

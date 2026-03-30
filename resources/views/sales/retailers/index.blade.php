@@ -58,6 +58,7 @@
                         <tr class="text-left">
                             <th class="p-2">#</th>
                             <th class="p-2">Retailer</th>
+                            <th class="p-2">Distributor</th>
                             <th class="p-2">Contact</th>
                             <th class="p-2">Phone</th>
                             <th class="p-2">District</th>
@@ -73,6 +74,7 @@
 
                             <td class="p-2">{{ $loop->iteration }}</td>
                             <td class="p-2 font-medium">{{ $retailer->retailer_name }}</td>
+                             <td class="p-2">{{ optional($retailer->distributor)->firm_name ?? '-' }}</td>
                             <td class="p-2">{{ $retailer->contact_person }}</td>
                             <td class="p-2">{{ $retailer->contact_number }}</td>
                             <td class="p-2">{{ $retailer->district ?? '-' }}</td>

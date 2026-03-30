@@ -18,6 +18,8 @@ class Order extends Model
         'order_date',
         'distributor_id',
         'billing_address',
+        'town',
+        'district',
         'subtotal',
         'sgst',
         'cgst',

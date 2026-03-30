@@ -15,8 +15,6 @@ use App\Services\Retailers\{
 
 class RetailerController extends Controller
 {
-
-
     //Store
     public function store(Request $request){
 
@@ -33,7 +31,8 @@ class RetailerController extends Controller
 
             'retailer_name' => $data['retailer_name'],
             'address_line_1' => $data['address_line_1'],
-            'address_line_2' => $data['address_line_2'],
+            'beat' => $data['beat'] ?? null,
+            'address_line_2' => $data['address_line_2'] ?? null,
             'town' => $data['town'],
 
             'state' => $data['state'],
@@ -49,7 +48,7 @@ class RetailerController extends Controller
             'gst' => $data['gst'],
             'date_of_birth' => $data['date_of_birth'],
             'date_of_anniversary' => $data['date_of_anniversary'],
-            'nature_of_outlet' => $data['nature_of_outlet'],
+            'nature_of_outlet' => $this->resolveNatureOfOutlet($data),
             'appointment_date' => $data['appointment_date'],
             'distributor_id' => $data['distributor_id'],
             'latitude' => $data['latitude'],
@@ -81,7 +80,8 @@ class RetailerController extends Controller
 
             'retailer_name' => $data['retailer_name'],
             'address_line_1' => $data['address_line_1'],
-            'address_line_2' => $data['address_line_2'],
+            'beat' => $data['beat'] ?? null,
+            'address_line_2' => $data['address_line_2'] ?? null,
             'town' => $data['town'],
 
             'state' => $data['state'],
@@ -97,7 +97,7 @@ class RetailerController extends Controller
             'gst' => $data['gst'],
             'date_of_birth' => $data['date_of_birth'],
             'date_of_anniversary' => $data['date_of_anniversary'],
-            'nature_of_outlet' => $data['nature_of_outlet'],
+            'nature_of_outlet' => $this->resolveNatureOfOutlet($data),
             'appointment_date' => $data['appointment_date'],
             'distributor_id' => $data['distributor_id'],
             'latitude' => $data['latitude'],
@@ -119,6 +119,7 @@ class RetailerController extends Controller
 
             'retailer_name' => 'required|string|max:255',
             'address_line_1' => 'required|string|max:255',
+            'beat' => 'nullable|string|max:255',
             'address_line_2' => 'nullable|string|max:255',
             'town' => 'nullable|string|max:255',
 
@@ -129,13 +130,14 @@ class RetailerController extends Controller
             'landmark' => 'nullable|string|max:255',
 
             'contact_person' => 'required|string|max:255',
-            'contact_number' => 'required|string|max:20',
+            'contact_number' => 'nullable|string|max:20',
             'email' => 'nullable|email',
 
             'gst' => 'nullable|string|max:20',
             'date_of_birth' => 'nullable|date',
             'date_of_anniversary' => 'nullable|date',
             'nature_of_outlet' => 'nullable|string|max:255',
+            'nature_of_outlet_other' => 'nullable|required_if:nature_of_outlet,Other|string|max:255',
             'appointment_date' => 'required|date',
             'distributor_id' => 'nullable|exists:distributors,id',
             'latitude' => 'nullable|string|max:255',
@@ -146,6 +148,18 @@ class RetailerController extends Controller
         [
                 'retailer_name.required' => 'Please enter Retailer Name',
         ] );
+    }
+
+    private function resolveNatureOfOutlet(array $data): ?string
+    {
+        $natureOfOutlet = trim((string) ($data['nature_of_outlet'] ?? ''));
+        $customNatureOfOutlet = trim((string) ($data['nature_of_outlet_other'] ?? ''));
+
+        if ($natureOfOutlet === 'Other') {
+            return $customNatureOfOutlet !== '' ? $customNatureOfOutlet : null;
+        }
+
+        return $natureOfOutlet !== '' ? $natureOfOutlet : null;
     }
 
 

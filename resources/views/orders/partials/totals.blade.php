@@ -43,6 +43,7 @@
                             </p>
                             <p x-show="previewLoading" class="text-xs text-gray-500">Updating preview...</p>
                             <p x-show="previewError" x-text="previewError" class="text-xs text-red-600"></p>
+                            <p x-show="stockError" x-text="stockError" class="text-xs text-red-600"></p>
 
 
                             <!-- ================= HIDDEN TOTAL FIELDS ================= -->
@@ -54,7 +55,10 @@
                             <input type="hidden" name="round_off" :value="roundOff">
                             <input type="hidden" name="total_amount" :value="total">
 
-                            <button class="mt-3 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                            <button type="submit"
+                                    :disabled="cart.length === 0 || hasStockIssues() || previewLoading || !!previewError"
+                                    :class="cart.length === 0 || hasStockIssues() || previewLoading || !!previewError ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'"
+                                    class="mt-3 px-6 py-2 text-white rounded-lg transition-colors">
                                 {{ $isEdit ? 'Update Order' : 'Create Order' }}
                             </button>
                         </div>

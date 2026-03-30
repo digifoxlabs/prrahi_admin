@@ -103,6 +103,7 @@
                     <th class="p-3">Order</th>
                     <th class="p-3">Retailer</th>
                     <th class="p-3">Distributor</th>
+                    <th class="p-3">Sales Person</th>
                     <th class="p-3">Date</th>
                     <th class="p-3">Amount</th>
                     <th class="p-3">Status</th>
@@ -119,11 +120,42 @@
                 $isCancelled = in_array('cancelled', $events);
                 @endphp --}}
 
+
+
+                        @php
+                            $appointedBy = $order->created_by;
+                            $appointedLabel = '—';
+                            $appointedName  = '—';
+
+                            if ($appointedBy) {
+                                switch (class_basename($appointedBy)) {
+                                    // case 'User': // Admin
+                                    //     $appointedLabel = 'Admin';
+                                    //     $appointedName  = $appointedBy->fname ?? '—';
+                                    //     break;
+
+                                    // case 'Distributor':
+                                    //     $appointedLabel = 'Distributor';
+                                    //     $appointedName  = $appointedBy->firm_name ?? '—';
+                                    //     break;
+
+                                    case 'SalesPerson':
+                                        $appointedLabel = 'Sales Person';
+                                        $appointedName  = $appointedBy->name ?? '—';
+                                        break;
+                                }
+                            }
+                        @endphp
+
+
+
+
                 <!-- ================= ORDER ROW ================= -->
                 <tr class="border-t hover:bg-gray-50">
                     <td class="p-3 font-medium">{{ $order->order_number }}</td>
                     <td class="p-3">{{ $order->retailer->retailer_name ?? '-' }}</td>
                     <td class="p-3">{{ $order->distributor->firm_name ?? '-' }}</td>
+                    <td class="p-3">{{ $appointedName }}</td>
                     <td class="p-3">{{ $order->created_at->format('d M Y') }}</td>
                     <td class="p-3 font-semibold">₹ {{ number_format($order->total_amount, 2) }}</td>
 

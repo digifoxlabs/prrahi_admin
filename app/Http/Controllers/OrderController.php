@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Distributor;
 use App\Services\Orders\OrderCalculationService;
 use App\Actions\Orders\{
     SaveOrderAction
@@ -21,15 +22,6 @@ use App\Models\InventoryTransaction;
 
 class OrderController extends Controller
 {
-    /* =====================
-       CREATE
-    ======================*/
-    // public function create(Request $request)
-    // {
-    //     $products = Product::with('parent')->orderBy('name')->get();
-
-    //     return view('orders.create', compact('products'));
-    // }
 
     /* =====================
        STORE DISTRIBUTOR ORDER
@@ -38,8 +30,8 @@ class OrderController extends Controller
     {
            
 
-        $validated = $this->validatedData($request);
-    
+        $validated = $this->validatedData($request);    
+        $distributorLocation = $this->resolveDistributorLocation((int) $validated['distributor_id']);
 
         /** Detect actor */
        // [$actorType, $actorId] = $this->resolveActor();
@@ -53,47 +45,9 @@ class OrderController extends Controller
                 ...$validated,
                 'discount' => $request->discount_amount ?? 0,
                 'order_number' => $orderNumber,
+                'town' => $distributorLocation['town'],
+                'district' => $distributorLocation['district'],
         ]);
- 
-
-        // $order = CreateOrderService::create([
-        //     'order_number'     => $orderNumber,
-        //     'order_date'      => $request->order_date,
-        //     'distributor_id'  => $request->distributor_id,
-        //     'billing_address' => $request->billing_address,
-
-        //     'subtotal'        => $request->subtotal,
-        //     'discount'        => $request->discount_amount ?? 0,
-        //     'cgst'            => $request->cgst,
-        //     'sgst'            => $request->sgst,
-        //     'igst'            => $request->igst ?? 0,
-        //     'round_off'       => $request->round_off ?? 0,
-        //     'total_amount'    => $request->total_amount,
-
-        //     'status'          => 'pending',
-        //     'created_by_type'  => $actor['type'],
-        //     'created_by_id'    => $actor['id'],
-
-        // ]);
-
-        // // $items = collect($validated['items'])->map(fn ($row) => [
-        // $items = collect($request->items)->map(fn ($row) => [
-            
-        //         'order_id' => $order->id,
-        //         'product_id' => $row['product_id'],
-        //         'price'   => $row['rate'],
-        //         'base_unit' => $row['base_unit'],
-        //         'quantity'  => $row['quantity'],
-        //         'discount_percent'   => $row['discount_percent'],
-        //         'total'   => $row['amount'],
-
-        // ])->toArray();
-
-     
-        // AddOrderItemsService::handle($order, $items);
-
-        // OrderActivityLogger::log($order, 'created', 'Order created');
-
 
          return $this->redirectAfterSave($order, $actor['role'])
          ->with('success', 'Order created successfully.');
@@ -109,6 +63,7 @@ class OrderController extends Controller
         abort_if($order->status !== 'pending', 403, 'Order cannot be edited.');
 
         $validated = $this->validatedData($request, $order);
+        $distributorLocation = $this->resolveDistributorLocation((int) $validated['distributor_id']);
 
         $actor = OrderActor::resolve();
 
@@ -118,6 +73,8 @@ class OrderController extends Controller
             'distributor_id'  => $validated['distributor_id'],
             'billing_address' => $request->billing_address,
             'discount'        => $request->discount_amount ?? 0,
+            'town'            => $distributorLocation['town'],
+            'district'        => $distributorLocation['district'],
             'items'           => $validated['items'],
         ]);
 
@@ -222,6 +179,18 @@ class OrderController extends Controller
                 'items.required'          => 'Please add at least one product to the order.',
                 'items.min' => 'Please add at least one product before saving the order.',
         ] );
+    }
+
+    private function resolveDistributorLocation(int $distributorId): array
+    {
+        $distributor = Distributor::query()
+            ->select(['id', 'town', 'district'])
+            ->findOrFail($distributorId);
+
+        return [
+            'town' => $distributor->town,
+            'district' => $distributor->district,
+        ];
     }
 
 

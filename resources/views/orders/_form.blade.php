@@ -35,7 +35,7 @@
 
         {{-- ================= RIGHT POS PANEL ================= --}}
         <div class="lg:col-span-8">
-            <form method="POST" action="{{ $action }}" class="bg-white rounded-xl p-4 border">
+            <form method="POST" action="{{ $action }}" class="bg-white rounded-xl p-4 border" @submit="handleSubmit">
                 @csrf
                 @if($method === 'PUT') @method('PUT') @endif
 
@@ -103,6 +103,9 @@
                                     value="{{ auth('distributor')->id() }}">
                             @endif
                         </div>                        
+
+                        <input type="hidden" name="town" x-model="selectedDistributorTown">
+                        <input type="hidden" name="district" x-model="selectedDistributorDistrict">
 
                         {{-- Force distributor for distributor guard --}}
                         @if(auth('distributor')->check())
