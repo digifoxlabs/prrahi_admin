@@ -71,20 +71,22 @@ class Product extends Model
     }
 
     public function getAvailableStock()
-        {
-            $in = $this->inventoryTransactions()->where('type', 'in')->sum('quantity');
-            $out = $this->inventoryTransactions()->whereIn('type', ['out', 'reserved'])->sum('quantity');
-
-            return $in - $out;
-        }
+    {
+        return (int) $this->inventoryTransactions()
+            ->selectRaw("COALESCE(SUM(CASE
+                WHEN type IN ('in', 'opening', 'purchase', 'return') THEN quantity
+                WHEN type IN ('out', 'sale', 'hold', 'reserved', 'adjustment') THEN -quantity
+                ELSE 0 END), 0) as total")
+            ->value('total');
+    }
 
 
     public function getTotalStockAttribute()
     {
         return $this->inventoryTransactions()
             ->selectRaw("COALESCE(SUM(CASE 
-                WHEN type = 'in' THEN quantity 
-                WHEN type IN ('out', 'adjustment') THEN -quantity 
+                WHEN type IN ('in', 'opening', 'purchase', 'return') THEN quantity 
+                WHEN type IN ('out', 'sale', 'hold', 'reserved', 'adjustment') THEN -quantity 
                 ELSE 0 END), 0) as total")
             ->value('total');
     }

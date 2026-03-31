@@ -42,8 +42,13 @@ function posOrder(){
 
         previewLoading: false,
         previewError: '',
+        stockError: '',
         previewDebounceTimer: null,
         previewRequestId: 0,
+
+        init(){
+            this.syncCartStock();
+        },
 
         toNumber(value){
             const parsed = Number(value);
@@ -74,9 +79,96 @@ function posOrder(){
             );
         },
 
+        productStock(product){
+            if (!product) return 0;
+
+            if (product.type === 'variable') {
+                return (product.variants || []).reduce((sum, variant) => sum + this.productStock(variant), 0);
+            }
+
+            return Math.max(0, parseInt(product.total_stock ?? product.available_stock ?? 0, 10) || 0);
+        },
+
+        canAddProduct(product){
+            return this.productStock(product) > 0;
+        },
+
+        findProductById(productId){
+            for (const product of this.products) {
+                if (String(product.id) === String(productId)) {
+                    return product;
+                }
+
+                const variant = (product.variants || []).find(item => String(item.id) === String(productId));
+                if (variant) {
+                    return variant;
+                }
+            }
+
+            return null;
+        },
+
+        itemStock(item){
+            const product = this.findProductById(item.id);
+            return this.productStock(product);
+        },
+
+        normalizeItem(item){
+            const availableStock = this.itemStock(item);
+            const normalizedQty = Math.min(
+                Math.max(1, parseInt(item.qty, 10) || 1),
+                Math.max(availableStock, 1)
+            );
+
+            return {
+                ...item,
+                qty: availableStock > 0 ? normalizedQty : 1,
+                available_stock: availableStock,
+            };
+        },
+
+        syncCartStock(){
+            this.cart = this.cart.map(item => this.normalizeItem(item));
+        },
+
+        validateStock(showMessage = true){
+            this.syncCartStock();
+
+            const outOfStockItem = this.cart.find(item => item.available_stock <= 0);
+            if (outOfStockItem) {
+                if (showMessage) {
+                    this.stockError = `${outOfStockItem.name} is out of stock. Remove it to continue.`;
+                }
+                return false;
+            }
+
+            const invalidQtyItem = this.cart.find(item => this.toNumber(item.qty) > item.available_stock);
+            if (invalidQtyItem) {
+                if (showMessage) {
+                    this.stockError = `Quantity for ${invalidQtyItem.name} cannot exceed available stock (${invalidQtyItem.available_stock}).`;
+                }
+                return false;
+            }
+
+            this.stockError = '';
+            return true;
+        },
+
+        hasStockIssues(){
+            return this.cart.some(item => {
+                const availableStock = this.itemStock(item);
+                const quantity = Math.max(1, parseInt(item.qty, 10) || 1);
+
+                return availableStock <= 0 || quantity > availableStock;
+            });
+        },
+
         fillAddress(){
             const retailer = this.retailers.find(x => x.id == this.selectedRetailerId);
-            if (!retailer) return;
+            if (!retailer) {
+                this.billingAddress = '';
+                return;
+            }
 
             this.billingAddress =
                 `${retailer.retailer_name}\n` +
@@ -89,9 +181,21 @@ function posOrder(){
         },
 
         addProduct(product){
+            const availableStock = this.productStock(product);
+
+            if (availableStock <= 0) {
+                this.stockError = `${product.name} is out of stock and cannot be added.`;
+                return;
+            }
+
             const existing = this.cart.find(i => i.id === product.id);
             if (existing) {
-                existing.qty = this.toNumber(existing.qty) + 1;
+                existing.qty = Math.min(this.toNumber(existing.qty) + 1, availableStock);
+                existing.available_stock = availableStock;
+
+                if (this.toNumber(existing.qty) >= availableStock) {
+                    this.stockError = `${existing.name} has only ${availableStock} units available.`;
+                }
             } else {
                 let label = product.attributes
                     ? (product.parent?.name || product.name)
@@ -109,6 +213,7 @@ function posOrder(){
                     name: label,
                     code: product.code,
                     qty: 1,
+                    available_stock: availableStock,
                     rate: this.toNumber(product.ptr_per_dozen),
                     discount: this.toNumber(product.retailer_discount_percent),
                     base_unit: product.attributes
@@ -118,16 +223,29 @@ function posOrder(){
                 });
             }
 
+            this.validateStock(false);
             this.schedulePreview();
         },
 
         removeItem(index){
             this.cart.splice(index, 1);
+            this.validateStock(false);
             this.schedulePreview();
         },
 
         recalculate(){
+            this.validateStock(false);
             this.schedulePreview();
+        },
+
+        recalculateItem(item){
+            item.qty = Math.max(1, parseInt(item.qty, 10) || 1);
+
+            if (item.available_stock > 0) {
+                item.qty = Math.min(item.qty, item.available_stock);
+            }
+
+            this.recalculate();
         },
 
         schedulePreview(){
@@ -143,11 +261,16 @@ function posOrder(){
             this.roundOff = 0;
             this.total = 0;
             this.isIntraState = true;
-            this.cart = this.cart.map(item => ({ ...item, amount: 0 }));
+            this.cart = this.cart.map(item => ({ ...item, amount: 0, available_stock: this.itemStock(item) }));
         },
 
         async fetchPreview(){
             this.previewError = '';
+
+            if (!this.validateStock()) {
+                this.resetPreviewTotals();
+                return;
+            }
 
             if (!this.selectedRetailerId || this.cart.length === 0) {
                 this.resetPreviewTotals();
@@ -221,16 +344,16 @@ function posOrder(){
 
             this.cart = this.cart.map(item => {
                 const previewItem = previewItemsByProductId.get(String(item.id));
-                if (!previewItem) return item;
+                if (!previewItem) return this.normalizeItem(item);
 
-                return {
+                return this.normalizeItem({
                     ...item,
                     qty: this.toNumber(previewItem.quantity),
                     rate: this.toNumber(previewItem.price),
                     discount: this.toNumber(previewItem.discount_percent),
                     base_unit: previewItem.base_unit ?? item.base_unit,
                     amount: this.toNumber(previewItem.total),
-                };
+                });
             });
 
             this.isIntraState = Boolean(preview.is_intra_state);
@@ -241,6 +364,12 @@ function posOrder(){
             this.igst = this.toNumber(preview.igst);
             this.roundOff = this.toNumber(preview.round_off);
             this.total = this.toNumber(preview.total_amount);
+        },
+
+        handleSubmit(event){
+            if (!this.validateStock() || this.previewLoading || this.previewError) {
+                event.preventDefault();
+            }
         },
     };
 }

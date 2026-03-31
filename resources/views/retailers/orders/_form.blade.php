@@ -35,7 +35,7 @@
 
         {{-- ================= RIGHT POS PANEL ================= --}}
         <div class="lg:col-span-8">
-            <form method="POST" action="{{ $action }}" class="bg-white rounded-xl p-4 border">
+            <form method="POST" action="{{ $action }}" class="bg-white rounded-xl p-4 border" @submit="handleSubmit">
                 @csrf
                 @if($method === 'PUT') @method('PUT') @endif
 
