@@ -208,7 +208,7 @@
                                         class="bg-gray-200 dark:bg-gray-700
                                                px-3 py-1 text-sm rounded
                                                hover:bg-gray-300 dark:hover:bg-gray-600">
-                                    Actions ▾
+                                    Actions▾
                                 </button>
 
                                 <div x-cloak x-show="open" x-transition
