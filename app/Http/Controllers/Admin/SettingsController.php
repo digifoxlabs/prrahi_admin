@@ -18,17 +18,14 @@ class SettingsController extends Controller
 
     public function index()
     {
-         $title ='Settings';   
-        // Group settings
-        $productSettings = Setting::where('group', 'products')->pluck('value', 'key');
-        $distributorSettings = Setting::where('group', 'distributors')->pluck('value', 'key');
-        $orderSettings = Setting::where('group', 'orders')->pluck('value', 'key');
+         $title ='Settings';
+        $distributorOrderSettings = Setting::where('group', 'distributor_orders')->pluck('value', 'key');
+        $retailOrderSettings = Setting::where('group', 'retail_orders')->pluck('value', 'key');
         $invoiceSettings = Setting::where('group', 'invoice_template')->pluck('value', 'key');
 
         return view('admin.pages.settings', compact(
-            'productSettings',
-            'distributorSettings',
-            'orderSettings',
+            'distributorOrderSettings',
+            'retailOrderSettings',
             'invoiceSettings',
             'title'
         ));

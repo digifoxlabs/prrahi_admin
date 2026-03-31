@@ -52,106 +52,82 @@
         <form method="POST" action="{{ route('admin.settings.update') }}" class="space-y-6">
             @csrf
 
-            <div class="grid grid-cols-2 md:grid-cols-2 gap-6">
-                {{-- Product Settings Card --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {{-- Distributor Order Settings Card --}}
                 <div class="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden dark:border-gray-800 dark:bg-gray-900/50">
                     <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 dark:bg-gray-800/50 dark:border-gray-800">
                         <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
                             <svg class="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l9-4 9 4-9 4-9-4zm0 5l9 4 9-4m-18 5l9 4 9-4"></path>
                             </svg>
-                            Product Settings
+                            Distributor Order
                         </h2>
                     </div>
                     <div class="p-6 space-y-5">
                         <div class="flex items-start">
                             <div class="flex items-center h-5">
-                                <input id="check-stock" type="checkbox" name="settings[products][check_stock_before_order]" value="1"
-                                    @checked($productSettings['check_stock_before_order'] ?? false)
+                                <input type="hidden" name="settings[distributor_orders][check_stock_before_order]" value="0">
+                                <input id="distributor-check-stock" type="checkbox" name="settings[distributor_orders][check_stock_before_order]" value="1"
+                                    @checked(($distributorOrderSettings['check_stock_before_order'] ?? '0') == '1')
                                     class="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600 dark:checked:border-blue-600 dark:focus:ring-blue-600">
                             </div>
                             <div class="ml-3 text-sm">
-                                <label for="check-stock" class="font-medium text-gray-700 dark:text-gray-300">Check stock before creating order</label>
-                                <p class="text-gray-500 dark:text-gray-400">Enable to verify product availability during order creation</p>
+                                <label for="distributor-check-stock" class="font-medium text-gray-700 dark:text-gray-300">Check stock availability before creating order</label>
+                                <p class="text-gray-500 dark:text-gray-400">Validate distributor order quantities against available stock before saving the order.</p>
                             </div>
                         </div>
 
-                        <div class="space-y-1">
-                            <label for="low-stock" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Low stock warning threshold</label>
-                            <div class="relative rounded-md shadow-sm max-w-xs">
-                                <input type="number" id="low-stock" name="settings[products][low_stock_warning]" 
-                                       value="{{ $productSettings['low_stock_warning'] ?? 10 }}" 
-                                       class="block w-full rounded-md border-gray-300 pl-3 pr-10 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500">
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <span class="text-gray-500 dark:text-gray-400 sm:text-sm">units</span>
-                                </div>
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input type="hidden" name="settings[distributor_orders][allow_zero_stock_order]" value="0">
+                                <input id="distributor-zero-stock" type="checkbox" name="settings[distributor_orders][allow_zero_stock_order]" value="1"
+                                    @checked(($distributorOrderSettings['allow_zero_stock_order'] ?? '0') == '1')
+                                    class="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600 dark:checked:border-blue-600 dark:focus:ring-blue-600">
                             </div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">System will warn when stock falls below this quantity</p>
+                            <div class="ml-3 text-sm">
+                                <label for="distributor-zero-stock" class="font-medium text-gray-700 dark:text-gray-300">Allow order for zero stock availability</label>
+                                <p class="text-gray-500 dark:text-gray-400">Enable this if distributor orders should still be allowed when available stock is zero.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Distributor Settings Card --}}
+                {{-- Retail Order Settings Card --}}
                 <div class="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden dark:border-gray-800 dark:bg-gray-900/50">
                     <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 dark:bg-gray-800/50 dark:border-gray-800">
                         <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
                             <svg class="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11c1.657 0 3-1.79 3-4s-1.343-4-3-4-3 1.79-3 4 1.343 4 3 4zm-8 0c1.657 0 3-1.79 3-4S9.657 3 8 3 5 4.79 5 7s1.343 4 3 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm8 0c-.29 0-.62.02-.97.05 1.42 1.03 2.97 2.76 2.97 4.95v1h6v-2c0-2.66-5.33-4-8-4z"></path>
                             </svg>
-                            Distributor Settings
+                            Retail Order
                         </h2>
                     </div>
                     <div class="p-6 space-y-5">
-                        <div class="space-y-1">
-                            <label for="max-outstanding" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Maximum outstanding limit</label>
-                            <div class="relative rounded-md shadow-sm max-w-xs">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <span class="text-gray-500 dark:text-gray-400 sm:text-sm">$</span>
-                                </div>
-                                <input type="number" id="max-outstanding" name="settings[distributors][max_outstanding]" 
-                                       value="{{ $distributorSettings['max_outstanding'] ?? 0 }}" 
-                                       class="block w-full rounded-md border-gray-300 pl-7 pr-10 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input type="hidden" name="settings[retail_orders][check_stock_before_order]" value="0">
+                                <input id="retail-check-stock" type="checkbox" name="settings[retail_orders][check_stock_before_order]" value="1"
+                                    @checked(($retailOrderSettings['check_stock_before_order'] ?? '0') == '1')
+                                    class="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600 dark:checked:border-blue-600 dark:focus:ring-blue-600">
                             </div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Set the maximum allowed outstanding balance for distributors</p>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Empty Card 1 (Placeholder for additional settings) --}}
-                <div class="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden dark:border-gray-800 dark:bg-gray-900/50">
-                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 dark:bg-gray-800/50 dark:border-gray-800">
-                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                            Free Dozen Settings
-                        </h2>
-                    </div>
-                    <div class="p-6">
-                        
-                    <div class="space-y-1">
-                            <label for="free-dozen" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Free Dozen per case</label>
-                            <div class="relative rounded-md shadow-sm max-w-xs">
-                          
-                                {{-- <input type="number" id="free-dozen" name="settings[orders][free-dozen]" 
-                                       value="{{ $orderSettings['free-dozen'] ?? 0 }}" 
-                                       class="block w-full rounded-md border-gray-300 pl-7 pr-10 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"> --}}
-                           
-<input type="hidden" name="settings[orders][free-dozen]" value="0">
-<input type="checkbox" id="free-dozen" name="settings[orders][free-dozen]" value="1"
-       {{ !empty($orderSettings['free-dozen']) && $orderSettings['free-dozen'] == 1 ? 'checked' : '' }}
-       class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600 dark:checked:border-blue-600">
-
-
-
-
-                            
-                                    </div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Is Free Dozen Active</p>
+                            <div class="ml-3 text-sm">
+                                <label for="retail-check-stock" class="font-medium text-gray-700 dark:text-gray-300">Check stock availability before creating order</label>
+                                <p class="text-gray-500 dark:text-gray-400">Validate retail order quantities against available stock before saving the order.</p>
+                            </div>
                         </div>
 
-
-
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input type="hidden" name="settings[retail_orders][allow_zero_stock_order]" value="0">
+                                <input id="retail-zero-stock" type="checkbox" name="settings[retail_orders][allow_zero_stock_order]" value="1"
+                                    @checked(($retailOrderSettings['allow_zero_stock_order'] ?? '0') == '1')
+                                    class="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-600 dark:checked:border-blue-600 dark:focus:ring-blue-600">
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="retail-zero-stock" class="font-medium text-gray-700 dark:text-gray-300">Allow order for zero stock availability</label>
+                                <p class="text-gray-500 dark:text-gray-400">Enable this if retail orders should still be allowed when available stock is zero.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

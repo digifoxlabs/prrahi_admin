@@ -22,6 +22,10 @@ function posOrder(){
     return {
         products: @json($products),
         retailers: @json($retailers),
+        retailOrderSettings: {
+            checkStockBeforeOrder: @js(\App\Models\Setting::get('retail_orders', 'check_stock_before_order', '0') == '1'),
+            allowZeroStockOrder: @js(\App\Models\Setting::get('retail_orders', 'allow_zero_stock_order', '0') == '1'),
+        },
         previewUrl: @json(route($routePrefix.'.retail.orders.preview')),
         csrfToken: @json(csrf_token()),
 
@@ -79,6 +83,20 @@ function posOrder(){
             );
         },
 
+        isStockCheckEnabled(){
+            return Boolean(this.retailOrderSettings?.checkStockBeforeOrder);
+        },
+
+        canOrderZeroStock(){
+            return Boolean(this.retailOrderSettings?.allowZeroStockOrder);
+        },
+
+        canBypassZeroStock(itemOrProduct){
+            return this.isStockCheckEnabled()
+                && this.canOrderZeroStock()
+                && this.productStock(itemOrProduct) <= 0;
+        },
+
         productStock(product){
             if (!product) return 0;
 
@@ -90,7 +108,11 @@ function posOrder(){
         },
 
         canAddProduct(product){
-            return this.productStock(product) > 0;
+            if (!this.isStockCheckEnabled()) {
+                return true;
+            }
+
+            return this.productStock(product) > 0 || this.canBypassZeroStock(product);
         },
 
         findProductById(productId){
@@ -115,14 +137,15 @@ function posOrder(){
 
         normalizeItem(item){
             const availableStock = this.itemStock(item);
-            const normalizedQty = Math.min(
-                Math.max(1, parseInt(item.qty, 10) || 1),
-                Math.max(availableStock, 1)
-            );
+            let normalizedQty = Math.max(1, parseInt(item.qty, 10) || 1);
+
+            if (this.isStockCheckEnabled() && !(this.canOrderZeroStock() && availableStock <= 0)) {
+                normalizedQty = Math.min(normalizedQty, Math.max(availableStock, 1));
+            }
 
             return {
                 ...item,
-                qty: availableStock > 0 ? normalizedQty : 1,
+                qty: normalizedQty,
                 available_stock: availableStock,
             };
         },
@@ -134,7 +157,12 @@ function posOrder(){
         validateStock(showMessage = true){
             this.syncCartStock();
 
-            const outOfStockItem = this.cart.find(item => item.available_stock <= 0);
+            if (!this.isStockCheckEnabled()) {
+                this.stockError = '';
+                return true;
+            }
+
+            const outOfStockItem = this.cart.find(item => item.available_stock <= 0 && !this.canOrderZeroStock());
             if (outOfStockItem) {
                 if (showMessage) {
                     this.stockError = `${outOfStockItem.name} is out of stock. Remove it to continue.`;
@@ -142,7 +170,7 @@ function posOrder(){
                 return false;
             }
 
-            const invalidQtyItem = this.cart.find(item => this.toNumber(item.qty) > item.available_stock);
+            const invalidQtyItem = this.cart.find(item => item.available_stock > 0 && this.toNumber(item.qty) > item.available_stock);
             if (invalidQtyItem) {
                 if (showMessage) {
                     this.stockError = `Quantity for ${invalidQtyItem.name} cannot exceed available stock (${invalidQtyItem.available_stock}).`;
@@ -155,11 +183,19 @@ function posOrder(){
         },
 
         hasStockIssues(){
+            if (!this.isStockCheckEnabled()) {
+                return false;
+            }
+
             return this.cart.some(item => {
                 const availableStock = this.itemStock(item);
                 const quantity = Math.max(1, parseInt(item.qty, 10) || 1);
 
-                return availableStock <= 0 || quantity > availableStock;
+                if (availableStock <= 0) {
+                    return !this.canOrderZeroStock();
+                }
+
+                return quantity > availableStock;
             });
         },
 
@@ -183,17 +219,22 @@ function posOrder(){
         addProduct(product){
             const availableStock = this.productStock(product);
 
-            if (availableStock <= 0) {
+            if (this.isStockCheckEnabled() && availableStock <= 0 && !this.canOrderZeroStock()) {
                 this.stockError = `${product.name} is out of stock and cannot be added.`;
                 return;
             }
 
             const existing = this.cart.find(i => i.id === product.id);
             if (existing) {
-                existing.qty = Math.min(this.toNumber(existing.qty) + 1, availableStock);
+                existing.qty = this.toNumber(existing.qty) + 1;
+
+                if (this.isStockCheckEnabled() && !(this.canOrderZeroStock() && availableStock <= 0)) {
+                    existing.qty = Math.min(existing.qty, availableStock);
+                }
+
                 existing.available_stock = availableStock;
 
-                if (this.toNumber(existing.qty) >= availableStock) {
+                if (this.isStockCheckEnabled() && availableStock > 0 && this.toNumber(existing.qty) >= availableStock) {
                     this.stockError = `${existing.name} has only ${availableStock} units available.`;
                 }
             } else {
@@ -241,11 +282,39 @@ function posOrder(){
         recalculateItem(item){
             item.qty = Math.max(1, parseInt(item.qty, 10) || 1);
 
-            if (item.available_stock > 0) {
+            if (this.isStockCheckEnabled() && !(this.canOrderZeroStock() && item.available_stock <= 0) && item.available_stock > 0) {
                 item.qty = Math.min(item.qty, item.available_stock);
             }
 
             this.recalculate();
+        },
+
+        quantityInputMax(item){
+            if (!this.isStockCheckEnabled()) {
+                return null;
+            }
+
+            if (this.canOrderZeroStock() && this.toNumber(item.available_stock) <= 0) {
+                return null;
+            }
+
+            return Math.max(this.toNumber(item.available_stock), 1);
+        },
+
+        shouldWarnMaxQuantity(item){
+            return this.isStockCheckEnabled()
+                && this.toNumber(item.available_stock) > 0
+                && this.toNumber(item.qty) >= this.toNumber(item.available_stock);
+        },
+
+        shouldShowOutOfStockNotice(item){
+            return this.toNumber(item.available_stock) <= 0;
+        },
+
+        outOfStockNotice(item){
+            return this.canOrderZeroStock()
+                ? 'This product is currently out of stock, but order creation is allowed by settings.'
+                : 'This product is out of stock and cannot be ordered.';
         },
 
         schedulePreview(){

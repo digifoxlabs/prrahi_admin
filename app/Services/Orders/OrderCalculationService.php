@@ -5,6 +5,7 @@ namespace App\Services\Orders;
 use App\Models\Product;
 use App\Models\Distributor;
 use App\Models\Retailer;
+use App\Models\Setting;
 use Illuminate\Validation\ValidationException;
 
 class OrderCalculationService
@@ -70,6 +71,7 @@ class OrderCalculationService
     ): array {
         $baseState = config('tax.base_state');
         $isIntraState = strcasecmp(trim($state), trim($baseState)) === 0;
+        $stockPolicy = self::resolveStockPolicy($pricing);
 
         $subtotal = 0;
         $calculatedItems = [];
@@ -82,13 +84,13 @@ class OrderCalculationService
             $quantity = (int) $row['quantity'];
             $availableStock = (int) $product->getAvailableStock();
 
-            if ($availableStock <= 0) {
+            if ($stockPolicy['check_stock_before_order'] && $availableStock <= 0 && !$stockPolicy['allow_zero_stock_order']) {
                 throw ValidationException::withMessages([
                     'items' => "{$product->name} is out of stock.",
                 ]);
             }
 
-            if ($quantity > $availableStock) {
+            if ($stockPolicy['check_stock_before_order'] && $availableStock > 0 && $quantity > $availableStock) {
                 throw ValidationException::withMessages([
                     'items' => "Only {$availableStock} units available for {$product->name}.",
                 ]);
@@ -97,15 +99,6 @@ class OrderCalculationService
             $lineGross = round($rate * $quantity, 2);
             $lineDiscount = round($lineGross * ($discountPercent / 100), 2);
             $lineTotal = round($lineGross - $lineDiscount, 2);
-
-            // $calculatedItems[] = [
-            //     'product_id'       => $product->id,
-            //     'price'            => $rate,
-            //     'base_unit'        => $product->base_unit,
-            //     'quantity'         => $quantity,
-            //     'discount_percent' => $discountPercent,
-            //     'total'            => $lineTotal,
-            // ];
 
             // 🔹 Variant handling
             $displayName = $product->name ?? 'Product';
@@ -184,6 +177,28 @@ class OrderCalculationService
             'distributor' => $product->distributor_discount_percent ?? 0,
             default       => 0,
         };
+    }
+
+    private static function resolveStockPolicy(string $pricing): array
+    {
+        if ($pricing === 'retailer') {
+            return [
+                'check_stock_before_order' => Setting::get('retail_orders', 'check_stock_before_order', '0') == '1',
+                'allow_zero_stock_order' => Setting::get('retail_orders', 'allow_zero_stock_order', '0') == '1',
+            ];
+        }
+
+        if ($pricing === 'distributor') {
+            return [
+                'check_stock_before_order' => Setting::get('distributor_orders', 'check_stock_before_order', '0') == '1',
+                'allow_zero_stock_order' => Setting::get('distributor_orders', 'allow_zero_stock_order', '0') == '1',
+            ];
+        }
+
+        return [
+            'check_stock_before_order' => true,
+            'allow_zero_stock_order' => false,
+        ];
     }
 
     private static function calculateTax(

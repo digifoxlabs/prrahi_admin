@@ -18,7 +18,7 @@
                                     <td class="p-2" x-text="item.name"></td>
                                     <td class="p-2" x-text="item.code"></td>
                                     <td class="p-2">
-                                        <input type="number" min="1" :max="item.available_stock"
+                                        <input type="number" min="1" :max="quantityInputMax(item)"
                                                x-model.number="item.qty"
                                                @input="recalculateItem(item)"
                                                class="w-16 border rounded p-1 text-sm">
@@ -40,11 +40,11 @@
                                         <p :class="item.available_stock > 0 ? 'text-emerald-600' : 'text-red-600'">
                                             Available Stock: <span x-text="item.available_stock"></span>
                                         </p>
-                                        <p x-show="item.available_stock > 0 && item.qty >= item.available_stock" class="text-amber-600">
+                                        <p x-show="shouldWarnMaxQuantity(item)" class="text-amber-600">
                                             Maximum order quantity reached for this product.
                                         </p>
-                                        <p x-show="item.available_stock <= 0" class="text-red-600">
-                                            This product is out of stock and cannot be ordered.
+                                        <p x-show="shouldShowOutOfStockNotice(item)" :class="canOrderZeroStock() ? 'text-amber-600' : 'text-red-600'">
+                                            <span x-text="outOfStockNotice(item)"></span>
                                         </p>
                                     </td>
                                 </tr>
