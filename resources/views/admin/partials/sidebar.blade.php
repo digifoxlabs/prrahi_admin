@@ -879,6 +879,38 @@
             </a>
           </li>
 
+          <li>
+            <a
+              href="{{ route('admin.logs.index')}}"
+               @click="selected = (selected === 'Logs' ? '':'Logs')"
+              class="menu-item group"
+              :class="(selected === 'Logs') || (page === 'logs') ? 'menu-item-active' : 'menu-item-inactive'"
+            >
+              <svg
+                :class="(selected === 'Logs') || (page === 'logs') ?  'menu-item-icon-active'  :'menu-item-icon-inactive'"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M6 3.25C4.75736 3.25 3.75 4.25736 3.75 5.5V18.5C3.75 19.7426 4.75736 20.75 6 20.75H18C19.2426 20.75 20.25 19.7426 20.25 18.5V8.12132C20.25 7.52458 20.013 6.95229 19.591 6.53033L16.9697 3.90901C16.5477 3.48705 15.9754 3.25 15.3787 3.25H6ZM5.25 5.5C5.25 5.08579 5.58579 4.75 6 4.75H15V7.25C15 8.49264 16.0074 9.5 17.25 9.5H18.75V18.5C18.75 18.9142 18.4142 19.25 18 19.25H6C5.58579 19.25 5.25 18.9142 5.25 18.5V5.5ZM16.5 5.81066L17.6893 7H17.25C16.8358 7 16.5 6.66421 16.5 6.25V5.81066ZM8 11.25C8 10.8358 8.33579 10.5 8.75 10.5H15.25C15.6642 10.5 16 10.8358 16 11.25C16 11.6642 15.6642 12 15.25 12H8.75C8.33579 12 8 11.6642 8 11.25ZM8 14.75C8 14.3358 8.33579 14 8.75 14H15.25C15.6642 14 16 14.3358 16 14.75C16 15.1642 15.6642 15.5 15.25 15.5H8.75C8.33579 15.5 8 15.1642 8 14.75Z"
+                  fill=""
+                />
+              </svg>
+
+              <span
+                class="menu-item-text"
+                :class="sidebarToggle ? 'lg:hidden' : ''"
+              >
+                Logs
+              </span>
+            </a>
+          </li>
+
 
 
           <!-- Menu Item Profile -->

@@ -20,6 +20,7 @@ use App\Http\Controllers\Distributor\DistAuthController;
 use App\Http\Controllers\Sales\SalesAuthController;
 use App\Http\Controllers\Admin\AdminRetailerController;
 use App\Http\Controllers\Admin\AdminRetailOrderController;
+use App\Http\Controllers\Admin\AdminLogController;
 use App\Http\Controllers\Admin\SalesTypeController;
 use App\Http\Controllers\Admin\VisitController;
 use App\Http\Controllers\Admin\AttendanceRegisterController;
@@ -225,6 +226,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    Route::get('/logs', [AdminLogController::class, 'index'])->name('logs.index');
+    Route::post('/logs/clear', [AdminLogController::class, 'clear'])->name('logs.clear');
 
 
     Route::get('/invoices', [AdminInvoiceController::class, 'index'])->name('invoices.index');

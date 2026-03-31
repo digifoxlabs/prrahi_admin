@@ -73,6 +73,30 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'api_requests' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/api/api-requests.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 14,
+            'replace_placeholders' => true,
+        ],
+
+        'api_sales' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/api/api-sales.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 14,
+            'replace_placeholders' => true,
+        ],
+
+        'api_distributor' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/api/api-distributor.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 14,
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
