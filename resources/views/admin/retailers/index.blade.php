@@ -116,6 +116,7 @@
                             <th class="p-2">Town</th>
                             <th class="p-2">Distributor</th>
                             <th class="p-2">Appointed By</th>
+                            <th class="p-2">DOA</th>
                             @if (($view ?? 'active') !== 'active')
                                 <th class="p-2">Deleted At</th>
                             @endif
@@ -168,13 +169,14 @@
                                     <span>
                                         {{ $appointedLabel }}
                                         @if($appointedName !== '—')
-                                            – <span class="font-medium">{{ $appointedName }}</span>
+                                            : <br> <span class="font-medium">{{ $appointedName }}</span>
                                         @endif
                                     </span>
                                 </div>
 
 
                             </td>
+                            <td class="p-2">{{ $retailer->appointment_date ?? '-' }}</td>
                             @if (($view ?? 'active') !== 'active')
                                 <td class="p-2">{{ optional($retailer->deleted_at)->format('d M Y h:i A') ?? '-' }}</td>
                             @endif

@@ -12,6 +12,7 @@
 
     @php
     $isEdit = isset($order);
+    $showAvailableStock = auth('admin')->check();
     @endphp
 
     {{-- ================= MOBILE PRODUCT BUTTON ================= --}}

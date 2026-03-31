@@ -37,9 +37,11 @@
                                 </tr>
                                 <tr class="bg-gray-50">
                                     <td colspan="8" class="px-2 pb-2 pt-0 text-xs">
-                                        <p :class="item.available_stock > 0 ? 'text-emerald-600' : 'text-red-600'">
-                                            Available Stock: <span x-text="item.available_stock"></span>
-                                        </p>
+                                        @if($showAvailableStock ?? auth('admin')->check())
+                                            <p :class="item.available_stock > 0 ? 'text-emerald-600' : 'text-red-600'">
+                                                Available Stock: <span x-text="item.available_stock"></span>
+                                            </p>
+                                        @endif
                                         <p x-show="shouldWarnMaxQuantity(item)" class="text-amber-600">
                                             Maximum order quantity reached for this product.
                                         </p>

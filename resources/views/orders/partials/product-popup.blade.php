@@ -54,9 +54,11 @@
                                         <p class="font-semibold text-sm" x-text="product.name"></p>
                                         <p class="text-xs text-gray-600" x-text="product.category?.name || 'No Category'"></p>
                                         <p class="text-xs text-gray-500 mt-1" x-text="product.code"></p>
-                                        <p class="text-xs mt-1" :class="productStock(product) > 0 ? 'text-emerald-600' : 'text-red-600'">
-                                            Available Stock: <span x-text="productStock(product)"></span>
-                                        </p>
+                                        @if($showAvailableStock ?? auth('admin')->check())
+                                            <p class="text-xs mt-1" :class="productStock(product) > 0 ? 'text-emerald-600' : 'text-red-600'">
+                                                Available Stock: <span x-text="productStock(product)"></span>
+                                            </p>
+                                        @endif
                                     </div>
                                     <div class="text-right">
                                                   <span class="text-xs font-medium text-green-600">
@@ -84,9 +86,11 @@
                                                 <div class="text-left">
                                                     <p class="font-semibold text-sm" x-text="product.name"></p>
                                                     <p class="text-xs text-gray-600" x-text="product.category?.name || 'No Category'"></p>
-                                                    <p class="text-xs mt-1" :class="productStock(product) > 0 ? 'text-emerald-600' : 'text-red-600'">
-                                                        Available Stock: <span x-text="productStock(product)"></span>
-                                                    </p>
+                                                    @if($showAvailableStock ?? auth('admin')->check())
+                                                        <p class="text-xs mt-1" :class="productStock(product) > 0 ? 'text-emerald-600' : 'text-red-600'">
+                                                            Available Stock: <span x-text="productStock(product)"></span>
+                                                        </p>
+                                                    @endif
                                                 </div>
                                             </div>
                                             <div class="flex items-center gap-2">
@@ -118,10 +122,12 @@
                                                             </span>
                                                         </span>
                                                         <span class="text-xs text-gray-500 block mt-1" x-text="variant.code"></span>
-                                                        <span class="text-xs block mt-1"
-                                                              :class="productStock(variant) > 0 ? 'text-emerald-600' : 'text-red-600'">
-                                                            Available Stock: <span x-text="productStock(variant)"></span>
-                                                        </span>
+                                                        @if($showAvailableStock ?? auth('admin')->check())
+                                                            <span class="text-xs block mt-1"
+                                                                  :class="productStock(variant) > 0 ? 'text-emerald-600' : 'text-red-600'">
+                                                                Available Stock: <span x-text="productStock(variant)"></span>
+                                                            </span>
+                                                        @endif
                                                     </div>
                                                     <div class="text-right">
                                                         <span class="text-xs text-green-600 font-medium">
