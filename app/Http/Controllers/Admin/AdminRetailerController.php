@@ -37,9 +37,9 @@ class AdminRetailerController extends Controller
                         ->orWhere('town', 'like', "%{$search}%");
                 });
             })
-            ->orderBy('retailer_name')
+            ->latest('created_at')
             ->paginate(15)
-            ->withQueryString();
+            ->appends(request()->query());
 
         return view('admin.retailers.index', [
             'retailers' => $retailers,
