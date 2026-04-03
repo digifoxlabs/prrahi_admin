@@ -10,6 +10,8 @@ use App\Models\State;
 use App\Models\District;
 use Illuminate\Support\Facades\DB;
 use LogicException;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\RetailersExport;
 
 class AdminRetailerController extends Controller
 {
@@ -122,6 +124,17 @@ class AdminRetailerController extends Controller
         } catch (LogicException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+    }
+
+    public function export(Request $request)
+    {
+        $search = $request->query('search');
+        $view = $request->query('view', 'active');
+
+        return Excel::download(
+            new RetailersExport($search, $view),
+            'retailers.xlsx'
+        );
     }
 
     private function validatedData(Request $request): array

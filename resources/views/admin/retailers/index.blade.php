@@ -81,7 +81,7 @@
                                         class="block w-full px-4 py-2 text-sm text-left hover:bg-gray-50 dark:hover:bg-neutral-800">
                                     Export Current Page
                                 </button>
-                                <a :href="'{{ route('admin.retailers.export') }}?search='+encodeURIComponent(search)"
+                                <a :href="'{{ route('admin.retailers.export') }}?search='+encodeURIComponent(search)+'&view='+encodeURIComponent(view)"
                                    @click="open=false"
                                    class="block px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-neutral-800">
                                     Export All

@@ -234,11 +234,10 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::get('/invoices', [AdminInvoiceController::class, 'index'])->name('invoices.index');
 
     //Retailers
+    Route::get('retailers/export', [AdminRetailerController::class, 'export'])->name('retailers.export');
     Route::patch('retailers/{id}/restore', [AdminRetailerController::class, 'restore'])->name('retailers.restore');
     Route::delete('retailers/{id}/force-delete', [AdminRetailerController::class, 'forceDelete'])->name('retailers.forceDelete');
     Route::resource('retailers', AdminRetailerController::class)->names('retailers')->only(['index','create','edit','show','destroy']);
-
-    Route::get('retailers/export', [AdminRetailerController::class, 'export'])->name('retailers.export');
 
     // retail Order
      Route::resource('retail/orders', AdminRetailOrderController::class)->only(['index','create','edit','show','destroy'])->names('retail.orders');
